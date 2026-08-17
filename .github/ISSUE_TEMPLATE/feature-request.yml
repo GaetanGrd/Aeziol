@@ -1,0 +1,29 @@
+name: Proposer une amélioration
+description: Suggérer une évolution cohérente avec Aeziol
+title: "[Idée] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problème rencontré
+      description: Expliquez le besoin avant de proposer l’interface ou la solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposition
+      description: Décrivez le parcours idéal et son comportement dans les cas limites.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives envisagées
+  - type: textarea
+    id: safety
+    attributes:
+      label: Impact audio et confidentialité
+      description: Indiquez les effets possibles sur la restauration, Discord ou les données locales.

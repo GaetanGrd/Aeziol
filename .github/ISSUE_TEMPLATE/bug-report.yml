@@ -1,0 +1,72 @@
+name: Signaler un bug
+description: Décrire un comportement reproductible d’Aeziol
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Merci de relire les captures et journaux avant publication. Pour une vulnérabilité,
+        utilisez exclusivement un avis de sécurité privé.
+  - type: input
+    id: version
+    attributes:
+      label: Version d’Aeziol
+      placeholder: 0.9.0-beta.1
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Version de Windows
+      placeholder: Windows 11 24H2, build 26100
+    validations:
+      required: true
+  - type: dropdown
+    id: discord
+    attributes:
+      label: Édition de Discord
+      options:
+        - Stable
+        - PTB
+        - Canary
+        - Development
+        - Discord non concerné
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Étapes de reproduction
+      description: Donnez une suite d’actions minimale et précise.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Résultat attendu
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Résultat observé
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Journaux ou captures expurgés
+      description: Ne publiez aucun jeton, chemin personnel ou identifiant privé.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Vérifications
+      options:
+        - label: J’utilise la dernière bêta disponible.
+          required: true
+        - label: Ce signalement ne contient aucune donnée sensible.
+          required: true
+        - label: Ce problème n’est pas une vulnérabilité de sécurité.
+          required: true

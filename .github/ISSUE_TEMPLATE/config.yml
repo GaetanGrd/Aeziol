@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question ou dépannage
+    url: https://github.com/GaetanGrd/Aeziol/blob/main/SUPPORT.md
+    about: Consultez le guide de support avant d’ouvrir un bug.
+  - name: Vulnérabilité de sécurité
+    url: https://github.com/GaetanGrd/Aeziol/security/advisories/new
+    about: Signalez une vulnérabilité en privé.
