@@ -26,10 +26,24 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore Aeziol.slnx
+        run: dotnet restore Aeziol.slnx --artifacts-path .aez-local/ci
 
       - name: Build
-        run: dotnet build Aeziol.slnx -c Release --no-restore
+        run: dotnet build Aeziol.slnx -c Release --no-restore --artifacts-path .aez-local/ci
 
       - name: Test
-        run: dotnet test --solution Aeziol.slnx -c Release --no-build --timeout 60s
+        shell: pwsh
+        run: |
+          $runners = @(Get-ChildItem `
+            -LiteralPath '.aez-local\ci\bin\Aeziol.Tests' `
+            -Filter 'Aeziol.Tests.exe' `
+            -File `
+            -Recurse)
+          if ($runners.Count -ne 1) {
+            throw "Expected exactly one test runner, found $($runners.Count)."
+          }
+
+          & $runners[0].FullName --timeout 60s
+          if ($LASTEXITCODE -ne 0) {
+            throw "The test runner exited with code $LASTEXITCODE."
+          }
