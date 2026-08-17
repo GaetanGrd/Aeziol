@@ -92,6 +92,58 @@
                             Style="{StaticResource PrimaryButton}" Click="OnContinue" />
                 </Grid>
 
+                <Grid x:Name="MusicStep" Grid.Column="1" Margin="30,2,0,0" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock x:Name="MusicTitleText" FontSize="27" FontWeight="SemiBold" />
+                        <TextBlock x:Name="MusicHelpText" Margin="0,7,0,0" Style="{StaticResource PageSubtitle}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Margin="0,24,0,0">
+                        <Border Padding="14" CornerRadius="16"
+                                Background="{DynamicResource AeziolSurface}"
+                                BorderBrush="{DynamicResource AeziolBorder}" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="88" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="76" Height="76" CornerRadius="14" ClipToBounds="True"
+                                        BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="1">
+                                    <Image Stretch="UniformToFill"
+                                           Source="/Aeziol.App;component/Assets/Audio/onde-doree-cover.png" />
+                                </Border>
+                                <StackPanel Grid.Column="1" Margin="6,4,0,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="MusicTrackTitleText" FontSize="14" FontWeight="SemiBold" />
+                                    <TextBlock x:Name="MusicCreditText" Margin="0,4,0,0" FontSize="10"
+                                               Foreground="{DynamicResource AeziolDim}" />
+                                    <TextBlock x:Name="MusicPurposeText" Margin="0,9,0,0" FontSize="10"
+                                               Foreground="{DynamicResource AeziolMuted}" TextWrapping="Wrap"
+                                               LineHeight="15" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Margin="0,14,0,0" Padding="15" CornerRadius="14"
+                                Background="{DynamicResource AeziolRaised}"
+                                BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="1">
+                            <CheckBox x:Name="MusicEnabledCheck" Style="{StaticResource ToggleSwitch}"
+                                      Click="OnMusicEnabledChanged" />
+                        </Border>
+                        <TextBlock x:Name="MusicChoiceHintText" Margin="2,12,0,0" FontSize="10"
+                                   Foreground="{DynamicResource AeziolDim}" TextWrapping="Wrap" LineHeight="15" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="MusicBackButton" Margin="0,0,8,0" MinWidth="96"
+                                Style="{StaticResource ActionButton}" Click="OnMusicBack" />
+                        <Button x:Name="MusicContinueButton" MinWidth="132"
+                                Style="{StaticResource PrimaryButton}" Click="OnMusicContinue" />
+                    </StackPanel>
+                </Grid>
+
                 <Grid x:Name="PaletteStep" Grid.Column="1" Margin="30,2,0,0" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />

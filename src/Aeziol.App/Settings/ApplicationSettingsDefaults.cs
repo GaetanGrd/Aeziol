@@ -16,6 +16,7 @@ internal static class ApplicationSettingsDefaults
             AmbientMusicVolumePercent = defaults.AmbientMusicVolumePercent,
             PauseAmbientMusicWhenUnfocused = defaults.PauseAmbientMusicWhenUnfocused,
             UseHardwareAcceleration = defaults.UseHardwareAcceleration,
+            UpdateChannel = defaults.UpdateChannel,
             StartWithWindows = defaults.StartWithWindows,
             CloseBehavior = defaults.CloseBehavior,
             ExitGracePeriodSeconds = defaults.ExitGracePeriodSeconds,

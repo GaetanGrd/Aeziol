@@ -19,6 +19,7 @@ public sealed class ApplicationSettingsDefaultsTests
             AmbientMusicVolumePercent = 73,
             PauseAmbientMusicWhenUnfocused = false,
             UseHardwareAcceleration = false,
+            UpdateChannel = UpdateChannel.Beta,
             DiscordClientId = "discord-client",
             DiscordRedirectUri = "http://127.0.0.1/custom",
             DiscordExecutablePath = @"C:\Discord\Discord.exe",
@@ -41,6 +42,7 @@ public sealed class ApplicationSettingsDefaultsTests
         Assert.Equal(defaults.AmbientMusicVolumePercent, reset.AmbientMusicVolumePercent);
         Assert.Equal(defaults.PauseAmbientMusicWhenUnfocused, reset.PauseAmbientMusicWhenUnfocused);
         Assert.Equal(defaults.UseHardwareAcceleration, reset.UseHardwareAcceleration);
+        Assert.Equal(defaults.UpdateChannel, reset.UpdateChannel);
         Assert.Equal(defaults.StartWithWindows, reset.StartWithWindows);
         Assert.Equal(defaults.CloseBehavior, reset.CloseBehavior);
         Assert.Equal(defaults.ExitGracePeriodSeconds, reset.ExitGracePeriodSeconds);

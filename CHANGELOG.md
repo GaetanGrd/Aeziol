@@ -4,6 +4,16 @@ Ce fichier suit les principes de [Keep a Changelog](https://keepachangelog.com/f
 
 ## [Non publié]
 
+### Ajouté
+
+- mise à jour intégrée depuis les releases GitHub avec canaux Stable et Bêta ;
+- téléchargement MSIX limité à GitHub et vérifié par SHA-256 avant installation ;
+- choix explicite de la musique d’ambiance pendant le premier lancement.
+
+### Modifié
+
+- crédit de la musique « Onde dorée » attribué uniquement à Suno dans l’interface et la documentation.
+
 ### Prévu
 
 - retours de la bêta publique et corrections de compatibilité Windows 11 ;

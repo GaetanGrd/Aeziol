@@ -1022,6 +1022,44 @@
                                                     </StackPanel>
 
                                                     <StackPanel x:Name="MaintenanceEditorPanel" Visibility="Collapsed">
+                                                        <Grid Margin="0,0,0,7">
+                                                            <TextBlock x:Name="UpdateChannelLabelText"
+                                                                       Style="{StaticResource SectionLabel}" />
+                                                            <Button HorizontalAlignment="Right"
+                                                                    Style="{StaticResource SettingsHoverResetButton}"
+                                                                    Tag="UpdateChannel" Click="OnResetSetting" />
+                                                        </Grid>
+                                                        <ComboBox x:Name="UpdateChannelCombo"
+                                                                  SelectionChanged="OnUpdateChannelChanged">
+                                                            <ComboBoxItem Tag="Stable" />
+                                                            <ComboBoxItem Tag="Beta" />
+                                                        </ComboBox>
+                                                        <TextBlock x:Name="UpdateChannelHelpText"
+                                                                   Margin="2,7,0,0" FontSize="10"
+                                                                   Foreground="{DynamicResource AeziolDim}"
+                                                                   TextWrapping="Wrap" />
+                                                        <Border Margin="0,14,0,0" Padding="14"
+                                                                CornerRadius="11"
+                                                                Background="{DynamicResource AeziolRaised}"
+                                                                BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                                                BorderThickness="1">
+                                                            <StackPanel>
+                                                                <TextBlock x:Name="UpdateStatusText" FontSize="11"
+                                                                           TextWrapping="Wrap" LineHeight="16" />
+                                                                <Button x:Name="CheckUpdatesButton" Margin="0,11,0,0"
+                                                                        HorizontalAlignment="Stretch"
+                                                                        Style="{StaticResource ActionButton}"
+                                                                        Click="OnCheckUpdates" />
+                                                                <Button x:Name="DownloadUpdateButton" Margin="0,8,0,0"
+                                                                        HorizontalAlignment="Stretch"
+                                                                        Style="{StaticResource PrimaryButton}"
+                                                                        Visibility="Collapsed"
+                                                                        Click="OnDownloadUpdate" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <Border Margin="0,16,0,16"
+                                                                BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                                                BorderThickness="0,1,0,0" />
                                                         <Border Style="{StaticResource SettingsOptionRow}">
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>

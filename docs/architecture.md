@@ -4,7 +4,7 @@ Aeziol sépare l’observation, la décision et l’effet système afin que le c
 
 ## Projets
 
-- `Aeziol.App` : cycle de vie WPF, paramètres, localisation, musique, notifications et composition des services ;
+- `Aeziol.App` : cycle de vie WPF, paramètres, localisation, musique, notifications, mises à jour et composition des services ;
 - `Aeziol.Core` : règles, états vocaux, orchestration du routage et journal de transaction ;
 - `Aeziol.Infrastructure.Discord` : découverte des processus et pipes RPC, OAuth/PKCE et stockage sécurisé ;
 - `Aeziol.Infrastructure.Windows` : inventaire Core Audio et changement des rôles de sortie Windows ;
@@ -31,6 +31,12 @@ Les exceptions globales sont journalisées après assainissement, puis l’appli
 ## Persistance
 
 Les paramètres utilisent un schéma versionné, une sauvegarde de la génération précédente et des écritures atomiques. Une version d’Aeziol plus ancienne refuse d’écraser un schéma plus récent.
+
+## Mises à jour
+
+Au démarrage, `AppUpdateService` consulte les releases GitHub publiques. Le canal Stable ignore les prereleases ; le canal Bêta accepte les versions stables et les bêtas plus récentes. Les drafts sont toujours ignorées.
+
+Une mise à jour n’est proposée que si la release contient le MSIX attendu et son fichier `.sha256`. Le paquet est téléchargé dans `%LOCALAPPDATA%\Aeziol\updates`, limité en taille, puis conservé uniquement si son SHA-256 correspond. Aeziol ouvre ensuite l’installateur Windows après confirmation de l’utilisateur : aucune installation silencieuse n’est déclenchée.
 
 ## Frontières techniques
 

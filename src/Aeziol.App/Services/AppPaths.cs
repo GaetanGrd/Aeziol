@@ -17,4 +17,6 @@ public sealed record AppPaths(string DataDirectory)
     public string LogsDirectory => Path.Combine(DataDirectory, "logs");
 
     public string LanguagesDirectory => Path.Combine(DataDirectory, "languages");
+
+    public string UpdatesDirectory => Path.Combine(DataDirectory, "updates");
 }

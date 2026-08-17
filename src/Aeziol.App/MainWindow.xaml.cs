@@ -21,11 +21,13 @@ namespace Aeziol.App;
 public partial class MainWindow : Window
 {
     private const string ProjectUrl = "https://github.com/GaetanGrd/Aeziol";
+    private static readonly HttpClient UpdateHttpClient = new() { Timeout = TimeSpan.FromMinutes(10) };
     private readonly AeziolRuntime _runtime;
     private readonly JsonAppSettingsStore _settingsStore;
     private readonly LocalizationService _localization;
     private readonly AppPaths _paths;
     private readonly Task _runtimeInitialization;
+    private readonly AppUpdateService _updateService;
     private readonly SemaphoreSlim _settingsGate = new(1, 1);
     private readonly NotificationCenter _notifications = new();
     private List<EndpointChoice> _endpointChoices = [];
@@ -33,6 +35,8 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _endpointRefreshCancellation;
     private CancellationTokenSource? _authorizationCancellation;
     private CancellationTokenSource? _ambientMusicVolumeSaveCancellation;
+    private CancellationTokenSource? _updateCheckCancellation;
+    private CancellationTokenSource? _updateDownloadCancellation;
     private System.Windows.Threading.DispatcherTimer? _authorizationTimer;
     private DateTimeOffset _authorizationStartedAt;
     private TaskCompletionSource<ModalDecision>? _modalCompletion;
@@ -41,6 +45,11 @@ public partial class MainWindow : Window
     private bool _aboutMusicCoverFailed;
     private bool _settingsMusicCoverFailed;
     private bool? _lastDiscordAuthorizationState;
+    private bool _updateCheckCompleted;
+    private bool _updateCheckInProgress;
+    private bool _updateDownloadInProgress;
+    private double _updateDownloadProgress;
+    private AppUpdateRelease? _availableUpdate;
     private readonly ScaleTransform _closeActionsMenuScale = new(1, 1);
 
     public MainWindow(
@@ -55,6 +64,7 @@ public partial class MainWindow : Window
         _localization = localization;
         _paths = paths;
         _runtimeInitialization = runtimeInitialization;
+        _updateService = new AppUpdateService(UpdateHttpClient, paths.UpdatesDirectory);
         InitializeComponent();
         CloseActionsMenu.LayoutTransform = _closeActionsMenuScale;
         NotificationItems.ItemsSource = _notifications.Items;
@@ -97,6 +107,8 @@ public partial class MainWindow : Window
                 await _runtime.ResolveRecoveryAsync(decision == ModalDecision.Confirm).ConfigureAwait(true);
                 await RefreshEndpointsAsync(debounce: false).ConfigureAwait(true);
             }
+
+            _ = CheckForUpdatesAsync(showResultNotification: false);
         }
         catch (Exception exception)
         {
@@ -118,6 +130,7 @@ public partial class MainWindow : Window
             AmbientMusicToggle.IsChecked = settings.AmbientMusicEnabled;
             PauseAmbientMusicWhenUnfocusedToggle.IsChecked = settings.PauseAmbientMusicWhenUnfocused;
             HardwareAccelerationToggle.IsChecked = settings.UseHardwareAcceleration;
+            SelectByTag(UpdateChannelCombo, settings.UpdateChannel.ToString());
             DiscordExecutablePathTextBox.Text = settings.DiscordExecutablePath ?? string.Empty;
             RefreshLanguageChoices(settings.Language);
             SelectByTag(ThemeCombo, settings.Theme.ToString());
@@ -700,6 +713,173 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OnUpdateChannelChanged(object sender, SelectionChangedEventArgs eventArgs)
+    {
+        if (_initializing || _syncingControls
+            || !Enum.TryParse<UpdateChannel>(SelectedTag(UpdateChannelCombo), out var channel))
+        {
+            return;
+        }
+
+        try
+        {
+            _updateCheckCancellation?.Cancel();
+            _availableUpdate = null;
+            _updateCheckCompleted = false;
+            await PersistSettingsAsync(settings => settings with { UpdateChannel = channel }).ConfigureAwait(true);
+            RefreshUpdatePresentation();
+            await CheckForUpdatesAsync(showResultNotification: true).ConfigureAwait(true);
+        }
+        catch (Exception exception)
+        {
+            await ShowErrorAsync(_localization.Get("update-channel", SelectedRegister), exception).ConfigureAwait(true);
+        }
+    }
+
+    private async void OnCheckUpdates(object sender, RoutedEventArgs eventArgs) =>
+        await CheckForUpdatesAsync(showResultNotification: true).ConfigureAwait(true);
+
+    private async Task CheckForUpdatesAsync(bool showResultNotification)
+    {
+        _updateCheckCancellation?.Cancel();
+        _updateCheckCancellation?.Dispose();
+        var cancellation = new CancellationTokenSource();
+        _updateCheckCancellation = cancellation;
+        _updateCheckInProgress = true;
+        RefreshUpdatePresentation();
+        try
+        {
+            var update = await _updateService.CheckAsync(
+                ApplicationVersion.Current,
+                _runtime.Settings.UpdateChannel,
+                cancellation.Token).ConfigureAwait(true);
+            if (!ReferenceEquals(_updateCheckCancellation, cancellation))
+            {
+                return;
+            }
+
+            _availableUpdate = update;
+            _updateCheckCompleted = true;
+            if (update is not null)
+            {
+                ShowNotification(
+                    $"{_localization.Get("update-found-notification", SelectedRegister)} {update.Version}",
+                    NotificationSeverity.Warning);
+            }
+            else if (showResultNotification)
+            {
+                ShowNotification(
+                    _localization.Get("update-current", SelectedRegister),
+                    NotificationSeverity.Information);
+            }
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+        }
+        catch (Exception)
+        {
+            _updateCheckCompleted = false;
+            if (showResultNotification)
+            {
+                ShowNotification(
+                    _localization.Get("update-check-failed", SelectedRegister),
+                    NotificationSeverity.Error);
+            }
+        }
+        finally
+        {
+            if (ReferenceEquals(_updateCheckCancellation, cancellation))
+            {
+                _updateCheckCancellation = null;
+                _updateCheckInProgress = false;
+                cancellation.Dispose();
+                RefreshUpdatePresentation();
+            }
+        }
+    }
+
+    private async void OnDownloadUpdate(object sender, RoutedEventArgs eventArgs)
+    {
+        if (_availableUpdate is not { } update || _updateDownloadInProgress)
+        {
+            return;
+        }
+
+        _updateDownloadCancellation?.Cancel();
+        _updateDownloadCancellation?.Dispose();
+        var cancellation = new CancellationTokenSource();
+        _updateDownloadCancellation = cancellation;
+        _updateDownloadInProgress = true;
+        _updateDownloadProgress = 0;
+        RefreshUpdatePresentation();
+        try
+        {
+            var progress = new Progress<double>(value =>
+            {
+                _updateDownloadProgress = Math.Clamp(value, 0, 1);
+                RefreshUpdatePresentation();
+            });
+            var packagePath = await _updateService.DownloadAsync(
+                update,
+                progress,
+                cancellation.Token).ConfigureAwait(true);
+            var decision = await ShowModalAsync(
+                _localization.Get("update-ready-title", SelectedRegister),
+                _localization.Get("update-ready-message", SelectedRegister),
+                _localization.Get("update-ready-confirm", SelectedRegister)).ConfigureAwait(true);
+            if (decision == ModalDecision.Confirm)
+            {
+                AppUpdateService.LaunchInstaller(packagePath);
+            }
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            await ShowErrorAsync(_localization.Get("update-ready-title", SelectedRegister), exception)
+                .ConfigureAwait(true);
+        }
+        finally
+        {
+            if (ReferenceEquals(_updateDownloadCancellation, cancellation))
+            {
+                _updateDownloadCancellation = null;
+                _updateDownloadInProgress = false;
+                cancellation.Dispose();
+                RefreshUpdatePresentation();
+            }
+        }
+    }
+
+    private void RefreshUpdatePresentation()
+    {
+        if (!IsInitialized)
+        {
+            return;
+        }
+
+        CheckUpdatesButton.IsEnabled = !_updateCheckInProgress && !_updateDownloadInProgress;
+        UpdateChannelCombo.IsEnabled = !_updateCheckInProgress && !_updateDownloadInProgress;
+        DownloadUpdateButton.IsEnabled = !_updateDownloadInProgress;
+        DownloadUpdateButton.Visibility = _availableUpdate is null
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        DownloadUpdateButton.Content = _availableUpdate is { } update
+            ? $"{_localization.Get("update-download", SelectedRegister)} · {update.Version}"
+            : _localization.Get("update-download", SelectedRegister);
+
+        UpdateStatusText.Text = _updateDownloadInProgress
+            ? $"{_localization.Get("update-download-progress", SelectedRegister)} {_updateDownloadProgress:P0}"
+            : _updateCheckInProgress
+                ? _localization.Get("update-checking", SelectedRegister)
+                : _availableUpdate is { } available
+                    ? $"{_localization.Get("update-available", SelectedRegister)} {available.Version}"
+                    : _updateCheckCompleted
+                        ? _localization.Get("update-current", SelectedRegister)
+                        : _localization.Get("update-idle", SelectedRegister);
+    }
+
     private async void OnResetSetting(object sender, RoutedEventArgs eventArgs)
     {
         if (sender is not System.Windows.Controls.Button { Tag: string setting })
@@ -727,6 +907,7 @@ public partial class MainWindow : Window
             {
                 UseHardwareAcceleration = defaults.UseHardwareAcceleration,
             },
+            "UpdateChannel" => current => current with { UpdateChannel = defaults.UpdateChannel },
             _ => null,
         };
         if (update is null)
@@ -758,8 +939,18 @@ public partial class MainWindow : Window
                 UpdateMusicCovers();
             }
 
+            if (setting == "UpdateChannel")
+            {
+                _availableUpdate = null;
+                _updateCheckCompleted = false;
+            }
+
             LoadSettingsIntoControls(_runtime.Settings);
             ApplyLocalization();
+            if (setting == "UpdateChannel")
+            {
+                await CheckForUpdatesAsync(showResultNotification: true).ConfigureAwait(true);
+            }
         }
         catch (Exception exception)
         {
@@ -791,6 +982,9 @@ public partial class MainWindow : Window
             LoadSettingsIntoControls(_runtime.Settings);
             ApplyLocalization();
             UpdateMusicCovers();
+            _availableUpdate = null;
+            _updateCheckCompleted = false;
+            await CheckForUpdatesAsync(showResultNotification: false).ConfigureAwait(true);
         }
         catch (Exception exception)
         {
@@ -1313,9 +1507,12 @@ public partial class MainWindow : Window
             : isWarning
                 ? NotificationSeverity.Warning
                 : NotificationSeverity.Success;
-        var notification = _notifications.Publish(
-            _localization.Get(localizationKey, SelectedRegister),
-            severity);
+        ShowNotification(_localization.Get(localizationKey, SelectedRegister), severity);
+    }
+
+    private void ShowNotification(string message, NotificationSeverity severity)
+    {
+        var notification = _notifications.Publish(message, severity);
         NotificationHost.Visibility = Visibility.Visible;
         var timer = new System.Windows.Threading.DispatcherTimer
         {
@@ -1499,6 +1696,11 @@ public partial class MainWindow : Window
         PauseAmbientMusicWhenUnfocusedText.Text = _localization.Get("ambient-music-pause-unfocused", register);
         HardwareAccelerationText.Text = _localization.Get("hardware-acceleration", register);
         HardwareAccelerationHintText.Text = _localization.Get("hardware-acceleration-restart", register);
+        UpdateChannelLabelText.Text = _localization.Get("update-channel", register);
+        ((ComboBoxItem)UpdateChannelCombo.Items[0]).Content = _localization.Get("update-channel-stable", register);
+        ((ComboBoxItem)UpdateChannelCombo.Items[1]).Content = _localization.Get("update-channel-beta", register);
+        UpdateChannelHelpText.Text = _localization.Get("update-channel-help", register);
+        CheckUpdatesButton.Content = _localization.Get("update-check", register);
         var resetSettingLabel = _localization.Get("reset-setting", register);
         var resetButtonStyle = (Style)FindResource("SettingsHoverResetButton");
         foreach (var resetButton in FindVisualChildren<System.Windows.Controls.Button>(SettingsView)
@@ -1569,6 +1771,7 @@ public partial class MainWindow : Window
         UpdateRouteSummary();
         UpdateNavigationContext();
         UpdateSettingsSummaries();
+        RefreshUpdatePresentation();
     }
 
     private void OnNavigatePassage(object sender, RoutedEventArgs eventArgs)
@@ -1836,7 +2039,12 @@ public partial class MainWindow : Window
         var musicEnabled = AmbientMusicToggle.IsChecked == true;
         var volume = Math.Clamp((int)Math.Round(AmbientMusicVolumeSlider.Value), 0, 100);
         MusicSummaryText.Text = $"{_localization.Get(musicEnabled ? "active" : "paused", SelectedRegister)} · {volume} %";
-        ApplicationSummaryText.Text = ApplicationVersion.Current;
+        var updateChannel = _localization.Get(
+            _runtime.Settings.UpdateChannel == UpdateChannel.Beta
+                ? "update-channel-beta"
+                : "update-channel-stable",
+            SelectedRegister);
+        ApplicationSummaryText.Text = $"{ApplicationVersion.Current} · {updateChannel}";
     }
 
     private void AnimateSettingsPanel(FrameworkElement panel)
@@ -1873,12 +2081,25 @@ public partial class MainWindow : Window
             _runtime.Settings.Theme,
             _runtime.Settings.EnhanceContrast,
             _runtime.Settings.StartWithWindows,
-            _runtime.Settings.ReduceAnimations)
+            _runtime.Settings.ReduceAnimations,
+            _runtime.Settings.AmbientMusicEnabled,
+            enabled =>
+            {
+                if (System.Windows.Application.Current is App app)
+                {
+                    app.ApplyAmbientMusic(_runtime.Settings with { AmbientMusicEnabled = enabled });
+                }
+            })
         {
             Owner = this,
         };
         if (onboarding.ShowDialog() != true)
         {
+            if (System.Windows.Application.Current is App app)
+            {
+                app.ApplyAmbientMusic(_runtime.Settings);
+            }
+
             return;
         }
 
@@ -1894,6 +2115,7 @@ public partial class MainWindow : Window
                     Theme = onboarding.SelectedTheme,
                     StartWithWindows = onboarding.StartWithWindows,
                     ReduceAnimations = onboarding.ReduceAnimations,
+                    AmbientMusicEnabled = onboarding.AmbientMusicEnabled,
                 },
                 updateAutostart: true).ConfigureAwait(true);
             LoadSettingsIntoControls(_runtime.Settings);
@@ -2185,6 +2407,10 @@ public partial class MainWindow : Window
         _endpointRefreshCancellation?.Dispose();
         _ambientMusicVolumeSaveCancellation?.Cancel();
         _ambientMusicVolumeSaveCancellation?.Dispose();
+        _updateCheckCancellation?.Cancel();
+        _updateCheckCancellation?.Dispose();
+        _updateDownloadCancellation?.Cancel();
+        _updateDownloadCancellation?.Dispose();
         SettingsMusicAnimatedCover.Stop();
         AboutMusicAnimatedCover.Stop();
         _settingsGate.Dispose();

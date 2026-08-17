@@ -29,6 +29,13 @@ La commande :
 
 Une draft n’est pas visible comme release publique. Elle doit être testée, relue et signée avant publication manuelle.
 
+Le système de mise à jour intégré ne voit que les releases publiées. Il attend exactement les deux artefacts suivants, où `<version>` correspond au tag sans le préfixe `v` :
+
+- `Aeziol-<version>-x64.msix` ;
+- `Aeziol-<version>-x64.msix.sha256`.
+
+Une release stable doit utiliser un tag `vX.Y.Z` et ne pas être marquée prerelease. Une bêta utilise `vX.Y.Z-beta.N` et doit être marquée prerelease. Toute incohérence est ignorée par le client.
+
 ## Signature MSIX
 
 Le workflow signe le package lorsque ces secrets GitHub sont présents :
@@ -55,6 +62,7 @@ Les révisions bêta acceptées vont de 1 à 65534. Une version stable utilise l
 - le MSIX est signé par l’éditeur attendu ;
 - le SHA-256 correspond ;
 - installation propre et mise à jour depuis la bêta précédente testées ;
+- détection testée depuis les canaux Stable et Bêta, puis téléchargement et ouverture de l’installateur validés ;
 - première autorisation Discord, entrée/sortie de vocal et restauration après redémarrage testées ;
 - aucun secret ni chemin local dans les notes ou artefacts ;
 - changelog et numéro de version à jour.

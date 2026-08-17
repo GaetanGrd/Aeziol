@@ -23,9 +23,15 @@ public enum AeziolTheme
     Chaos,
 }
 
+public enum UpdateChannel
+{
+    Stable,
+    Beta,
+}
+
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -48,6 +54,8 @@ public sealed record AppSettings
     public bool PauseAmbientMusicWhenUnfocused { get; init; } = true;
 
     public bool UseHardwareAcceleration { get; init; } = true;
+
+    public UpdateChannel UpdateChannel { get; init; } = UpdateChannel.Stable;
 
     public string DiscordClientId { get; init; } = "1538505326641414154";
 

@@ -75,6 +75,10 @@ public sealed class LocalizationServiceTests : IDisposable
             "ambient-music-enabled",
             "settings-section-general",
             "settings-section-discord",
+            "first-run-music-enable",
+            "update-channel",
+            "update-check",
+            "update-download",
         };
 
         foreach (var key in requiredKeys)

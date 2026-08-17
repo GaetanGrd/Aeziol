@@ -20,6 +20,7 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
         Assert.Equal(8, settings.AmbientMusicVolumePercent);
         Assert.True(settings.PauseAmbientMusicWhenUnfocused);
         Assert.True(settings.UseHardwareAcceleration);
+        Assert.Equal(UpdateChannel.Stable, settings.UpdateChannel);
     }
 
     [Fact]
@@ -50,6 +51,7 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
             AmbientMusicVolumePercent = 12,
             PauseAmbientMusicWhenUnfocused = false,
             UseHardwareAcceleration = false,
+            UpdateChannel = UpdateChannel.Beta,
             DiscordExecutablePath = @"C:\Tools\Discord\Discord.exe",
             DiscordExecutableSearchCompleted = true,
             TargetEndpointId = "endpoint-1",
@@ -67,6 +69,7 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
         Assert.Equal(expected.AmbientMusicVolumePercent, actual.AmbientMusicVolumePercent);
         Assert.Equal(expected.PauseAmbientMusicWhenUnfocused, actual.PauseAmbientMusicWhenUnfocused);
         Assert.Equal(expected.UseHardwareAcceleration, actual.UseHardwareAcceleration);
+        Assert.Equal(expected.UpdateChannel, actual.UpdateChannel);
         Assert.Equal(expected.DiscordExecutablePath, actual.DiscordExecutablePath);
         Assert.True(actual.DiscordExecutableSearchCompleted);
         Assert.Equal(expected.TargetEndpointId, actual.TargetEndpointId);

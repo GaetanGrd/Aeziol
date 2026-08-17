@@ -25,6 +25,7 @@ Aeziol est une application Windows 11 légère qui observe l’état vocal de Di
 - exclusions de périphériques et délai de stabilisation configurable ;
 - interface localisée en anglais, français et arabe, avec prise en charge RTL ;
 - thèmes Aeziol inspirés de l’univers d’Elgo ;
+- mises à jour intégrées avec canaux Stable et Bêta, téléchargement vérifié par SHA-256 et installation confirmée par l’utilisateur ;
 - journaux locaux rotatifs avec censure des chemins, identifiants et secrets.
 
 Aeziol n’est ni un bot ni un selfbot. Il ne lit pas les messages, n’intercepte pas le trafic réseau de Discord et ne modifie aucun réglage audio interne à Discord.
@@ -43,7 +44,7 @@ Un MSIX public doit être signé. Vérifiez sa signature Windows ainsi que le fi
 
 ## Données et confidentialité
 
-Aeziol travaille localement. La configuration et les journaux restent dans `%LOCALAPPDATA%\Aeziol`. Les jetons Discord sont conservés par le Gestionnaire d’informations d’identification Windows sous `Aeziol/DiscordOAuth`. Aucun identifiant de serveur ou de salon vocal n’est écrit dans les journaux.
+Aeziol travaille localement. La configuration, les journaux et les paquets de mise à jour téléchargés restent dans `%LOCALAPPDATA%\Aeziol`. Les jetons Discord sont conservés par le Gestionnaire d’informations d’identification Windows sous `Aeziol/DiscordOAuth`. Aucun identifiant de serveur ou de salon vocal n’est écrit dans les journaux. La recherche de mises à jour consulte uniquement les releases publiques de ce dépôt GitHub.
 
 Les détails sont documentés dans [Confidentialité et données locales](docs/privacy.md). Une autorisation Discord peut être révoquée depuis les réglages d’Aeziol.
 
@@ -104,7 +105,7 @@ La procédure complète et les secrets facultatifs de signature sont décrits da
 
 Aeziol est créé par [GaetanGrd](https://github.com/GaetanGrd), avec l’aide d’outils d’intelligence artificielle. La direction, les choix techniques et la validation finale restent humains.
 
-L’identité visuelle et une partie du vocabulaire sont inspirées de l’univers original **Elgo**. La musique d’ambiance « Onde dorée » a été générée via Suno par l’auteur d’Aeziol.
+L’identité visuelle et une partie du vocabulaire sont inspirées de l’univers original **Elgo**. La musique d’ambiance « Onde dorée » a été générée avec **Suno**.
 
 ## Licence
 

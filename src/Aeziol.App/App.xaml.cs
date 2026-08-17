@@ -183,6 +183,12 @@ public partial class App : System.Windows.Application
                 paths.LanguagesDirectory,
                 settings.Language);
 
+            _ambientMusic = new AmbientMusicService(
+                Path.Combine(AppContext.BaseDirectory, "Assets", "Audio", "onde-doree.mp3"));
+            _ambientMusic.Apply(settings);
+            Activated += OnApplicationActivated;
+            Deactivated += OnApplicationDeactivated;
+
             if (forceFirstRun || !settings.FirstRunCompleted)
             {
                 var firstRun = new FirstRunWindow(
@@ -191,7 +197,13 @@ public partial class App : System.Windows.Application
                     settings.Theme,
                     settings.EnhanceContrast,
                     settings.StartWithWindows,
-                    settings.ReduceAnimations);
+                    settings.ReduceAnimations,
+                    settings.AmbientMusicEnabled,
+                    enabled =>
+                    {
+                        _ambientMusic.SetApplicationActive(true);
+                        _ambientMusic.Apply(settings with { AmbientMusicEnabled = enabled });
+                    });
                 if (firstRun.ShowDialog() != true)
                 {
                     Shutdown();
@@ -205,17 +217,14 @@ public partial class App : System.Windows.Application
                     Theme = firstRun.SelectedTheme,
                     StartWithWindows = firstRun.StartWithWindows,
                     ReduceAnimations = firstRun.ReduceAnimations,
+                    AmbientMusicEnabled = firstRun.AmbientMusicEnabled,
                 };
                 await _settingsStore.SaveAsync(settings).ConfigureAwait(true);
                 await AutostartService.SetEnabledAsync(settings.StartWithWindows).ConfigureAwait(true);
             }
 
             _localization.ChangeLanguage(settings.Language);
-            _ambientMusic = new AmbientMusicService(
-                Path.Combine(AppContext.BaseDirectory, "Assets", "Audio", "onde-doree.mp3"));
             _ambientMusic.Apply(settings);
-            Activated += OnApplicationActivated;
-            Deactivated += OnApplicationDeactivated;
             _runtime = new AeziolRuntime(settings, paths, logger);
             var runtimeInitialization = _runtime.InitializeAsync();
             var window = new MainWindow(
