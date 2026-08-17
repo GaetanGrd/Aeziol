@@ -1,0 +1,137 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  msix:
+    runs-on: windows-2025
+    env:
+      AEZIOL_SIGNING_CERTIFICATE_BASE64: ${{ secrets.AEZIOL_SIGNING_CERTIFICATE_BASE64 }}
+      AEZIOL_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.AEZIOL_SIGNING_CERTIFICATE_PASSWORD }}
+      AEZIOL_SIGNING_PUBLISHER: ${{ secrets.AEZIOL_SIGNING_PUBLISHER }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore Aeziol.slnx
+
+      - name: Test
+        run: dotnet test --solution Aeziol.slnx -c Release --no-restore --timeout 60s
+
+      - name: Resolve release version
+        id: version
+        shell: pwsh
+        run: |
+          $match = [regex]::Match(
+            $env:GITHUB_REF_NAME,
+            '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-beta\.(?<revision>\d+))?$')
+          if (-not $match.Success) {
+            throw 'Expected a tag such as v0.9.0-beta.1 or v1.0.0.'
+          }
+
+          $isPrerelease = $match.Groups['revision'].Success
+          if ($isPrerelease) {
+            $revision = [int]$match.Groups['revision'].Value
+            if ($revision -lt 1 -or $revision -gt 65534) {
+              throw 'The beta revision must be between 1 and 65534.'
+            }
+          } else {
+            # A stable package must sort after every beta of the same semantic version.
+            $revision = 65535
+          }
+
+          $packageVersion = '{0}.{1}.{2}.{3}' -f `
+            $match.Groups['major'].Value, `
+            $match.Groups['minor'].Value, `
+            $match.Groups['patch'].Value, `
+            $revision
+          "package=$packageVersion" >> $env:GITHUB_OUTPUT
+          "informational=$($env:GITHUB_REF_NAME.TrimStart('v'))" >> $env:GITHUB_OUTPUT
+          "prerelease=$($isPrerelease.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+
+      - name: Decode signing certificate
+        id: signing
+        shell: pwsh
+        run: |
+          $hasCertificate = -not [string]::IsNullOrWhiteSpace($env:AEZIOL_SIGNING_CERTIFICATE_BASE64)
+          $hasPublisher = -not [string]::IsNullOrWhiteSpace($env:AEZIOL_SIGNING_PUBLISHER)
+          if ($hasCertificate -ne $hasPublisher) {
+            throw 'The signing certificate and publisher secrets must either both be configured or both be absent.'
+          }
+
+          if (-not $hasCertificate) {
+            'configured=false' >> $env:GITHUB_OUTPUT
+            Write-Warning 'No signing certificate is configured. The draft MSIX will be unsigned.'
+            return
+          }
+
+          [IO.File]::WriteAllBytes(
+            (Join-Path $env:RUNNER_TEMP 'aeziol-signing.pfx'),
+            [Convert]::FromBase64String($env:AEZIOL_SIGNING_CERTIFICATE_BASE64))
+          'configured=true' >> $env:GITHUB_OUTPUT
+
+      - name: Build MSIX
+        shell: pwsh
+        run: |
+          $parameters = @{
+            Version = '${{ steps.version.outputs.package }}'
+            InformationalVersion = '${{ steps.version.outputs.informational }}'
+            Publisher = if ('${{ steps.signing.outputs.configured }}' -eq 'true') {
+              $env:AEZIOL_SIGNING_PUBLISHER
+            } else {
+              'CN=Aeziol Development'
+            }
+          }
+          if ('${{ steps.signing.outputs.configured }}' -eq 'true') {
+            $parameters.CertificatePath = Join-Path $env:RUNNER_TEMP 'aeziol-signing.pfx'
+            $parameters.CertificatePassword = $env:AEZIOL_SIGNING_CERTIFICATE_PASSWORD
+          }
+
+          ./packaging/build-msix.ps1 @parameters
+
+      - name: Create checksum
+        shell: pwsh
+        run: |
+          $packages = @(Get-ChildItem -LiteralPath artifacts -Filter '*.msix')
+          if ($packages.Count -ne 1) {
+            throw "Expected exactly one MSIX package, found $($packages.Count)."
+          }
+
+          $package = $packages[0]
+          $hash = (Get-FileHash -LiteralPath $package.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($package.Name)" | Set-Content `
+            -LiteralPath (Join-Path $package.DirectoryName "$($package.Name).sha256") `
+            -NoNewline
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        run: |
+          $packages = @(Get-ChildItem -LiteralPath artifacts -Filter '*.msix')
+          $checksums = @(Get-ChildItem -LiteralPath artifacts -Filter '*.sha256')
+          if ($packages.Count -ne 1 -or $checksums.Count -ne 1) {
+            throw "Expected one MSIX and one checksum; found $($packages.Count) and $($checksums.Count)."
+          }
+
+          $arguments = @(
+            'release', 'create', $env:GITHUB_REF_NAME,
+            $packages[0].FullName, $checksums[0].FullName,
+            '--draft', '--generate-notes', '--verify-tag',
+            '--title', "Aeziol ${{ steps.version.outputs.informational }}")
+          if ('${{ steps.version.outputs.prerelease }}' -eq 'true') {
+            $arguments += '--prerelease'
+          }
+
+          & gh @arguments

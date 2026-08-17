@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Aeziol.App/Aeziol.App.csproj" />
+    <Project Path="src/Aeziol.Core/Aeziol.Core.csproj" />
+    <Project Path="src/Aeziol.Infrastructure.Discord/Aeziol.Infrastructure.Discord.csproj" />
+    <Project Path="src/Aeziol.Infrastructure.Windows/Aeziol.Infrastructure.Windows.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Aeziol.Tests/Aeziol.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Aeziol.Probe/Aeziol.Probe.csproj" />
+  </Folder>
+</Solution>

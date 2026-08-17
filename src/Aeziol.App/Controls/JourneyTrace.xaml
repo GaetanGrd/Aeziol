@@ -1,0 +1,21 @@
+<UserControl x:Class="Aeziol.App.Controls.JourneyTrace"
+             x:Name="TraceControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             IsHitTestVisible="False"
+             SnapsToDevicePixels="False">
+    <Grid x:Name="TraceRoot">
+        <Canvas x:Name="BaseLayer">
+            <Path x:Name="BaseTraceA"
+                  Stroke="{DynamicResource AeziolGoldLine}"
+                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+            <Path x:Name="BaseTraceB"
+                  Stroke="{DynamicResource AeziolSecondary}"
+                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+            <Canvas x:Name="BaseParticleLayer" />
+        </Canvas>
+
+        <Grid x:Name="HighlightHost"
+              IsHitTestVisible="False" />
+    </Grid>
+</UserControl>
