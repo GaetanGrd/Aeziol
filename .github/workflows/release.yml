@@ -119,6 +119,30 @@ jobs:
 
           ./packaging/build-msix.ps1 @parameters
 
+      - name: Export public signing certificate
+        if: steps.signing.outputs.configured == 'true'
+        shell: pwsh
+        run: |
+          $certificatePath = Join-Path $env:RUNNER_TEMP 'aeziol-signing.pfx'
+          $certificate = [Security.Cryptography.X509Certificates.X509Certificate2]::new(
+            $certificatePath,
+            $env:AEZIOL_SIGNING_CERTIFICATE_PASSWORD,
+            [Security.Cryptography.X509Certificates.X509KeyStorageFlags]::EphemeralKeySet)
+          try {
+            if ($certificate.Subject -ne $env:AEZIOL_SIGNING_PUBLISHER) {
+              throw "The signing certificate subject '$($certificate.Subject)' does not match '$env:AEZIOL_SIGNING_PUBLISHER'."
+            }
+
+            $publicCertificatePath = Join-Path `
+              (Resolve-Path -LiteralPath artifacts) `
+              "Aeziol-${{ steps.version.outputs.informational }}-signing.cer"
+            [IO.File]::WriteAllBytes(
+              $publicCertificatePath,
+              $certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+          } finally {
+            $certificate.Dispose()
+          }
+
       - name: Create checksum
         shell: pwsh
         run: |
@@ -138,13 +162,20 @@ jobs:
         run: |
           $packages = @(Get-ChildItem -LiteralPath artifacts -Filter '*.msix')
           $checksums = @(Get-ChildItem -LiteralPath artifacts -Filter '*.sha256')
+          $certificates = @(Get-ChildItem -LiteralPath artifacts -Filter '*.cer')
           if ($packages.Count -ne 1 -or $checksums.Count -ne 1) {
             throw "Expected one MSIX and one checksum; found $($packages.Count) and $($checksums.Count)."
           }
+          if ('${{ steps.signing.outputs.configured }}' -eq 'true' -and $certificates.Count -ne 1) {
+            throw "Expected one public signing certificate, found $($certificates.Count)."
+          }
 
-          $arguments = @(
-            'release', 'create', $env:GITHUB_REF_NAME,
-            $packages[0].FullName, $checksums[0].FullName,
+          $assets = @($packages[0].FullName, $checksums[0].FullName)
+          if ($certificates.Count -eq 1) {
+            $assets += $certificates[0].FullName
+          }
+
+          $arguments = @('release', 'create', $env:GITHUB_REF_NAME) + $assets + @(
             '--draft', '--generate-notes', '--verify-tag',
             '--title', "Aeziol ${{ steps.version.outputs.informational }}")
           if ('${{ steps.version.outputs.prerelease }}' -eq 'true') {

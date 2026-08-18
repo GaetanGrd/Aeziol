@@ -24,7 +24,7 @@ La commande :
 4. pousse `main` ;
 5. crée et pousse le tag annoté ;
 6. déclenche `.github/workflows/release.yml` ;
-7. construit un MSIX autonome et son checksum SHA-256 ;
+7. construit un MSIX autonome signé, son checksum SHA-256 et le certificat public de la bêta ;
 8. crée une GitHub Release en **draft** et **prerelease**.
 
 Une draft n’est pas visible comme release publique. Elle doit être testée, relue et signée avant publication manuelle.
@@ -33,6 +33,11 @@ Le système de mise à jour intégré ne voit que les releases publiées. Il att
 
 - `Aeziol-<version>-x64.msix` ;
 - `Aeziol-<version>-x64.msix.sha256`.
+
+Une bêta signée avec le certificat de test Aeziol contient aussi
+`Aeziol-<version>-signing.cer`. Ce certificat n’est pas consommé par le système
+de mise à jour ; il sert uniquement à établir la confiance Windows avant la
+première installation manuelle.
 
 Une release stable doit utiliser un tag `vX.Y.Z` et ne pas être marquée prerelease. Une bêta utilise `vX.Y.Z-beta.N` et doit être marquée prerelease. Toute incohérence est ignorée par le client.
 
@@ -45,6 +50,19 @@ Le workflow signe le package lorsque ces secrets GitHub sont présents :
 - `AEZIOL_SIGNING_PUBLISHER` : sujet exact du certificat, par exemple `CN=GaetanGrd`.
 
 Si le certificat et l’éditeur sont tous deux absents, le workflow produit une draft non signée destinée uniquement à la validation. Une configuration partielle provoque un échec explicite.
+
+Le certificat auto-signé Aeziol est réservé aux brouillons et aux bêtas de test.
+Pour l’installer sur une machine de test :
+
+1. téléchargez le fichier `Aeziol-<version>-signing.cer` depuis la release ;
+2. ouvrez-le puis choisissez **Installer le certificat** ;
+3. sélectionnez **Ordinateur local** (une autorisation administrateur est requise) ;
+4. placez-le dans **Personnes de confiance** ;
+5. vérifiez que le sujet est `CN=Aeziol Development`, puis installez le MSIX.
+
+Ne placez jamais le PFX ou sa clé privée dans le dépôt ou dans une release. Une
+version destinée au grand public doit employer une signature reconnue par
+Windows, par exemple via le Microsoft Store ou un service de signature de code.
 
 L’identité `GaetanGrd.Aeziol` et l’éditeur du certificat doivent rester identiques entre les versions pour que Windows reconnaisse une mise à jour et préserve les données utilisateur.
 
@@ -60,6 +78,7 @@ Les révisions bêta acceptées vont de 1 à 65534. Une version stable utilise l
 
 - les checks CI sont verts ;
 - le MSIX est signé par l’éditeur attendu ;
+- le certificat public joint correspond au signataire du MSIX et sa clé privée n’est pas publiée ;
 - le SHA-256 correspond ;
 - installation propre et mise à jour depuis la bêta précédente testées ;
 - détection testée depuis les canaux Stable et Bêta, puis téléchargement et ouverture de l’installateur validés ;

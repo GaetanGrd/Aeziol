@@ -42,6 +42,13 @@ Les paquets destinés aux utilisateurs seront attachés aux [releases GitHub](ht
 
 Un MSIX public doit être signé. Vérifiez sa signature Windows ainsi que le fichier `.sha256` fourni avec la release avant installation.
 
+Les bêtas de test auto-signées fournissent également un fichier
+`Aeziol-<version>-signing.cer`. Avant la première installation, importez ce
+certificat dans **Ordinateur local → Personnes de confiance**, puis vérifiez que
+son sujet est `CN=Aeziol Development`. Cette opération demande les droits
+administrateur. Le certificat de test ne remplace pas une signature publique
+reconnue pour une version stable.
+
 ## Données et confidentialité
 
 Aeziol travaille localement. La configuration, les journaux et les paquets de mise à jour téléchargés restent dans `%LOCALAPPDATA%\Aeziol`. Les jetons Discord sont conservés par le Gestionnaire d’informations d’identification Windows sous `Aeziol/DiscordOAuth`. Aucun identifiant de serveur ou de salon vocal n’est écrit dans les journaux. La recherche de mises à jour consulte uniquement les releases publiques de ce dépôt GitHub.
