@@ -19,7 +19,7 @@ public sealed class AeziolThemeServiceTests
 
     [Theory]
     [MemberData(nameof(Themes))]
-    public void ButtonText_AlwaysUsesBlack(AeziolTheme theme)
+    public void ButtonText_UsesReadableContrastForPrimaryAndSecondary(AeziolTheme theme)
     {
         var palette = AeziolThemeService.GetPalette(theme);
 
@@ -27,9 +27,11 @@ public sealed class AeziolThemeServiceTests
         {
             var appearance = AeziolThemeService.GetAppearancePalette(enhanced);
             var accent = AeziolThemeService.SelectUiAccent(palette, appearance, enhanced);
-            var text = AeziolThemeService.GetContrastingText(accent);
+            var accentText = AeziolThemeService.GetContrastingText(accent);
+            var secondaryText = AeziolThemeService.GetContrastingText(palette.Secondary);
 
-            Assert.Equal(Colors.Black, text);
+            Assert.True(AeziolThemeService.ContrastRatio(accent, accentText) >= 4.5);
+            Assert.True(AeziolThemeService.ContrastRatio(palette.Secondary, secondaryText) >= 4.5);
         }
     }
 
