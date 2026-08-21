@@ -17,6 +17,8 @@ namespace Aeziol.App;
 [SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable", Justification = "WPF owns the application lifecycle; resources are disposed in OnExit.")]
 public partial class App : System.Windows.Application
 {
+    private const int UnpackagedActivationUnavailableHResult = unchecked((int)0xD0000225);
+
     private AeziolRuntime? _runtime;
     private AppLogger? _logger;
     private LocalizationService? _localization;
@@ -450,7 +452,15 @@ public partial class App : System.Windows.Application
         bool openHiddenAtWindowsStartup) =>
         activationRequested || !isWindowsStartup || !openHiddenAtWindowsStartup;
 
-    private static bool IsWindowsStartup(IReadOnlyCollection<string> arguments)
+    private static bool IsWindowsStartup(IReadOnlyCollection<string> arguments) =>
+        IsWindowsStartup(
+            arguments,
+            () => global::Windows.ApplicationModel.AppInstance.GetActivatedEventArgs()?.Kind
+                == global::Windows.ApplicationModel.Activation.ActivationKind.StartupTask);
+
+    internal static bool IsWindowsStartup(
+        IReadOnlyCollection<string> arguments,
+        Func<bool> isStartupActivation)
     {
         if (arguments.Contains("--background", StringComparer.OrdinalIgnoreCase))
         {
@@ -459,10 +469,14 @@ public partial class App : System.Windows.Application
 
         try
         {
-            return global::Windows.ApplicationModel.AppInstance.GetActivatedEventArgs()?.Kind
-                == global::Windows.ApplicationModel.Activation.ActivationKind.StartupTask;
+            return isStartupActivation();
         }
         catch (InvalidOperationException)
+        {
+            return false;
+        }
+        catch (System.Runtime.InteropServices.COMException exception)
+            when (exception.HResult == UnpackagedActivationUnavailableHResult)
         {
             return false;
         }
