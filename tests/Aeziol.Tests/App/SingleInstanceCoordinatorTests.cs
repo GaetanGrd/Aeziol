@@ -5,6 +5,22 @@ namespace Aeziol.Tests.App;
 public sealed class SingleInstanceCoordinatorTests
 {
     [Fact]
+    public void SecondaryInstance_WhenActivationEventNeverAppears_ReturnsFalse()
+    {
+        var instanceName = $"Aeziol.Tests.{Guid.NewGuid():N}";
+        using var orphanedInstanceGate = new Semaphore(
+            initialCount: 1,
+            maximumCount: 1,
+            $"Local\\{instanceName}.Instance",
+            out var createdNew);
+        using var secondary = new SingleInstanceCoordinator(instanceName);
+
+        Assert.True(createdNew);
+        Assert.False(secondary.IsPrimaryInstance);
+        Assert.False(secondary.SignalPrimaryInstance());
+    }
+
+    [Fact]
     public void SecondaryInstance_SignalsTheExistingPrimaryInstance()
     {
         var instanceName = $"Aeziol.Tests.{Guid.NewGuid():N}";
