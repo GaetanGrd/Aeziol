@@ -224,18 +224,35 @@ public partial class MainWindow : Window
 
     private void UpdateRouteSummary()
     {
-        var currentId = _runtime.ActiveRouteTransaction?.Source.Get(AudioRole.Multimedia)
-            ?? _currentRoute?.Get(AudioRole.Multimedia);
+        var hasPendingRestoration = _runtime.ActiveRouteTransaction is not null;
+        var restoreId = _runtime.ActiveRouteTransaction?.Source.Get(AudioRole.Multimedia);
+        var currentId = restoreId ?? _currentRoute?.Get(AudioRole.Multimedia);
+        var presentation = RouteSummaryPresentation.For(
+            _currentRoute?.Get(AudioRole.Multimedia),
+            _runtime.Settings.TargetEndpointId,
+            hasPendingRestoration);
         var wasSyncing = _syncingControls;
         _syncingControls = true;
         CurrentOutputCombo.SelectedValue = currentId;
         _syncingControls = wasSyncing;
 
-        var restoreId = _runtime.ActiveRouteTransaction?.Source.Get(AudioRole.Multimedia);
+        CurrentOutputLabelText.Text = _localization.Get(
+            presentation.OutputLabelLocalizationKey,
+            SelectedRegister);
+        CurrentOutputCombo.Visibility = presentation.ShowCurrentOutputSelector
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         RestoreOutputText.Text = restoreId is null
-            ? _localization.Get("restore-output-idle", SelectedRegister)
+            ? _localization.Get(
+                hasPendingRestoration ? "unknown-output" : "restore-output-idle",
+                SelectedRegister)
             : ResolveEndpointName(restoreId, _localization.Get("unknown-output", SelectedRegister));
-        ForceRestoreButton.Visibility = restoreId is null ? Visibility.Collapsed : Visibility.Visible;
+        RestoreOutputText.Visibility = presentation.ShowRestoreOutput
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        ForceRestoreButton.Visibility = presentation.ShowForceRestore
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         UpdateDestinationWarning();
     }
 
@@ -243,18 +260,20 @@ public partial class MainWindow : Window
     {
         var currentId = _currentRoute?.Get(AudioRole.Multimedia);
         var targetId = _runtime.Settings.TargetEndpointId;
-        var isIdentical = !string.IsNullOrWhiteSpace(currentId)
-            && !string.IsNullOrWhiteSpace(targetId)
-            && string.Equals(currentId, targetId, StringComparison.OrdinalIgnoreCase);
+        var presentation = RouteSummaryPresentation.For(
+            currentId,
+            targetId,
+            hasPendingRestoration: _runtime.ActiveRouteTransaction is not null);
+        var showWarning = presentation.ShowIdenticalOutputWarning;
         var warning = _localization.Get("identical-output-warning", SelectedRegister);
 
         TargetHelpText.Text = _localization.Get(
-            isIdentical ? "identical-output-warning" : "target-help",
+            showWarning ? "identical-output-warning" : "target-help",
             SelectedRegister);
         TargetHelpText.Foreground = (System.Windows.Media.Brush)FindResource(
-            isIdentical ? "AeziolGold" : "AeziolMuted");
+            showWarning ? "AeziolGold" : "AeziolMuted");
         RuleDestinationWarningText.Text = warning;
-        RuleDestinationWarningText.Visibility = isIdentical ? Visibility.Visible : Visibility.Collapsed;
+        RuleDestinationWarningText.Visibility = showWarning ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private string ResolveEndpointName(string? endpointId, string fallback)
@@ -1699,18 +1718,19 @@ public partial class MainWindow : Window
             : System.Windows.FlowDirection.LeftToRight;
         CloseActionsMenu.FlowDirection = FlowDirection;
 
-        PassageNavText.Text = _localization.Get("nav-passage", register);
-        RulesNavText.Text = _localization.Get("nav-rules", register);
+        DiscordNavText.Text = _localization.Get("nav-discord", register);
+        PassageHeaderText.Text = _localization.Get("nav-passage", register);
+        ComingSoonNavText.Text = _localization.Get("nav-coming-soon", register);
         SettingsNavText.Text = _localization.Get("nav-settings", register);
-        PassageTitleText.Text = _localization.Get("page-passage-title", register);
-        PassageSubtitleText.Text = _localization.Get("page-passage-subtitle", register);
+        DiscordTitleText.Text = _localization.Get("page-discord-title", register);
+        DiscordSubtitleText.Text = _localization.Get("page-discord-subtitle", register);
+        DiscordOverviewTab.Content = _localization.Get("discord-section-overview", register);
+        DiscordRulesTab.Content = _localization.Get("discord-section-rule", register);
         UpdateAutomationPresentation(_runtime.Settings.AutomationEnabled, animate: false);
         SourceLabelText.Text = _localization.Get("source", register);
         TargetLabelText.Text = _localization.Get("destination", register);
         PassageDestinationPlaceholderText.Text = _localization.Get("choose-output", register);
         TargetHelpText.Text = _localization.Get("target-help", register);
-        CurrentOutputLabelText.Text = _localization.Get("current-output", register);
-        RestoreOutputLabelText.Text = _localization.Get("restore-output", register);
         ForceRestoreButton.Content = _localization.Get("force-restore", register);
 
         RulesTitleText.Text = _localization.Get("page-rules-title", register);
@@ -1842,32 +1862,30 @@ public partial class MainWindow : Window
         RefreshUpdatePresentation();
     }
 
-    private void OnNavigatePassage(object sender, RoutedEventArgs eventArgs)
+    private void OnNavigateDiscord(object sender, RoutedEventArgs eventArgs)
     {
         if (!IsInitialized)
         {
             return;
         }
 
-        PassageView.Visibility = Visibility.Visible;
-        RulesView.Visibility = Visibility.Collapsed;
+        DiscordView.Visibility = Visibility.Visible;
         SettingsView.Visibility = Visibility.Collapsed;
         UpdateSettingsMusicCover();
         UpdateNavigationContext();
     }
 
-    private void OnNavigateRules(object sender, RoutedEventArgs eventArgs)
+    private void OnDiscordSectionChanged(object sender, RoutedEventArgs eventArgs)
     {
         if (!IsInitialized)
         {
             return;
         }
 
-        PassageView.Visibility = Visibility.Collapsed;
-        RulesView.Visibility = Visibility.Visible;
-        SettingsView.Visibility = Visibility.Collapsed;
-        UpdateSettingsMusicCover();
-        UpdateNavigationContext();
+        var showRules = ReferenceEquals(sender, DiscordRulesTab);
+        PassageAutomationContent.Visibility = showRules ? Visibility.Collapsed : Visibility.Visible;
+        RulesView.Visibility = showRules ? Visibility.Visible : Visibility.Collapsed;
+        AnimateSettingsPanel(showRules ? RulesView : PassageAutomationContent);
     }
 
     private void OnNavigateSettings(object sender, RoutedEventArgs eventArgs)
@@ -1877,8 +1895,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        PassageView.Visibility = Visibility.Collapsed;
-        RulesView.Visibility = Visibility.Collapsed;
+        DiscordView.Visibility = Visibility.Collapsed;
         SettingsView.Visibility = Visibility.Visible;
         UpdateSettingsMusicCover();
         UpdateNavigationContext();
@@ -2135,9 +2152,7 @@ public partial class MainWindow : Window
         WindowContextText.Text = _localization.Get(
             SettingsView.Visibility == Visibility.Visible
                 ? "nav-settings"
-                : RulesView.Visibility == Visibility.Visible
-                    ? "nav-rules"
-                    : "nav-passage",
+                : "nav-discord",
             SelectedRegister);
     }
 

@@ -532,6 +532,10 @@
                                 <Setter TargetName="Marker" Property="Visibility" Value="Visible" />
                                 <Setter Property="Foreground" Value="{DynamicResource AeziolGoldBright}" />
                             </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Cursor" Value="Arrow" />
+                                <Setter Property="Opacity" Value="0.38" />
+                            </Trigger>
                             <MultiTrigger>
                                 <MultiTrigger.Conditions>
                                     <Condition Property="IsPressed" Value="True" />

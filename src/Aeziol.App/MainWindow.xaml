@@ -203,6 +203,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
@@ -215,32 +216,44 @@
                         <Border Grid.Row="1" Margin="18,6,18,7"
                                 BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="0,1,0,0" />
 
-                        <RadioButton x:Name="PassageNav" Grid.Row="2" Style="{StaticResource NavRadio}"
-                                     IsChecked="True" Checked="OnNavigatePassage">
+                        <Grid Grid.Row="2" Height="50" Margin="10,2" IsHitTestVisible="False">
                             <StackPanel>
                                 <Path Width="23" Height="18" Stretch="Uniform"
                                       Data="M 1,13 C 6,3 13,3 18,13 M 18,13 L 22,9 M 18,13 L 22,17"
-                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
-                                      StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
-                                <TextBlock x:Name="PassageNavText" Margin="0,5,0,0" FontSize="9"
+                                      Stroke="{DynamicResource AeziolDim}" StrokeThickness="1.8"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                <TextBlock x:Name="PassageHeaderText" Margin="0,5,0,0" FontSize="9"
+                                           Foreground="{DynamicResource AeziolDim}"
+                                           HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+
+                        <RadioButton x:Name="DiscordNav" Grid.Row="3" Style="{StaticResource NavRadio}"
+                                     IsChecked="True" Checked="OnNavigateDiscord">
+                            <StackPanel>
+                                <Path Width="23" Height="18" Stretch="Uniform"
+                                      Data="{StaticResource DiscordSymbolGeometry}"
+                                      Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                <TextBlock x:Name="DiscordNavText" Margin="0,5,0,0" FontSize="9"
                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                            HorizontalAlignment="Center" />
                             </StackPanel>
                         </RadioButton>
 
-                        <RadioButton x:Name="RulesNav" Grid.Row="3" Style="{StaticResource NavRadio}" Checked="OnNavigateRules">
+                        <RadioButton x:Name="ComingSoonNav" Grid.Row="4" Style="{StaticResource NavRadio}"
+                                     IsEnabled="False" IsTabStop="False">
                             <StackPanel>
                                 <Path Width="22" Height="18" Stretch="Uniform"
-                                      Data="M 2,4 L 20,4 M 2,9 L 20,9 M 2,14 L 20,14 M 7,1 L 7,7 M 15,6 L 15,12 M 10,11 L 10,17"
+                                      Data="M 3,9 L 5,9 M 10,9 L 12,9 M 17,9 L 19,9"
                                       Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
-                                      StrokeThickness="1.6" StrokeStartLineCap="Round" />
-                                <TextBlock x:Name="RulesNavText" Margin="0,5,0,0" FontSize="9"
+                                      StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                <TextBlock x:Name="ComingSoonNavText" Margin="0,5,0,0" FontSize="9"
                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                            HorizontalAlignment="Center" />
                             </StackPanel>
                         </RadioButton>
 
-                        <RadioButton x:Name="SettingsNav" Grid.Row="4" Style="{StaticResource NavRadio}" Checked="OnNavigateSettings">
+                        <RadioButton x:Name="SettingsNav" Grid.Row="5" Style="{StaticResource NavRadio}" Checked="OnNavigateSettings">
                             <StackPanel>
                                 <Path Width="21" Height="21" Stretch="Uniform"
                                       Data="M 10,2 A 8,8 0 1 1 9.9,2 M 10,6 A 4,4 0 1 1 9.9,6"
@@ -252,7 +265,7 @@
                             </StackPanel>
                         </RadioButton>
 
-                        <Border Grid.Row="6" Margin="18,0,18,18" Padding="0,10,0,0"
+                        <Border Grid.Row="7" Margin="18,0,18,18" Padding="0,10,0,0"
                                 BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="0,1,0,0">
                             <StackPanel HorizontalAlignment="Center">
                                 <Ellipse x:Name="RailStatusDot" Width="7" Height="7" Fill="{DynamicResource AeziolDim}" />
@@ -265,22 +278,36 @@
                 </Border>
 
                 <Grid x:Name="PageHost" Grid.Column="1" Margin="30,24,30,28">
-                    <Grid x:Name="PassageView">
+                    <Grid x:Name="DiscordView">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="70" />
+                            <RowDefinition Height="46" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0">
                             <StackPanel>
-                                <TextBlock x:Name="PassageTitleText" Style="{StaticResource PageTitle}" />
-                                <TextBlock x:Name="PassageSubtitleText" Margin="0,5,0,0" Style="{StaticResource PageSubtitle}" />
+                                <TextBlock x:Name="DiscordTitleText" Style="{StaticResource PageTitle}" />
+                                <TextBlock x:Name="DiscordSubtitleText" Margin="0,5,0,0" Style="{StaticResource PageSubtitle}" />
                             </StackPanel>
                             <Button x:Name="AutomationActionButton" MinWidth="108" MinHeight="34" Padding="15,6"
                                     HorizontalAlignment="Right" VerticalAlignment="Top"
                                     Click="OnAutomationAction" />
                         </Grid>
 
-                        <Border x:Name="PassageAutomationContent" Grid.Row="1" CornerRadius="24"
+                        <Border Grid.Row="1" Margin="0,0,0,7"
+                                BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="0,0,0,1">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton x:Name="DiscordOverviewTab" GroupName="DiscordSections"
+                                             Style="{StaticResource SettingsSectionTab}" IsChecked="True"
+                                             Checked="OnDiscordSectionChanged" />
+                                <RadioButton x:Name="DiscordRulesTab" GroupName="DiscordSections"
+                                             Style="{StaticResource SettingsSectionTab}"
+                                             Checked="OnDiscordSectionChanged" />
+                            </StackPanel>
+                        </Border>
+
+                        <Grid Grid.Row="2">
+                        <Border x:Name="PassageAutomationContent" CornerRadius="24"
                                 BorderBrush="{DynamicResource AeziolTraceBorder}" BorderThickness="1">
                             <Border.Background>
                                 <RadialGradientBrush Center="0.52,0.48" GradientOrigin="0.52,0.48" RadiusX="0.72" RadiusY="0.9">
@@ -403,36 +430,25 @@
 
                                 <Border Grid.Row="2" Padding="14,11" CornerRadius="12"
                                         Background="{DynamicResource AeziolSurface}" BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="1">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="1" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel>
-                                            <TextBlock x:Name="CurrentOutputLabelText" Style="{StaticResource SectionLabel}" />
-                                            <ComboBox x:Name="CurrentOutputCombo" Margin="-6,2,0,-3" MinHeight="30"
-                                                      Padding="6,2" Background="Transparent" BorderBrush="Transparent"
-                                                      DisplayMemberPath="DisplayName" SelectedValuePath="Id"
-                                                      SelectionChanged="OnCurrentOutputChanged"
-                                                      FlowDirection="LeftToRight" />
-                                        </StackPanel>
-                                        <Border Grid.Column="1" Background="{DynamicResource AeziolBorder}" Margin="14,0" />
-                                        <StackPanel Grid.Column="2">
-                                            <TextBlock x:Name="RestoreOutputLabelText" Style="{StaticResource SectionLabel}" />
-                                            <TextBlock x:Name="RestoreOutputText" Margin="0,4,0,0" FontSize="12"
-                                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                                            <Button x:Name="ForceRestoreButton" Margin="0,8,0,0" Padding="10,5"
-                                                    MinHeight="30" HorizontalAlignment="Left" FontSize="10"
-                                                    Style="{StaticResource ActionButton}" Visibility="Collapsed"
-                                                    Click="OnForceRestore" />
-                                        </StackPanel>
-                                    </Grid>
+                                    <StackPanel>
+                                        <TextBlock x:Name="CurrentOutputLabelText" Style="{StaticResource SectionLabel}" />
+                                        <ComboBox x:Name="CurrentOutputCombo" Margin="-6,2,0,-3" MinHeight="30"
+                                                  Padding="6,2" Background="Transparent" BorderBrush="Transparent"
+                                                  DisplayMemberPath="DisplayName" SelectedValuePath="Id"
+                                                  SelectionChanged="OnCurrentOutputChanged"
+                                                  FlowDirection="LeftToRight" />
+                                        <TextBlock x:Name="RestoreOutputText" Margin="0,6,0,0" FontSize="12"
+                                                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                                   Visibility="Collapsed" />
+                                        <Button x:Name="ForceRestoreButton" Margin="0,8,0,0" Padding="10,5"
+                                                MinHeight="30" HorizontalAlignment="Left" FontSize="10"
+                                                Style="{StaticResource ActionButton}" Visibility="Collapsed"
+                                                Click="OnForceRestore" />
+                                    </StackPanel>
                                 </Border>
 
                             </Grid>
                         </Border>
-                    </Grid>
 
                     <Grid x:Name="RulesView" Visibility="Collapsed">
                         <Grid.RowDefinitions>
@@ -580,6 +596,8 @@
                                 </Grid>
                             </StackPanel>
                         </ScrollViewer>
+                    </Grid>
+                        </Grid>
                     </Grid>
 
                     <Grid x:Name="SettingsView" Visibility="Collapsed">
