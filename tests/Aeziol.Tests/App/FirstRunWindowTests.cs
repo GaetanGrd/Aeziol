@@ -29,6 +29,7 @@ public sealed class FirstRunWindowTests
                 ambientMusicEnabledChanged: musicPreviewStates.Add,
                 ambientMusicVolumePercent: 12,
                 keepAmbientMusicPlayingWhenHidden: true,
+                pauseAmbientMusicWhenUnfocused: false,
                 ambientMusicVolumeChanged: musicPreviewVolumes.Add);
             try
             {
@@ -39,14 +40,18 @@ public sealed class FirstRunWindowTests
                 var musicVolume = Assert.IsType<Slider>(window.FindName("MusicVolumeSlider"));
                 var keepPlaying = Assert.IsType<WpfCheckBox>(
                     window.FindName("KeepMusicPlayingWhenHiddenCheck"));
+                var pauseWhenUnfocused = Assert.IsType<WpfCheckBox>(
+                    window.FindName("PauseMusicWhenUnfocusedCheck"));
 
                 Assert.Equal(Visibility.Visible, essentials.Visibility);
                 Assert.Equal(Visibility.Collapsed, music.Visibility);
                 Assert.False(window.AmbientMusicEnabled);
                 Assert.Equal(12, window.AmbientMusicVolumePercent);
                 Assert.True(window.KeepAmbientMusicPlayingWhenHidden);
+                Assert.False(window.PauseAmbientMusicWhenUnfocused);
                 Assert.False(musicVolume.IsEnabled);
                 Assert.False(keepPlaying.IsEnabled);
+                Assert.False(pauseWhenUnfocused.IsEnabled);
 
                 Assert.IsType<WpfButton>(window.FindName("ContinueButton"))
                     .RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
@@ -61,6 +66,10 @@ public sealed class FirstRunWindowTests
                 Assert.Equal([true], musicPreviewStates);
                 Assert.True(musicVolume.IsEnabled);
                 Assert.True(keepPlaying.IsEnabled);
+                Assert.True(pauseWhenUnfocused.IsEnabled);
+
+                pauseWhenUnfocused.IsChecked = true;
+                Assert.True(window.PauseAmbientMusicWhenUnfocused);
 
                 musicVolume.Value = 18;
                 Assert.Equal(18, window.AmbientMusicVolumePercent);

@@ -10,7 +10,9 @@ public sealed class AmbientMusicService : IDisposable
     private bool _opened;
     private bool _enabled;
     private bool _keepPlayingWhenHidden;
+    private bool _pauseWhenUnfocused;
     private bool _applicationVisible;
+    private bool _applicationFocused;
 
     public AmbientMusicService(string trackPath)
     {
@@ -27,6 +29,7 @@ public sealed class AmbientMusicService : IDisposable
         ArgumentNullException.ThrowIfNull(settings);
         _enabled = settings.AmbientMusicEnabled && IsAvailable;
         _keepPlayingWhenHidden = settings.KeepAmbientMusicPlayingWhenHidden;
+        _pauseWhenUnfocused = settings.PauseAmbientMusicWhenUnfocused;
         _player.Volume = Math.Clamp(settings.AmbientMusicVolumePercent, 0, 100) / 100d;
         _player.IsMuted = false;
         UpdatePlayback();
@@ -43,9 +46,25 @@ public sealed class AmbientMusicService : IDisposable
         UpdatePlayback();
     }
 
+    public void SetApplicationFocused(bool isFocused)
+    {
+        if (_applicationFocused == isFocused)
+        {
+            return;
+        }
+
+        _applicationFocused = isFocused;
+        UpdatePlayback();
+    }
+
     private void UpdatePlayback()
     {
-        if (!ShouldPlay(_enabled, _keepPlayingWhenHidden, _applicationVisible))
+        if (!ShouldPlay(
+                _enabled,
+                _keepPlayingWhenHidden,
+                _pauseWhenUnfocused,
+                _applicationVisible,
+                _applicationFocused))
         {
             _player.Pause();
             return;
@@ -71,7 +90,12 @@ public sealed class AmbientMusicService : IDisposable
 
     private void OnMediaEnded(object? sender, EventArgs e)
     {
-        if (!ShouldPlay(_enabled, _keepPlayingWhenHidden, _applicationVisible))
+        if (!ShouldPlay(
+                _enabled,
+                _keepPlayingWhenHidden,
+                _pauseWhenUnfocused,
+                _applicationVisible,
+                _applicationFocused))
         {
             return;
         }
@@ -86,6 +110,13 @@ public sealed class AmbientMusicService : IDisposable
         _player.Stop();
     }
 
-    internal static bool ShouldPlay(bool enabled, bool keepPlayingWhenHidden, bool applicationVisible) =>
-        enabled && (keepPlayingWhenHidden || applicationVisible);
+    internal static bool ShouldPlay(
+        bool enabled,
+        bool keepPlayingWhenHidden,
+        bool pauseWhenUnfocused,
+        bool applicationVisible,
+        bool applicationFocused) =>
+        enabled
+        && (!pauseWhenUnfocused || applicationFocused)
+        && (applicationVisible || keepPlayingWhenHidden);
 }

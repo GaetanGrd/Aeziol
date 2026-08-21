@@ -211,6 +211,7 @@ public partial class App : System.Windows.Application
                     },
                     settings.AmbientMusicVolumePercent,
                     settings.KeepAmbientMusicPlayingWhenHidden,
+                    settings.PauseAmbientMusicWhenUnfocused,
                     volume =>
                     {
                         previewMusicVolume = volume;
@@ -236,6 +237,7 @@ public partial class App : System.Windows.Application
                     AmbientMusicEnabled = firstRun.AmbientMusicEnabled,
                     AmbientMusicVolumePercent = firstRun.AmbientMusicVolumePercent,
                     KeepAmbientMusicPlayingWhenHidden = firstRun.KeepAmbientMusicPlayingWhenHidden,
+                    PauseAmbientMusicWhenUnfocused = firstRun.PauseAmbientMusicWhenUnfocused,
                 };
                 await _settingsStore.SaveAsync(settings).ConfigureAwait(true);
                 await AutostartService.SetEnabledAsync(
@@ -443,6 +445,9 @@ public partial class App : System.Windows.Application
 
     public void SetAmbientMusicHostVisible(bool isVisible) =>
         _ambientMusic?.SetApplicationVisible(isVisible);
+
+    public void SetAmbientMusicHostFocused(bool isFocused) =>
+        _ambientMusic?.SetApplicationFocused(isFocused);
 
     internal static bool ShouldShowMainWindow(
         bool activationRequested,

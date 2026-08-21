@@ -1090,6 +1090,28 @@
                                                                     <ColumnDefinition Width="Auto" />
                                                                     <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
+                                                                <TextBlock x:Name="PauseAmbientMusicWhenUnfocusedText"
+                                                                           Margin="0,0,12,0"
+                                                                           VerticalAlignment="Center"
+                                                                           FontSize="11" TextWrapping="Wrap" />
+                                                                <CheckBox x:Name="PauseAmbientMusicWhenUnfocusedToggle"
+                                                                          Grid.Column="1" VerticalAlignment="Center"
+                                                                          Style="{StaticResource ToggleSwitch}"
+                                                                          Click="OnPauseAmbientMusicWhenUnfocusedChanged" />
+                                                                <Button Grid.Column="2" Margin="5,0,0,0"
+                                                                        Style="{StaticResource SettingsHoverResetButton}"
+                                                                        Tag="PauseAmbientMusicWhenUnfocused"
+                                                                        Click="OnResetSetting" />
+                                                            </Grid>
+                                                        </Border>
+                                                        <Border Margin="0,8,0,0"
+                                                                Style="{StaticResource SettingsOptionRow}">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
                                                                 <TextBlock x:Name="KeepAmbientMusicPlayingWhenHiddenText"
                                                                            Margin="0,0,12,0"
                                                                            VerticalAlignment="Center"
@@ -1104,6 +1126,10 @@
                                                                         Click="OnResetSetting" />
                                                             </Grid>
                                                         </Border>
+                                                        <TextBlock x:Name="AmbientMusicFocusPrecedenceText"
+                                                                   Margin="2,7,0,0" FontSize="9"
+                                                                   Foreground="{DynamicResource AeziolDim}"
+                                                                   TextWrapping="Wrap" />
                                                     </StackPanel>
 
                                                     <StackPanel x:Name="MaintenanceEditorPanel" Visibility="Collapsed">

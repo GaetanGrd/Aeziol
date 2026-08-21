@@ -31,7 +31,7 @@ public enum UpdateChannel
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 3;
+    public const int CurrentSchemaVersion = 4;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -50,6 +50,8 @@ public sealed record AppSettings
     public bool AmbientMusicEnabled { get; init; }
 
     public int AmbientMusicVolumePercent { get; init; } = 8;
+
+    public bool PauseAmbientMusicWhenUnfocused { get; init; } = true;
 
     public bool KeepAmbientMusicPlayingWhenHidden { get; init; }
 
