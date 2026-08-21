@@ -43,6 +43,204 @@ public sealed class ButtonStyleTests
     }
 
     [Fact]
+    public void InteractiveControls_UseSecondaryPressFeedbackAndKeepContentCentered()
+    {
+        Exception? failure = null;
+        WpfTestHost.Run(() =>
+        {
+            try
+            {
+                AeziolThemeService.Apply(AeziolTheme.Elgo);
+                var application = Assert.IsType<Aeziol.App.App>(System.Windows.Application.Current);
+                var secondary = Assert.IsType<SolidColorBrush>(application.Resources["AeziolSecondary"]).Color;
+                var onAccent = Assert.IsType<SolidColorBrush>(application.Resources["AeziolOnAccent"]).Color;
+
+                var primaryButton = new PressableButton
+                {
+                    Width = 180,
+                    Height = 44,
+                    Content = "Authorize Discord",
+                    Style = Assert.IsType<Style>(application.Resources["PrimaryButton"]),
+                };
+                var windowGlyph = new ShapePath
+                {
+                    Width = 12,
+                    Height = 12,
+                    Data = Geometry.Parse("M 1,1 L 13,1 L 13,13 L 1,13 Z"),
+                };
+                var windowButton = new PressableButton
+                {
+                    Content = windowGlyph,
+                    Style = Assert.IsType<Style>(application.Resources["WindowButton"]),
+                };
+                var settingsCommand = new PressableButton
+                {
+                    Width = 260,
+                    Content = "Language",
+                    Style = Assert.IsType<Style>(application.Resources["SettingsCommandRow"]),
+                };
+                var navContent = new StackPanel
+                {
+                    Width = 28,
+                    Children =
+                    {
+                        new ShapePath
+                        {
+                            Width = 21,
+                            Height = 21,
+                            Data = Assert.IsType<GeometryGroup>(application.Resources["SettingsRingsGeometry"]),
+                        },
+                        new TextBlock
+                        {
+                            Text = "Settings",
+                            FontSize = 9,
+                            HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                        },
+                    },
+                };
+                var navButton = new PressableRadioButton
+                {
+                    Content = navContent,
+                    Style = Assert.IsType<Style>(application.Resources["NavRadio"]),
+                };
+                var settingsTab = new PressableRadioButton
+                {
+                    Content = "General",
+                    Style = Assert.IsType<Style>(application.Resources["SettingsSectionTab"]),
+                };
+
+                var host = new StackPanel { Width = 280 };
+                host.Children.Add(primaryButton);
+                host.Children.Add(windowButton);
+                host.Children.Add(settingsCommand);
+                host.Children.Add(navButton);
+                host.Children.Add(settingsTab);
+                primaryButton.ApplyTemplate();
+                windowButton.ApplyTemplate();
+                settingsCommand.ApplyTemplate();
+                navButton.ApplyTemplate();
+                settingsTab.ApplyTemplate();
+                host.Measure(new WpfSize(280, 320));
+                host.Arrange(new Rect(0, 0, 280, 320));
+                host.UpdateLayout();
+
+                var primaryLabel = Assert.IsType<TextBlock>(GetTemplateBorder(primaryButton, "Chrome").Child);
+                AssertCentered(primaryButton, primaryLabel);
+                AssertCentered(windowButton, windowGlyph);
+                AssertCentered(navButton, navContent);
+                Assert.Equal(VerticalAlignment.Center, FindVisualChild<ContentPresenter>(settingsTab).VerticalAlignment);
+                Assert.Equal(VerticalAlignment.Center, FindVisualChild<ContentPresenter>(settingsCommand).VerticalAlignment);
+
+                primaryButton.SetPressed(true);
+                windowButton.SetPressed(true);
+                settingsCommand.SetPressed(true);
+                navButton.SetPressed(true);
+                settingsTab.SetPressed(true);
+                host.UpdateLayout();
+
+                Assert.Equal(secondary, GetBackgroundColor(GetTemplateBorder(primaryButton, "Chrome")));
+                Assert.Equal(secondary, GetBackgroundColor(GetTemplateBorder(windowButton, "Chrome")));
+                Assert.Equal(secondary, GetBackgroundColor(GetTemplateBorder(settingsCommand, "Surface")));
+                Assert.Equal(secondary, GetBackgroundColor(GetTemplateBorder(navButton, "Selection")));
+                Assert.Equal(secondary, GetBackgroundColor(GetTemplateBorder(settingsTab, "HoverSurface")));
+                Assert.Equal(onAccent, Assert.IsType<SolidColorBrush>(primaryButton.Foreground).Color);
+                Assert.Equal(onAccent, Assert.IsType<SolidColorBrush>(windowButton.Foreground).Color);
+                Assert.Equal(onAccent, Assert.IsType<SolidColorBrush>(settingsCommand.Foreground).Color);
+                Assert.Equal(onAccent, Assert.IsType<SolidColorBrush>(navButton.Foreground).Color);
+                Assert.Equal(onAccent, Assert.IsType<SolidColorBrush>(settingsTab.Foreground).Color);
+
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        });
+
+        Assert.Null(failure);
+    }
+
+    [Fact]
+    public void CompactOutputSelector_KeepsItsArrowNearShortNamesAndCapsLongNames()
+    {
+        Exception? failure = null;
+        WpfTestHost.Run(() =>
+        {
+            try
+            {
+                var application = Assert.IsType<Aeziol.App.App>(System.Windows.Application.Current);
+                var style = Assert.IsType<Style>(application.Resources["CompactComboBox"]);
+                var shortName = new WpfComboBox
+                {
+                    MaxWidth = 240,
+                    Style = style,
+                };
+                shortName.Items.Add("Speakers");
+                shortName.SelectedIndex = 0;
+                var longName = new WpfComboBox
+                {
+                    MaxWidth = 180,
+                    Style = style,
+                };
+                longName.Items.Add("A very long Windows audio endpoint name that needs trimming");
+                longName.SelectedIndex = 0;
+
+                var host = new StackPanel { Width = 280 };
+                host.Children.Add(shortName);
+                host.Children.Add(longName);
+                host.Measure(new WpfSize(280, 140));
+                host.Arrange(new Rect(0, 0, 280, 140));
+                shortName.ApplyTemplate();
+                longName.ApplyTemplate();
+                host.UpdateLayout();
+
+                var shortToggle = FindVisualChild<ToggleButton>(shortName);
+                shortToggle.ApplyTemplate();
+                var shortArrow = FindVisualChild<ShapePath>(shortToggle);
+                var arrowCenter = shortArrow.TranslatePoint(
+                    new System.Windows.Point(shortArrow.ActualWidth / 2, shortArrow.ActualHeight / 2),
+                    shortName);
+                Assert.Equal(System.Windows.HorizontalAlignment.Left, shortName.HorizontalAlignment);
+                Assert.InRange(shortName.ActualWidth, 60, 150);
+                Assert.InRange(arrowCenter.X, 35, 145);
+                Assert.InRange(longName.ActualWidth, 100, 180);
+
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        });
+
+        Assert.Null(failure);
+    }
+
+    [Fact]
+    public void SettingsIcon_UsesTwoClosedConcentricRings()
+    {
+        Exception? failure = null;
+        WpfTestHost.Run(() =>
+        {
+            try
+            {
+                var application = Assert.IsType<Aeziol.App.App>(System.Windows.Application.Current);
+                var rings = Assert.IsType<GeometryGroup>(application.Resources["SettingsRingsGeometry"]);
+                var ellipses = rings.Children.Cast<EllipseGeometry>().ToArray();
+
+                Assert.Equal(2, ellipses.Length);
+                Assert.Equal(ellipses[0].Center, ellipses[1].Center);
+                Assert.True(ellipses[0].RadiusX > ellipses[1].RadiusX);
+                Assert.All(ellipses, ring => Assert.Equal(ring.RadiusX, ring.RadiusY));
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        });
+
+        Assert.Null(failure);
+    }
+
+    [Fact]
     public void ThemedControls_RenderTheirCriticalVisualProperties()
     {
         MediaColor? renderedColor = null;
@@ -394,6 +592,24 @@ public sealed class ButtonStyleTests
         _ => brush.Opacity > 0,
     };
 
+    private static Border GetTemplateBorder(System.Windows.Controls.Control control, string name)
+    {
+        control.ApplyTemplate();
+        return Assert.IsType<Border>(control.Template.FindName(name, control));
+    }
+
+    private static MediaColor GetBackgroundColor(Border border) =>
+        Assert.IsType<SolidColorBrush>(border.Background).Color;
+
+    private static void AssertCentered(FrameworkElement parent, FrameworkElement content)
+    {
+        var center = content.TranslatePoint(
+            new System.Windows.Point(content.ActualWidth / 2, content.ActualHeight / 2),
+            parent);
+        Assert.InRange(center.X, (parent.ActualWidth / 2) - 0.5, (parent.ActualWidth / 2) + 0.5);
+        Assert.InRange(center.Y, (parent.ActualHeight / 2) - 0.5, (parent.ActualHeight / 2) + 0.5);
+    }
+
     private static T FindVisualChild<T>(DependencyObject parent)
         where T : DependencyObject
     {
@@ -415,5 +631,15 @@ public sealed class ButtonStyleTests
         }
 
         throw new InvalidOperationException($"No visual child of type {typeof(T).Name} was found.");
+    }
+
+    private sealed class PressableButton : WpfButton
+    {
+        public void SetPressed(bool value) => IsPressed = value;
+    }
+
+    private sealed class PressableRadioButton : WpfRadioButton
+    {
+        public void SetPressed(bool value) => IsPressed = value;
     }
 }
