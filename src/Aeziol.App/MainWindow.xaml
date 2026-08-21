@@ -141,17 +141,25 @@
                                         </StackPanel>
                                     </MenuItem.Header>
                                 </MenuItem>
-                                <Separator Height="1" Margin="8,1"
-                                           Background="{DynamicResource AeziolBorderSoft}" />
+                                <Separator x:Name="CloseRememberSeparator" Height="1" Margin="8,5"
+                                           Background="{DynamicResource AeziolMuted}" Opacity="0.9">
+                                    <Separator.Template>
+                                        <ControlTemplate TargetType="Separator">
+                                            <Border Height="{TemplateBinding Height}"
+                                                    Background="{TemplateBinding Background}"
+                                                    SnapsToDevicePixels="True" />
+                                        </ControlTemplate>
+                                    </Separator.Template>
+                                </Separator>
                                 <MenuItem x:Name="CloseRememberMenuItem" IsCheckable="True"
-                                          StaysOpenOnClick="True" Padding="12,2">
+                                          StaysOpenOnClick="True" Padding="12,5">
                                     <MenuItem.Header>
                                         <Grid x:Name="CloseRememberContent" Height="22">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="23" />
                                                 <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
-                                            <Border Width="14" Height="14" HorizontalAlignment="Center"
+                                            <Border Width="14" Height="14" HorizontalAlignment="Left"
                                                     VerticalAlignment="Center"
                                                     CornerRadius="3" BorderThickness="1"
                                                     BorderBrush="{DynamicResource AeziolMuted}">

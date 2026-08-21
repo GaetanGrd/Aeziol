@@ -8,12 +8,12 @@ public sealed class CloseChoiceMenuLayoutTests
     private static readonly XNamespace XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
 
     [Fact]
-    public void RememberSection_FitsWithinOneCloseActionAndKeepsItsAccessibleStructure()
+    public void RememberSection_IsClearlySeparatedWhileStayingCompactAndAccessible()
     {
         var document = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "Fixtures", "MainWindow.xaml"));
         var rememberItem = FindNamedElement(document, "CloseRememberMenuItem");
         var rememberContent = FindNamedElement(document, "CloseRememberContent");
-        var precedingSeparator = rememberItem.ElementsBeforeSelf().Last(element => element.Name.LocalName == "Separator");
+        var precedingSeparator = FindNamedElement(document, "CloseRememberSeparator");
         var contextMenu = rememberItem.Ancestors().Single(element => element.Name.LocalName == "ContextMenu");
         var menuItemStyle = contextMenu
             .Descendants()
@@ -28,18 +28,25 @@ public sealed class CloseChoiceMenuLayoutTests
         var separatorMargin = ParseThickness(precedingSeparator.Attribute("Margin")?.Value);
 
         var actionHeight = 14 + actionPadding.Top + actionPadding.Bottom;
-        var rememberSectionHeight = ParseDouble(precedingSeparator.Attribute("Height")?.Value)
-            + separatorMargin.Top
-            + separatorMargin.Bottom
-            + ParseDouble(rememberContent.Attribute("Height")?.Value)
+        var rememberItemHeight = ParseDouble(rememberContent.Attribute("Height")?.Value)
             + rememberPadding.Top
             + rememberPadding.Bottom;
+        var separatorFootprint = ParseDouble(precedingSeparator.Attribute("Height")?.Value)
+            + separatorMargin.Top
+            + separatorMargin.Bottom;
+        var rememberSectionHeight = rememberItemHeight + separatorFootprint;
 
-        Assert.True(rememberSectionHeight <= actionHeight,
-            $"Remember section is {rememberSectionHeight}px high but an action is {actionHeight}px high.");
-        Assert.True(ParseDouble(rememberContent.Attribute("Height")?.Value)
-            + rememberPadding.Top
-            + rememberPadding.Bottom >= 24);
+        Assert.Equal(actionHeight, rememberItemHeight);
+        Assert.InRange(separatorFootprint, 9, 12);
+        Assert.InRange(separatorMargin.Top, 4, 6);
+        Assert.InRange(separatorMargin.Bottom, 4, 6);
+        Assert.True(rememberSectionHeight <= actionHeight + 12,
+            $"Remember section is {rememberSectionHeight}px high but the compact budget is {actionHeight + 12}px.");
+        Assert.Equal("{DynamicResource AeziolMuted}", precedingSeparator.Attribute("Background")?.Value);
+        Assert.InRange(ParseDouble(precedingSeparator.Attribute("Opacity")?.Value), 0.85, 1);
+        Assert.Contains(precedingSeparator.Descendants(), element =>
+            element.Name.LocalName == "Border"
+            && (string?)element.Attribute("Background") == "{TemplateBinding Background}");
         Assert.Equal("True", rememberItem.Attribute("IsCheckable")?.Value);
         Assert.Equal("True", rememberItem.Attribute("StaysOpenOnClick")?.Value);
         Assert.Equal("{TemplateBinding Padding}", menuItemStyle
@@ -51,6 +58,12 @@ public sealed class CloseChoiceMenuLayoutTests
         var note = FindNamedElement(document, "CloseRememberMenuNoteText");
         Assert.Equal("NoWrap", note.Attribute("TextWrapping")?.Value);
         Assert.Equal("CharacterEllipsis", note.Attribute("TextTrimming")?.Value);
+
+        var columns = rememberContent
+            .Descendants()
+            .Where(element => element.Name.LocalName == "ColumnDefinition")
+            .ToArray();
+        Assert.Equal("23", columns[0].Attribute("Width")?.Value);
     }
 
     private static XElement FindNamedElement(XDocument document, string name) =>
