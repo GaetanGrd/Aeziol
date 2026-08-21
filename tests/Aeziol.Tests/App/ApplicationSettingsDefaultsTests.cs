@@ -17,6 +17,7 @@ public sealed class ApplicationSettingsDefaultsTests
             ReduceAnimations = true,
             AmbientMusicEnabled = true,
             AmbientMusicVolumePercent = 73,
+            PauseAmbientMusicWhenUnfocused = false,
             KeepAmbientMusicPlayingWhenHidden = true,
             UseHardwareAcceleration = false,
             UpdateChannel = UpdateChannel.Beta,
@@ -41,6 +42,7 @@ public sealed class ApplicationSettingsDefaultsTests
         Assert.Equal(defaults.ReduceAnimations, reset.ReduceAnimations);
         Assert.Equal(defaults.AmbientMusicEnabled, reset.AmbientMusicEnabled);
         Assert.Equal(defaults.AmbientMusicVolumePercent, reset.AmbientMusicVolumePercent);
+        Assert.Equal(defaults.PauseAmbientMusicWhenUnfocused, reset.PauseAmbientMusicWhenUnfocused);
         Assert.Equal(defaults.KeepAmbientMusicPlayingWhenHidden, reset.KeepAmbientMusicPlayingWhenHidden);
         Assert.Equal(defaults.UseHardwareAcceleration, reset.UseHardwareAcceleration);
         Assert.Equal(defaults.UpdateChannel, reset.UpdateChannel);

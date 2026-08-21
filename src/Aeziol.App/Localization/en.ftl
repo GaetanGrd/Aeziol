@@ -153,6 +153,7 @@ ambient-music-maximum-standard = 100%
 ambient-music-loud-warning-standard = Above 20%, the music may mask audio output changes.
 ambient-music-pause-unfocused-standard = Pause when Aeziol is no longer in the foreground
 ambient-music-keep-playing-hidden-standard = Keep music playing while Aeziol is hidden
+ambient-music-focus-precedence-standard = Pausing on focus loss takes priority over playback while hidden.
 hardware-acceleration-standard = Hardware acceleration
 hardware-acceleration-restart-standard = Applied on next start. Disable it if graphical conflicts occur.
 update-channel-standard = Update channel
