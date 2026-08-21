@@ -18,7 +18,8 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
         Assert.False(settings.ReduceAnimations);
         Assert.False(settings.AmbientMusicEnabled);
         Assert.Equal(8, settings.AmbientMusicVolumePercent);
-        Assert.True(settings.PauseAmbientMusicWhenUnfocused);
+        Assert.False(settings.KeepAmbientMusicPlayingWhenHidden);
+        Assert.False(settings.OpenHiddenAtWindowsStartup);
         Assert.True(settings.UseHardwareAcceleration);
         Assert.Equal(UpdateChannel.Stable, settings.UpdateChannel);
     }
@@ -49,9 +50,11 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
             ReduceAnimations = true,
             AmbientMusicEnabled = false,
             AmbientMusicVolumePercent = 12,
-            PauseAmbientMusicWhenUnfocused = false,
+            KeepAmbientMusicPlayingWhenHidden = true,
             UseHardwareAcceleration = false,
             UpdateChannel = UpdateChannel.Beta,
+            StartWithWindows = true,
+            OpenHiddenAtWindowsStartup = true,
             DiscordExecutablePath = @"C:\Tools\Discord\Discord.exe",
             DiscordExecutableSearchCompleted = true,
             TargetEndpointId = "endpoint-1",
@@ -67,9 +70,11 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
         Assert.Equal(expected.ReduceAnimations, actual.ReduceAnimations);
         Assert.Equal(expected.AmbientMusicEnabled, actual.AmbientMusicEnabled);
         Assert.Equal(expected.AmbientMusicVolumePercent, actual.AmbientMusicVolumePercent);
-        Assert.Equal(expected.PauseAmbientMusicWhenUnfocused, actual.PauseAmbientMusicWhenUnfocused);
+        Assert.Equal(expected.KeepAmbientMusicPlayingWhenHidden, actual.KeepAmbientMusicPlayingWhenHidden);
         Assert.Equal(expected.UseHardwareAcceleration, actual.UseHardwareAcceleration);
         Assert.Equal(expected.UpdateChannel, actual.UpdateChannel);
+        Assert.Equal(expected.StartWithWindows, actual.StartWithWindows);
+        Assert.Equal(expected.OpenHiddenAtWindowsStartup, actual.OpenHiddenAtWindowsStartup);
         Assert.Equal(expected.DiscordExecutablePath, actual.DiscordExecutablePath);
         Assert.True(actual.DiscordExecutableSearchCompleted);
         Assert.Equal(expected.TargetEndpointId, actual.TargetEndpointId);
@@ -121,6 +126,52 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
 
         Assert.False(settings.AmbientMusicEnabled);
         Assert.Equal(37, settings.AmbientMusicVolumePercent);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task LoadAsync_MigratesTheLegacyUnfocusedMusicPreference(
+        bool pauseWhenUnfocused,
+        bool expectedKeepPlayingWhenHidden)
+    {
+        Directory.CreateDirectory(_root);
+        var path = Path.Combine(_root, "settings.json");
+        await File.WriteAllTextAsync(
+            path,
+            $$"""
+            {
+              "schemaVersion": 2,
+              "pauseAmbientMusicWhenUnfocused": {{pauseWhenUnfocused.ToString().ToLowerInvariant()}}
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        var settings = await new JsonAppSettingsStore(path).LoadAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(expectedKeepPlayingWhenHidden, settings.KeepAmbientMusicPlayingWhenHidden);
+        Assert.Equal(AppSettings.CurrentSchemaVersion, settings.SchemaVersion);
+    }
+
+    [Fact]
+    public async Task LoadAsync_DisablesHiddenStartupWhenWindowsAutostartIsOff()
+    {
+        Directory.CreateDirectory(_root);
+        var path = Path.Combine(_root, "settings.json");
+        await File.WriteAllTextAsync(
+            path,
+            $$"""
+            {
+              "schemaVersion": {{AppSettings.CurrentSchemaVersion}},
+              "startWithWindows": false,
+              "openHiddenAtWindowsStartup": true
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        var settings = await new JsonAppSettingsStore(path).LoadAsync(TestContext.Current.CancellationToken);
+
+        Assert.False(settings.OpenHiddenAtWindowsStartup);
     }
 
     [Fact]
