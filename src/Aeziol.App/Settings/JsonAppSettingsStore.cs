@@ -72,9 +72,7 @@ public sealed class JsonAppSettingsStore(string path)
     public async Task SaveAsync(AppSettings settings, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        var normalized = settings.SchemaVersion == AppSettings.CurrentSchemaVersion
-            ? settings
-            : settings with { SchemaVersion = AppSettings.CurrentSchemaVersion };
+        var normalized = Normalize(settings);
         var directory = Path.GetDirectoryName(_path)
             ?? throw new InvalidOperationException("The settings path must have a parent directory.");
         Directory.CreateDirectory(directory);
@@ -150,6 +148,17 @@ public sealed class JsonAppSettingsStore(string path)
             settings = settings with { SchemaVersion = AppSettings.CurrentSchemaVersion };
         }
 
+        if (schemaVersion < 3
+            && document.RootElement.TryGetProperty("pauseAmbientMusicWhenUnfocused", out var legacyPause)
+            && legacyPause.ValueKind is JsonValueKind.True or JsonValueKind.False)
+        {
+            settings = settings with
+            {
+                KeepAmbientMusicPlayingWhenHidden = !legacyPause.GetBoolean(),
+            };
+            requiresSave = true;
+        }
+
         if (document.RootElement.TryGetProperty("ambientMusicMuted", out var legacyMuted)
             && legacyMuted.ValueKind is JsonValueKind.True)
         {
@@ -157,8 +166,21 @@ public sealed class JsonAppSettingsStore(string path)
             requiresSave = true;
         }
 
+        var normalized = Normalize(settings);
+        if (normalized != settings)
+        {
+            settings = normalized;
+            requiresSave = true;
+        }
+
         return new LoadResult(settings, requiresSave);
     }
+
+    private static AppSettings Normalize(AppSettings settings) => settings with
+    {
+        SchemaVersion = AppSettings.CurrentSchemaVersion,
+        OpenHiddenAtWindowsStartup = settings.StartWithWindows && settings.OpenHiddenAtWindowsStartup,
+    };
 
     private void RestorePrimaryFromBackup()
     {

@@ -67,6 +67,7 @@ public sealed class LocalizationServiceTests : IDisposable
         {
             "close-choice-hide-compact",
             "close-choice-quit-compact",
+            "close-remember-settings-note",
             "force-restore",
             "nav-discord",
             "nav-passage",
@@ -82,6 +83,8 @@ public sealed class LocalizationServiceTests : IDisposable
             "settings-section-general",
             "settings-section-discord",
             "first-run-music-enable",
+            "ambient-music-keep-playing-hidden",
+            "autostart-open-hidden",
             "update-channel",
             "update-check",
             "update-download",

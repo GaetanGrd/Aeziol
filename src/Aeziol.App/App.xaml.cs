@@ -112,6 +112,7 @@ public partial class App : System.Windows.Application
         {
             var isUiPreview = e.Args.Contains("--ui-preview", StringComparer.OrdinalIgnoreCase);
             var forceFirstRun = e.Args.Contains("--first-run", StringComparer.OrdinalIgnoreCase);
+            var isWindowsStartup = !isUiPreview && IsWindowsStartup(e.Args);
             if (!isUiPreview)
             {
                 _singleInstance = new SingleInstanceCoordinator();
@@ -138,7 +139,7 @@ public partial class App : System.Windows.Application
                     FirstRunCompleted = true,
                     AutomationEnabled = false,
                     Language = "fr",
-                    CloseBehavior = CloseBehavior.Quit,
+                    CloseBehavior = CloseBehavior.Ask,
                 };
             }
             else
@@ -186,11 +187,11 @@ public partial class App : System.Windows.Application
             _ambientMusic = new AmbientMusicService(
                 Path.Combine(AppContext.BaseDirectory, "Assets", "Audio", "onde-doree.mp3"));
             _ambientMusic.Apply(settings);
-            Activated += OnApplicationActivated;
-            Deactivated += OnApplicationDeactivated;
-
             if (forceFirstRun || !settings.FirstRunCompleted)
             {
+                var previewMusicEnabled = settings.AmbientMusicEnabled;
+                var previewMusicVolume = settings.AmbientMusicVolumePercent;
+                _ambientMusic.SetApplicationVisible(true);
                 var firstRun = new FirstRunWindow(
                     _localization,
                     settings.Language,
@@ -201,8 +202,23 @@ public partial class App : System.Windows.Application
                     settings.AmbientMusicEnabled,
                     enabled =>
                     {
-                        _ambientMusic.SetApplicationActive(true);
-                        _ambientMusic.Apply(settings with { AmbientMusicEnabled = enabled });
+                        previewMusicEnabled = enabled;
+                        _ambientMusic.Apply(settings with
+                        {
+                            AmbientMusicEnabled = previewMusicEnabled,
+                            AmbientMusicVolumePercent = previewMusicVolume,
+                        });
+                    },
+                    settings.AmbientMusicVolumePercent,
+                    settings.KeepAmbientMusicPlayingWhenHidden,
+                    volume =>
+                    {
+                        previewMusicVolume = volume;
+                        _ambientMusic.Apply(settings with
+                        {
+                            AmbientMusicEnabled = previewMusicEnabled,
+                            AmbientMusicVolumePercent = previewMusicVolume,
+                        });
                     });
                 if (firstRun.ShowDialog() != true)
                 {
@@ -218,9 +234,13 @@ public partial class App : System.Windows.Application
                     StartWithWindows = firstRun.StartWithWindows,
                     ReduceAnimations = firstRun.ReduceAnimations,
                     AmbientMusicEnabled = firstRun.AmbientMusicEnabled,
+                    AmbientMusicVolumePercent = firstRun.AmbientMusicVolumePercent,
+                    KeepAmbientMusicPlayingWhenHidden = firstRun.KeepAmbientMusicPlayingWhenHidden,
                 };
                 await _settingsStore.SaveAsync(settings).ConfigureAwait(true);
-                await AutostartService.SetEnabledAsync(settings.StartWithWindows).ConfigureAwait(true);
+                await AutostartService.SetEnabledAsync(
+                    settings.StartWithWindows,
+                    settings.OpenHiddenAtWindowsStartup).ConfigureAwait(true);
             }
 
             _localization.ChangeLanguage(settings.Language);
@@ -235,8 +255,10 @@ public partial class App : System.Windows.Application
                 runtimeInitialization);
             MainWindow = window;
             CreateTrayIcon(window);
-            if (_showMainWindowWhenReady
-                || !e.Args.Contains("--background", StringComparer.OrdinalIgnoreCase))
+            if (ShouldShowMainWindow(
+                    _showMainWindowWhenReady,
+                    isWindowsStartup,
+                    settings.OpenHiddenAtWindowsStartup))
             {
                 window.Show();
             }
@@ -260,7 +282,14 @@ public partial class App : System.Windows.Application
             return;
         }
 
-        if (window.CurrentSettings.CloseBehavior is CloseBehavior.Ask or CloseBehavior.MinimizeToTray)
+        if (window.CurrentSettings.CloseBehavior == CloseBehavior.Ask)
+        {
+            eventArgs.Cancel = true;
+            window.ShowCloseActionsMenu();
+            return;
+        }
+
+        if (window.CurrentSettings.CloseBehavior == CloseBehavior.MinimizeToTray)
         {
             eventArgs.Cancel = true;
             window.Hide();
@@ -281,8 +310,6 @@ public partial class App : System.Windows.Application
         DispatcherUnhandledException -= OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException -= OnAppDomainUnhandledException;
         TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
-        Activated -= OnApplicationActivated;
-        Deactivated -= OnApplicationDeactivated;
         if (_singleInstance is not null)
         {
             _singleInstance.ActivationRequested -= OnSingleInstanceActivationRequested;
@@ -414,11 +441,32 @@ public partial class App : System.Windows.Application
 
     public void ApplyAmbientMusic(AppSettings settings) => _ambientMusic?.Apply(settings);
 
-    private void OnApplicationActivated(object? sender, EventArgs eventArgs) =>
-        _ambientMusic?.SetApplicationActive(true);
+    public void SetAmbientMusicHostVisible(bool isVisible) =>
+        _ambientMusic?.SetApplicationVisible(isVisible);
 
-    private void OnApplicationDeactivated(object? sender, EventArgs eventArgs) =>
-        _ambientMusic?.SetApplicationActive(false);
+    internal static bool ShouldShowMainWindow(
+        bool activationRequested,
+        bool isWindowsStartup,
+        bool openHiddenAtWindowsStartup) =>
+        activationRequested || !isWindowsStartup || !openHiddenAtWindowsStartup;
+
+    private static bool IsWindowsStartup(IReadOnlyCollection<string> arguments)
+    {
+        if (arguments.Contains("--background", StringComparer.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        try
+        {
+            return global::Windows.ApplicationModel.AppInstance.GetActivatedEventArgs()?.Kind
+                == global::Windows.ApplicationModel.Activation.ActivationKind.StartupTask;
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
+    }
 
     private static void ShowMainWindow(MainWindow window)
     {

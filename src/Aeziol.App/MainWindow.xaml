@@ -76,7 +76,7 @@
                     </Button>
                     <Button x:Name="CloseWindowButton" Margin="1,0" Style="{StaticResource WindowButton}" Content="×" Click="OnCloseWindow">
                         <Button.ContextMenu>
-                            <ContextMenu x:Name="CloseActionsMenu" Width="150" Padding="4"
+                            <ContextMenu x:Name="CloseActionsMenu" Width="238" Padding="4"
                                          Placement="Custom"
                                          Background="{DynamicResource AeziolRaised}"
                                          BorderBrush="{DynamicResource AeziolBorder}" BorderThickness="1"
@@ -138,6 +138,48 @@
                                             <TextBlock x:Name="CloseQuitMenuText" VerticalAlignment="Center"
                                                        Foreground="{DynamicResource AeziolDanger}" />
                                         </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                                <Separator Margin="8,4" Background="{DynamicResource AeziolBorderSoft}" />
+                                <MenuItem x:Name="CloseRememberMenuItem" IsCheckable="True"
+                                          StaysOpenOnClick="True">
+                                    <MenuItem.Header>
+                                        <Grid Margin="0,1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="21" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="14" Height="14" HorizontalAlignment="Left"
+                                                    VerticalAlignment="Top" Margin="0,1,0,0"
+                                                    CornerRadius="3" BorderThickness="1"
+                                                    BorderBrush="{DynamicResource AeziolMuted}">
+                                                <Path Width="9" Height="7" Stretch="Uniform"
+                                                      Data="M 1,4 L 3.5,6.5 L 8,1"
+                                                      Stroke="{DynamicResource AeziolGoldBright}"
+                                                      StrokeThickness="1.7" StrokeStartLineCap="Round"
+                                                      StrokeEndLineCap="Round">
+                                                    <Path.Style>
+                                                        <Style TargetType="Path">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=MenuItem}}"
+                                                                             Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Path.Style>
+                                                </Path>
+                                            </Border>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock x:Name="CloseRememberMenuText" FontSize="11"
+                                                           FontWeight="SemiBold" />
+                                                <TextBlock x:Name="CloseRememberMenuNoteText" Margin="0,3,0,0"
+                                                           MaxWidth="185" FontSize="9"
+                                                           Foreground="{DynamicResource AeziolDim}"
+                                                           TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </Grid>
                                     </MenuItem.Header>
                                 </MenuItem>
                             </ContextMenu>
@@ -747,6 +789,23 @@
                                             </Grid>
                                         </ContentControl>
 
+                                        <ContentControl x:Name="OpenHiddenAtStartupRow"
+                                                        Style="{StaticResource SettingsPathRow}"
+                                                        MouseEnter="OnSettingsJourneyEnter" MouseLeave="OnSettingsJourneyLeave">
+                                            <Grid HorizontalAlignment="Left">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <CheckBox x:Name="OpenHiddenAtStartupToggle"
+                                                          Style="{StaticResource ToggleSwitch}"
+                                                          Click="OnOpenHiddenAtStartupChanged" />
+                                                <Button Grid.Column="1" Margin="7,0,0,0"
+                                                        Style="{StaticResource SettingsHoverResetButton}"
+                                                        Tag="OpenHiddenAtStartup" Click="OnResetSetting" />
+                                            </Grid>
+                                        </ContentControl>
+
                                         <Button Style="{StaticResource SettingsCommandRow}"
                                                 MouseEnter="OnSettingsJourneyEnter" MouseLeave="OnSettingsJourneyLeave"
                                                 Tag="Music" Click="OnOpenSettingsEditor">
@@ -1023,17 +1082,17 @@
                                                                     <ColumnDefinition Width="Auto" />
                                                                     <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
-                                                                <TextBlock x:Name="PauseAmbientMusicWhenUnfocusedText"
+                                                                <TextBlock x:Name="KeepAmbientMusicPlayingWhenHiddenText"
                                                                            Margin="0,0,12,0"
                                                                            VerticalAlignment="Center"
                                                                            FontSize="11" TextWrapping="Wrap" />
-                                                                <CheckBox x:Name="PauseAmbientMusicWhenUnfocusedToggle"
+                                                                <CheckBox x:Name="KeepAmbientMusicPlayingWhenHiddenToggle"
                                                                           Grid.Column="1" VerticalAlignment="Center"
                                                                           Style="{StaticResource ToggleSwitch}"
-                                                                          Click="OnPauseAmbientMusicWhenUnfocusedChanged" />
+                                                                          Click="OnKeepAmbientMusicPlayingWhenHiddenChanged" />
                                                                 <Button Grid.Column="2" Margin="5,0,0,0"
                                                                         Style="{StaticResource SettingsHoverResetButton}"
-                                                                        Tag="PauseAmbientMusicWhenUnfocused"
+                                                                        Tag="KeepAmbientMusicPlayingWhenHidden"
                                                                         Click="OnResetSetting" />
                                                             </Grid>
                                                         </Border>

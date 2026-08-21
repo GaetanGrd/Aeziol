@@ -125,10 +125,11 @@ public partial class MainWindow : Window
             RuleAutomationToggle.IsChecked = settings.AutomationEnabled;
             UpdateAutomationPresentation(settings.AutomationEnabled, animate: false);
             AutostartToggle.IsChecked = settings.StartWithWindows;
+            OpenHiddenAtStartupToggle.IsChecked = settings.OpenHiddenAtWindowsStartup;
             EnhancedContrastToggle.IsChecked = settings.EnhanceContrast;
             ReduceAnimationsToggle.IsChecked = settings.ReduceAnimations;
             AmbientMusicToggle.IsChecked = settings.AmbientMusicEnabled;
-            PauseAmbientMusicWhenUnfocusedToggle.IsChecked = settings.PauseAmbientMusicWhenUnfocused;
+            KeepAmbientMusicPlayingWhenHiddenToggle.IsChecked = settings.KeepAmbientMusicPlayingWhenHidden;
             HardwareAccelerationToggle.IsChecked = settings.UseHardwareAcceleration;
             SelectByTag(UpdateChannelCombo, settings.UpdateChannel.ToString());
             DiscordExecutablePathTextBox.Text = settings.DiscordExecutablePath ?? string.Empty;
@@ -140,6 +141,7 @@ public partial class MainWindow : Window
             UpdateDiscordExecutableControls();
             UpdateCloseBehaviorPreview();
             UpdateAmbientMusicControls();
+            UpdateStartupControls();
         }
         finally
         {
@@ -300,9 +302,13 @@ public partial class MainWindow : Window
             }
 
             await _settingsStore.SaveAsync(settings).ConfigureAwait(true);
-            if (updateAutostart && previous.StartWithWindows != settings.StartWithWindows)
+            if (updateAutostart
+                && (previous.StartWithWindows != settings.StartWithWindows
+                    || previous.OpenHiddenAtWindowsStartup != settings.OpenHiddenAtWindowsStartup))
             {
-                await AutostartService.SetEnabledAsync(settings.StartWithWindows).ConfigureAwait(true);
+                await AutostartService.SetEnabledAsync(
+                    settings.StartWithWindows,
+                    settings.OpenHiddenAtWindowsStartup).ConfigureAwait(true);
             }
 
             await _runtime.UpdateSettingsAsync(settings).ConfigureAwait(true);
@@ -687,7 +693,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void OnPauseAmbientMusicWhenUnfocusedChanged(object sender, RoutedEventArgs eventArgs)
+    private async void OnKeepAmbientMusicPlayingWhenHiddenChanged(object sender, RoutedEventArgs eventArgs)
     {
         if (_initializing || _syncingControls)
         {
@@ -696,16 +702,16 @@ public partial class MainWindow : Window
 
         try
         {
-            var pauseWhenUnfocused = PauseAmbientMusicWhenUnfocusedToggle.IsChecked == true;
+            var keepPlayingWhenHidden = KeepAmbientMusicPlayingWhenHiddenToggle.IsChecked == true;
             await PersistSettingsAsync(settings => settings with
             {
-                PauseAmbientMusicWhenUnfocused = pauseWhenUnfocused,
+                KeepAmbientMusicPlayingWhenHidden = keepPlayingWhenHidden,
             }).ConfigureAwait(true);
         }
         catch (Exception exception)
         {
             _syncingControls = true;
-            PauseAmbientMusicWhenUnfocusedToggle.IsChecked = _runtime.Settings.PauseAmbientMusicWhenUnfocused;
+            KeepAmbientMusicPlayingWhenHiddenToggle.IsChecked = _runtime.Settings.KeepAmbientMusicPlayingWhenHidden;
             _syncingControls = false;
             await ShowErrorAsync(_localization.Get("ambient-music", SelectedRegister), exception).ConfigureAwait(true);
         }
@@ -915,12 +921,20 @@ public partial class MainWindow : Window
             "ReduceAnimations" => current => current with { ReduceAnimations = defaults.ReduceAnimations },
             "CloseBehavior" => current => current with { CloseBehavior = defaults.CloseBehavior },
             "GracePeriod" => current => current with { ExitGracePeriodSeconds = defaults.ExitGracePeriodSeconds },
-            "Autostart" => current => current with { StartWithWindows = defaults.StartWithWindows },
+            "Autostart" => current => current with
+            {
+                StartWithWindows = defaults.StartWithWindows,
+                OpenHiddenAtWindowsStartup = defaults.OpenHiddenAtWindowsStartup,
+            },
+            "OpenHiddenAtStartup" => current => current with
+            {
+                OpenHiddenAtWindowsStartup = defaults.OpenHiddenAtWindowsStartup,
+            },
             "AmbientMusicEnabled" => current => current with { AmbientMusicEnabled = defaults.AmbientMusicEnabled },
             "AmbientMusicVolume" => current => current with { AmbientMusicVolumePercent = defaults.AmbientMusicVolumePercent },
-            "PauseAmbientMusicWhenUnfocused" => current => current with
+            "KeepAmbientMusicPlayingWhenHidden" => current => current with
             {
-                PauseAmbientMusicWhenUnfocused = defaults.PauseAmbientMusicWhenUnfocused,
+                KeepAmbientMusicPlayingWhenHidden = defaults.KeepAmbientMusicPlayingWhenHidden,
             },
             "HardwareAcceleration" => current => current with
             {
@@ -941,7 +955,9 @@ public partial class MainWindow : Window
                 _ambientMusicVolumeSaveCancellation?.Cancel();
             }
 
-            await PersistSettingsAsync(update, updateAutostart: setting == "Autostart").ConfigureAwait(true);
+            await PersistSettingsAsync(
+                update,
+                updateAutostart: setting is "Autostart" or "OpenHiddenAtStartup").ConfigureAwait(true);
             if (setting == "Language")
             {
                 _localization.ChangeLanguage(_runtime.Settings.Language);
@@ -1059,12 +1075,58 @@ public partial class MainWindow : Window
         {
             var enabled = AutostartToggle.IsChecked == true;
             await PersistSettingsAsync(
-                settings => settings with { StartWithWindows = enabled },
+                settings => settings with
+                {
+                    StartWithWindows = enabled,
+                    OpenHiddenAtWindowsStartup = enabled && settings.OpenHiddenAtWindowsStartup,
+                },
+                updateAutostart: true).ConfigureAwait(true);
+            UpdateStartupControls();
+        }
+        catch (Exception exception)
+        {
+            LoadSettingsIntoControls(_runtime.Settings);
+            await ShowErrorAsync(_localization.Get("autostart", SelectedRegister), exception).ConfigureAwait(true);
+        }
+    }
+
+    private async void OnOpenHiddenAtStartupChanged(object sender, RoutedEventArgs eventArgs)
+    {
+        if (_initializing || _syncingControls || !_runtime.Settings.StartWithWindows)
+        {
+            return;
+        }
+
+        try
+        {
+            var openHidden = OpenHiddenAtStartupToggle.IsChecked == true;
+            await PersistSettingsAsync(
+                settings => settings with { OpenHiddenAtWindowsStartup = openHidden },
                 updateAutostart: true).ConfigureAwait(true);
         }
         catch (Exception exception)
         {
-            await ShowErrorAsync(_localization.Get("autostart", SelectedRegister), exception).ConfigureAwait(true);
+            LoadSettingsIntoControls(_runtime.Settings);
+            await ShowErrorAsync(
+                _localization.Get("autostart-open-hidden", SelectedRegister),
+                exception).ConfigureAwait(true);
+        }
+    }
+
+    private void UpdateStartupControls()
+    {
+        if (!IsInitialized)
+        {
+            return;
+        }
+
+        var autostartEnabled = _runtime.Settings.StartWithWindows;
+        OpenHiddenAtStartupRow.IsEnabled = autostartEnabled;
+        if (!autostartEnabled && OpenHiddenAtStartupToggle.IsChecked == true)
+        {
+            _syncingControls = true;
+            OpenHiddenAtStartupToggle.IsChecked = false;
+            _syncingControls = false;
         }
     }
 
@@ -1654,6 +1716,7 @@ public partial class MainWindow : Window
         FlowDirection = _localization.IsRightToLeft
             ? System.Windows.FlowDirection.RightToLeft
             : System.Windows.FlowDirection.LeftToRight;
+        CloseActionsMenu.FlowDirection = FlowDirection;
 
         DiscordNavText.Text = _localization.Get("nav-discord", register);
         PassageHeaderText.Text = _localization.Get("nav-passage", register);
@@ -1713,7 +1776,9 @@ public partial class MainWindow : Window
         AmbientMusicMaximumText.Text = _localization.Get("ambient-music-maximum", register);
         AmbientMusicVolumeWarningText.Text = _localization.Get("ambient-music-loud-warning", register);
         AmbientMusicHelpText.Text = _localization.Get("ambient-music-pending", register);
-        PauseAmbientMusicWhenUnfocusedText.Text = _localization.Get("ambient-music-pause-unfocused", register);
+        KeepAmbientMusicPlayingWhenHiddenText.Text = _localization.Get(
+            "ambient-music-keep-playing-hidden",
+            register);
         HardwareAccelerationText.Text = _localization.Get("hardware-acceleration", register);
         HardwareAccelerationHintText.Text = _localization.Get("hardware-acceleration-restart", register);
         UpdateChannelLabelText.Text = _localization.Get("update-channel", register);
@@ -1730,6 +1795,7 @@ public partial class MainWindow : Window
             System.Windows.Automation.AutomationProperties.SetName(resetButton, resetSettingLabel);
         }
         AutostartToggle.Content = _localization.Get("autostart", register);
+        OpenHiddenAtStartupToggle.Content = _localization.Get("autostart-open-hidden", register);
         DiscordExecutableLabelText.Text = _localization.Get("discord-executable", register);
         DiscordExecutableHelpText.Text = _localization.Get("discord-executable-help", register);
         BrowseDiscordExecutableButton.Content = _localization.Get("browse", register);
@@ -1769,6 +1835,8 @@ public partial class MainWindow : Window
         System.Windows.Automation.AutomationProperties.SetName(CloseWindowButton, closeLabel);
         CloseHideMenuText.Text = _localization.Get("close-choice-hide-compact", register);
         CloseQuitMenuText.Text = _localization.Get("close-choice-quit-compact", register);
+        CloseRememberMenuText.Text = _localization.Get("close-remember", register);
+        CloseRememberMenuNoteText.Text = _localization.Get("close-remember-settings-note", register);
         UpdateWindowStateVisuals();
         AboutTitleText.Text = _localization.Get("about-title", register);
         AboutSubtitleText.Text = _localization.Get("about-subtitle", register);
@@ -2090,6 +2158,8 @@ public partial class MainWindow : Window
 
     private async void OnReplayOnboarding(object sender, RoutedEventArgs eventArgs)
     {
+        var previewMusicEnabled = _runtime.Settings.AmbientMusicEnabled;
+        var previewMusicVolume = _runtime.Settings.AmbientMusicVolumePercent;
         var onboarding = new FirstRunWindow(
             _localization,
             _runtime.Settings.Language,
@@ -2100,9 +2170,28 @@ public partial class MainWindow : Window
             _runtime.Settings.AmbientMusicEnabled,
             enabled =>
             {
+                previewMusicEnabled = enabled;
                 if (System.Windows.Application.Current is App app)
                 {
-                    app.ApplyAmbientMusic(_runtime.Settings with { AmbientMusicEnabled = enabled });
+                    app.ApplyAmbientMusic(_runtime.Settings with
+                    {
+                        AmbientMusicEnabled = previewMusicEnabled,
+                        AmbientMusicVolumePercent = previewMusicVolume,
+                    });
+                }
+            },
+            _runtime.Settings.AmbientMusicVolumePercent,
+            _runtime.Settings.KeepAmbientMusicPlayingWhenHidden,
+            volume =>
+            {
+                previewMusicVolume = volume;
+                if (System.Windows.Application.Current is App app)
+                {
+                    app.ApplyAmbientMusic(_runtime.Settings with
+                    {
+                        AmbientMusicEnabled = previewMusicEnabled,
+                        AmbientMusicVolumePercent = previewMusicVolume,
+                    });
                 }
             })
         {
@@ -2131,6 +2220,8 @@ public partial class MainWindow : Window
                     StartWithWindows = onboarding.StartWithWindows,
                     ReduceAnimations = onboarding.ReduceAnimations,
                     AmbientMusicEnabled = onboarding.AmbientMusicEnabled,
+                    AmbientMusicVolumePercent = onboarding.AmbientMusicVolumePercent,
+                    KeepAmbientMusicPlayingWhenHidden = onboarding.KeepAmbientMusicPlayingWhenHidden,
                 },
                 updateAutostart: true).ConfigureAwait(true);
             LoadSettingsIntoControls(_runtime.Settings);
@@ -2337,8 +2428,14 @@ public partial class MainWindow : Window
         ExclusionsJourneyTrace.DisplayScale = scale;
     }
 
-    private void OnWindowVisibilityChanged(object sender, DependencyPropertyChangedEventArgs eventArgs) =>
+    private void OnWindowVisibilityChanged(object sender, DependencyPropertyChangedEventArgs eventArgs)
+    {
         UpdateMusicCovers();
+        if (System.Windows.Application.Current is App app)
+        {
+            app.SetAmbientMusicHostVisible(IsVisible);
+        }
+    }
 
     private void UpdateWindowStateVisuals()
     {
@@ -2359,6 +2456,26 @@ public partial class MainWindow : Window
 
     private void OnCloseWindow(object sender, RoutedEventArgs eventArgs)
     {
+        switch (_runtime.Settings.CloseBehavior)
+        {
+            case CloseBehavior.MinimizeToTray:
+                Hide();
+                return;
+            case CloseBehavior.Quit:
+                if (System.Windows.Application.Current is App app)
+                {
+                    app.RequestQuit();
+                }
+
+                return;
+        }
+
+        ShowCloseActionsMenu();
+    }
+
+    internal void ShowCloseActionsMenu()
+    {
+        CloseRememberMenuItem.IsChecked = false;
         CloseActionsMenu.PlacementTarget = CloseWindowButton;
         CloseActionsMenu.Placement = PlacementMode.Custom;
         CloseActionsMenu.CustomPopupPlacementCallback = PlaceCloseActionsMenu;
@@ -2382,13 +2499,43 @@ public partial class MainWindow : Window
         ];
     }
 
-    private void OnHideFromCloseMenu(object sender, RoutedEventArgs eventArgs) => Hide();
-
-    private void OnQuitFromCloseMenu(object sender, RoutedEventArgs eventArgs)
+    private async void OnHideFromCloseMenu(object sender, RoutedEventArgs eventArgs)
     {
+        await RememberCloseChoiceAsync(CloseBehavior.MinimizeToTray).ConfigureAwait(true);
+        Hide();
+    }
+
+    private async void OnQuitFromCloseMenu(object sender, RoutedEventArgs eventArgs)
+    {
+        await RememberCloseChoiceAsync(CloseBehavior.Quit).ConfigureAwait(true);
         if (System.Windows.Application.Current is App app)
         {
             app.RequestQuit();
+        }
+    }
+
+    private async Task RememberCloseChoiceAsync(CloseBehavior behavior)
+    {
+        if (!CloseRememberMenuItem.IsChecked)
+        {
+            return;
+        }
+
+        try
+        {
+            await PersistSettingsAsync(settings => settings with { CloseBehavior = behavior }).ConfigureAwait(true);
+            _syncingControls = true;
+            SelectByTag(CloseBehaviorCombo, behavior.ToString());
+            _syncingControls = false;
+            UpdateCloseBehaviorPreview();
+        }
+        catch (Exception exception)
+        {
+            await ShowErrorAsync(_localization.Get("close-behavior", SelectedRegister), exception).ConfigureAwait(true);
+        }
+        finally
+        {
+            CloseRememberMenuItem.IsChecked = false;
         }
     }
 

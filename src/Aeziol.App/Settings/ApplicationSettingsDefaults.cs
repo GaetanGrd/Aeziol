@@ -14,10 +14,11 @@ internal static class ApplicationSettingsDefaults
             ReduceAnimations = defaults.ReduceAnimations,
             AmbientMusicEnabled = defaults.AmbientMusicEnabled,
             AmbientMusicVolumePercent = defaults.AmbientMusicVolumePercent,
-            PauseAmbientMusicWhenUnfocused = defaults.PauseAmbientMusicWhenUnfocused,
+            KeepAmbientMusicPlayingWhenHidden = defaults.KeepAmbientMusicPlayingWhenHidden,
             UseHardwareAcceleration = defaults.UseHardwareAcceleration,
             UpdateChannel = defaults.UpdateChannel,
             StartWithWindows = defaults.StartWithWindows,
+            OpenHiddenAtWindowsStartup = defaults.OpenHiddenAtWindowsStartup,
             CloseBehavior = defaults.CloseBehavior,
             ExitGracePeriodSeconds = defaults.ExitGracePeriodSeconds,
         };

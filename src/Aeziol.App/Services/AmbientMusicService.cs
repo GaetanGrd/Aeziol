@@ -9,8 +9,8 @@ public sealed class AmbientMusicService : IDisposable
     private readonly Uri _trackUri;
     private bool _opened;
     private bool _enabled;
-    private bool _pauseWhenUnfocused;
-    private bool _applicationActive;
+    private bool _keepPlayingWhenHidden;
+    private bool _applicationVisible;
 
     public AmbientMusicService(string trackPath)
     {
@@ -26,26 +26,26 @@ public sealed class AmbientMusicService : IDisposable
     {
         ArgumentNullException.ThrowIfNull(settings);
         _enabled = settings.AmbientMusicEnabled && IsAvailable;
-        _pauseWhenUnfocused = settings.PauseAmbientMusicWhenUnfocused;
+        _keepPlayingWhenHidden = settings.KeepAmbientMusicPlayingWhenHidden;
         _player.Volume = Math.Clamp(settings.AmbientMusicVolumePercent, 0, 100) / 100d;
         _player.IsMuted = false;
         UpdatePlayback();
     }
 
-    public void SetApplicationActive(bool isActive)
+    public void SetApplicationVisible(bool isVisible)
     {
-        if (_applicationActive == isActive)
+        if (_applicationVisible == isVisible)
         {
             return;
         }
 
-        _applicationActive = isActive;
+        _applicationVisible = isVisible;
         UpdatePlayback();
     }
 
     private void UpdatePlayback()
     {
-        if (!ShouldPlay(_enabled, _pauseWhenUnfocused, _applicationActive))
+        if (!ShouldPlay(_enabled, _keepPlayingWhenHidden, _applicationVisible))
         {
             _player.Pause();
             return;
@@ -71,7 +71,7 @@ public sealed class AmbientMusicService : IDisposable
 
     private void OnMediaEnded(object? sender, EventArgs e)
     {
-        if (!ShouldPlay(_enabled, _pauseWhenUnfocused, _applicationActive))
+        if (!ShouldPlay(_enabled, _keepPlayingWhenHidden, _applicationVisible))
         {
             return;
         }
@@ -86,6 +86,6 @@ public sealed class AmbientMusicService : IDisposable
         _player.Stop();
     }
 
-    internal static bool ShouldPlay(bool enabled, bool pauseWhenUnfocused, bool applicationActive) =>
-        enabled && (!pauseWhenUnfocused || applicationActive);
+    internal static bool ShouldPlay(bool enabled, bool keepPlayingWhenHidden, bool applicationVisible) =>
+        enabled && (keepPlayingWhenHidden || applicationVisible);
 }
