@@ -18,6 +18,7 @@
         <Color x:Key="AeziolGoldBrightColor">#FFF0B5</Color>
         <Color x:Key="AeziolSecondaryColor">#DEBD68</Color>
         <Color x:Key="AeziolOnAccentColor">#000000</Color>
+        <Color x:Key="AeziolOnSecondaryColor">#000000</Color>
         <Color x:Key="AeziolTextColor">#F5F3EC</Color>
         <Color x:Key="AeziolMutedColor">#AAA8A1</Color>
         <Color x:Key="AeziolDimColor">#74747C</Color>
@@ -47,6 +48,7 @@
         <SolidColorBrush x:Key="AeziolGoldBright" Color="{DynamicResource AeziolGoldBrightColor}" />
         <SolidColorBrush x:Key="AeziolSecondary" Color="{DynamicResource AeziolSecondaryColor}" />
         <SolidColorBrush x:Key="AeziolOnAccent" Color="{DynamicResource AeziolOnAccentColor}" />
+        <SolidColorBrush x:Key="AeziolOnSecondary" Color="{DynamicResource AeziolOnSecondaryColor}" />
         <SolidColorBrush x:Key="AeziolText" Color="{DynamicResource AeziolTextColor}" />
         <SolidColorBrush x:Key="AeziolMuted" Color="{DynamicResource AeziolMutedColor}" />
         <SolidColorBrush x:Key="AeziolDim" Color="{DynamicResource AeziolDimColor}" />
@@ -210,14 +212,19 @@
                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolHover}" />
-                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolDim}" />
-                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsEnabled" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolSecondary}" />
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolSecondary}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSecondary}" />
+                            </MultiTrigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolSecondary}" />
                                 <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolSecondary}" />
-                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSecondary}" />
                                 <Setter TargetName="Chrome" Property="Opacity" Value="0.9" />
                             </Trigger>
                             <MultiTrigger>
@@ -261,6 +268,7 @@
                             </MultiTrigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="Chrome" Property="Opacity" Value="0.38" />
+                                <Setter Property="Cursor" Value="Arrow" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolGold}" />
@@ -328,17 +336,23 @@
                                               TextElement.Foreground="{TemplateBinding Foreground}" />
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolHover}" />
-                                <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
-                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsEnabled" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolSecondary}" />
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolSecondary}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSecondary}" />
+                            </MultiTrigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolSecondary}" />
                                 <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolSecondary}" />
-                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSecondary}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="Chrome" Property="Opacity" Value="0.38" />
+                                <Setter Property="Cursor" Value="Arrow" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolGoldLine}" />
@@ -551,7 +565,7 @@
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Selection" Property="Background" Value="{DynamicResource AeziolSecondary}" />
-                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSecondary}" />
                             </Trigger>
                             <MultiTrigger>
                                 <MultiTrigger.Conditions>
@@ -719,7 +733,7 @@
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="HoverSurface" Property="Background" Value="{DynamicResource AeziolSecondary}" />
-                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSecondary}" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="HoverSurface" Property="BorderBrush" Value="{DynamicResource AeziolGoldLine}" />
@@ -745,7 +759,9 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -753,17 +769,26 @@
                             <Border x:Name="Surface" Margin="40,1,0,1" Padding="10,0"
                                     CornerRadius="8" Background="Transparent">
                                 <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                  VerticalAlignment="Center"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                                   TextElement.Foreground="{TemplateBinding Foreground}" />
                             </Border>
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Surface" Property="Background" Value="{DynamicResource AeziolGoldWash}" />
-                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsEnabled" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Surface" Property="Background" Value="{DynamicResource AeziolSecondary}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSecondary}" />
+                            </MultiTrigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Surface" Property="Background" Value="{DynamicResource AeziolSecondary}" />
-                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSecondary}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Surface" Property="Opacity" Value="0.38" />
+                                <Setter Property="Cursor" Value="Arrow" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="Surface" Property="BorderBrush" Value="{DynamicResource AeziolGoldLine}" />
@@ -804,9 +829,13 @@
                BasedOn="{StaticResource SettingResetButton}">
             <Setter Property="Opacity" Value="0.28" />
             <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsMouseOver" Value="True" />
+                        <Condition Property="IsEnabled" Value="True" />
+                    </MultiTrigger.Conditions>
                     <Setter Property="Opacity" Value="1" />
-                </Trigger>
+                </MultiTrigger>
                 <Trigger Property="IsKeyboardFocused" Value="True">
                     <Setter Property="Opacity" Value="1" />
                 </Trigger>
