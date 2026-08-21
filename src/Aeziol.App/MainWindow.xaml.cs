@@ -66,6 +66,8 @@ public partial class MainWindow : Window
         _runtimeInitialization = runtimeInitialization;
         _updateService = new AppUpdateService(UpdateHttpClient, paths.UpdatesDirectory);
         InitializeComponent();
+        SettingsDiscordScrollViewer.Content = null;
+        DiscordSettingsHost.Content = DiscordSettingsCard;
         CloseActionsMenu.LayoutTransform = _closeActionsMenuScale;
         NotificationItems.ItemsSource = _notifications.Items;
         MotionAssist.SetIsReduced(this, runtime.Settings.ReduceAnimations);
@@ -205,11 +207,9 @@ public partial class MainWindow : Window
             try
             {
                 PassageDestinationCombo.ItemsSource = choices;
-                RuleDestinationCombo.ItemsSource = choices;
                 CurrentOutputCombo.ItemsSource = choices;
                 ExclusionsList.ItemsSource = choices;
                 PassageDestinationCombo.SelectedValue = _runtime.Settings.TargetEndpointId;
-                RuleDestinationCombo.SelectedValue = _runtime.Settings.TargetEndpointId;
             }
             finally
             {
@@ -265,15 +265,11 @@ public partial class MainWindow : Window
             targetId,
             hasPendingRestoration: _runtime.ActiveRouteTransaction is not null);
         var showWarning = presentation.ShowIdenticalOutputWarning;
-        var warning = _localization.Get("identical-output-warning", SelectedRegister);
-
         TargetHelpText.Text = _localization.Get(
             showWarning ? "identical-output-warning" : "target-help",
             SelectedRegister);
         TargetHelpText.Foreground = (System.Windows.Media.Brush)FindResource(
             showWarning ? "AeziolGold" : "AeziolMuted");
-        RuleDestinationWarningText.Text = warning;
-        RuleDestinationWarningText.Visibility = showWarning ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private string ResolveEndpointName(string? endpointId, string fallback)
@@ -378,8 +374,19 @@ public partial class MainWindow : Window
     private void UpdateAutomationPresentation(bool enabled, bool animate)
     {
         var presentation = AutomationPresentation.For(enabled);
-        AutomationActionButton.Content = _localization.Get(presentation.ActionLocalizationKey, SelectedRegister);
-        AutomationActionButton.Style = (Style)FindResource(presentation.ButtonStyleKey);
+        var actionText = _localization.Get(presentation.ActionLocalizationKey, SelectedRegister);
+        AutomationActionText.Text = actionText;
+        AutomationActionIcon.Data = Geometry.Parse(presentation.IconGeometry);
+        AutomationActionButton.SetResourceReference(
+            System.Windows.Controls.Control.ForegroundProperty,
+            presentation.AccentBrushKey);
+        AutomationActionButton.SetResourceReference(
+            System.Windows.Controls.Control.BackgroundProperty,
+            presentation.BackgroundBrushKey);
+        AutomationActionButton.SetResourceReference(
+            System.Windows.Controls.Control.BorderBrushProperty,
+            "AeziolBorder");
+        System.Windows.Automation.AutomationProperties.SetName(AutomationActionButton, actionText);
         PassageAutomationContent.IsEnabled = presentation.ContentIsEnabled;
 
         var currentOpacity = PassageAutomationContent.Opacity;
@@ -433,7 +440,6 @@ public partial class MainWindow : Window
         try
         {
             PassageDestinationCombo.SelectedValue = targetId;
-            RuleDestinationCombo.SelectedValue = targetId;
         }
         finally
         {
@@ -1722,8 +1728,13 @@ public partial class MainWindow : Window
             : System.Windows.HorizontalAlignment.Left;
 
         DiscordNavText.Text = _localization.Get("nav-discord", register);
-        PassageHeaderText.Text = _localization.Get("nav-passage", register);
+        var passageLabel = _localization.Get("nav-passage", register);
+        PassageHeaderText.Text = passageLabel;
+        System.Windows.Automation.AutomationProperties.SetName(PassageCategoryHeader, passageLabel);
         ComingSoonNavText.Text = _localization.Get("nav-coming-soon", register);
+        System.Windows.Automation.AutomationProperties.SetHelpText(
+            ComingSoonNav,
+            _localization.Get("nav-coming-soon-help", register));
         SettingsNavText.Text = _localization.Get("nav-settings", register);
         DiscordTitleText.Text = _localization.Get("page-discord-title", register);
         DiscordSubtitleText.Text = _localization.Get("page-discord-subtitle", register);
@@ -1743,16 +1754,13 @@ public partial class MainWindow : Window
         RuleWhenLabelText.Text = _localization.Get("rule-when-label", register);
         RuleWhenText.Text = _localization.Get("rule-when", register);
         RulePriorityLabelText.Text = _localization.Get("rule-priority", register);
-        RuleFutureText.Text = _localization.Get("rule-future", register);
-        RuleDestinationLabelText.Text = _localization.Get("rule-destination", register);
+        RuleRouteHintText.Text = _localization.Get("rule-route-hint", register);
         ExclusionsTitleText.Text = _localization.Get("exclusions", register);
         ExclusionsHelpText.Text = _localization.Get("exclusions-help", register);
         UpdateDestinationWarning();
 
         SettingsTitleText.Text = _localization.Get("page-settings-title", register);
         SettingsSubtitleText.Text = _localization.Get("page-settings-subtitle", register);
-        SettingsGeneralTab.Content = _localization.Get("settings-section-general", register);
-        SettingsDiscordTab.Content = _localization.Get("settings-section-discord", register);
         DiscordSettingsTitleText.Text = _localization.Get("discord-connection", register);
         DiscordRouteCaptionText.Text = _localization.Get("discord-route-caption", register);
         DiscordFallbackTitleText.Text = _localization.Get("discord-fallback-title", register);
@@ -1902,31 +1910,6 @@ public partial class MainWindow : Window
         SettingsView.Visibility = Visibility.Visible;
         UpdateSettingsMusicCover();
         UpdateNavigationContext();
-    }
-
-    private void OnSettingsSectionChanged(object sender, RoutedEventArgs eventArgs)
-    {
-        if (!IsInitialized)
-        {
-            return;
-        }
-
-        var showDiscord = ReferenceEquals(sender, SettingsDiscordTab);
-        HideSettingsEditor();
-        SettingsGeneralPanel.Visibility = showDiscord ? Visibility.Collapsed : Visibility.Visible;
-        SettingsDiscordPanel.Visibility = showDiscord ? Visibility.Visible : Visibility.Collapsed;
-        if (showDiscord)
-        {
-            SettingsDiscordScrollViewer.ScrollToTop();
-        }
-        else
-        {
-            SettingsGeneralDetailsScrollViewer.ScrollToTop();
-        }
-
-        var panel = showDiscord ? SettingsDiscordPanel : SettingsGeneralPanel;
-        AnimateSettingsPanel(panel);
-        UpdateSettingsMusicCover();
     }
 
     private void OnSettingsJourneyEnter(

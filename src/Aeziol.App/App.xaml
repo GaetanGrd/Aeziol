@@ -287,6 +287,42 @@
             <Setter Property="BorderBrush" Value="{DynamicResource AeziolBorder}" />
             <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
         </Style>
+        <Style x:Key="AutomationHeaderButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chrome" Padding="{TemplateBinding Padding}" CornerRadius="8"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolHover}" />
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolDim}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolSecondary}" />
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolSecondary}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Chrome" Property="Opacity" Value="0.42" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolGold}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
             <Setter Property="Background" Value="{DynamicResource AeziolDangerWash}" />
             <Setter Property="BorderBrush" Value="Transparent" />
@@ -547,7 +583,8 @@
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Cursor" Value="Arrow" />
-                                <Setter Property="Opacity" Value="0.38" />
+                                <Setter Property="Opacity" Value="0.82" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolMuted}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Selection" Property="Background" Value="{DynamicResource AeziolSecondary}" />
