@@ -21,6 +21,6 @@ internal readonly record struct AutomationPresentation(
             "M 1,1 L 10,6 L 1,11 Z",
             "AeziolSuccess",
             "AeziolRaised",
-            0.32,
+            0.62,
             false);
 }

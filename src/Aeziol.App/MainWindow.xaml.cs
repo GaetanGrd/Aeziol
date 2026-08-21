@@ -1727,15 +1727,21 @@ public partial class MainWindow : Window
             ? System.Windows.HorizontalAlignment.Right
             : System.Windows.HorizontalAlignment.Left;
 
-        DiscordNavText.Text = _localization.Get("nav-discord", register);
+        var discordLabel = _localization.Get("nav-discord", register);
+        DiscordNavText.Text = discordLabel;
+        System.Windows.Automation.AutomationProperties.SetName(DiscordNav, discordLabel);
         var passageLabel = _localization.Get("nav-passage", register);
         PassageHeaderText.Text = passageLabel;
         System.Windows.Automation.AutomationProperties.SetName(PassageCategoryHeader, passageLabel);
-        ComingSoonNavText.Text = _localization.Get("nav-coming-soon", register);
+        var comingSoonLabel = _localization.Get("nav-coming-soon", register);
+        ComingSoonNavText.Text = comingSoonLabel;
+        System.Windows.Automation.AutomationProperties.SetName(ComingSoonNav, comingSoonLabel);
         System.Windows.Automation.AutomationProperties.SetHelpText(
             ComingSoonNav,
             _localization.Get("nav-coming-soon-help", register));
-        SettingsNavText.Text = _localization.Get("nav-settings", register);
+        var settingsLabel = _localization.Get("nav-settings", register);
+        SettingsNavText.Text = settingsLabel;
+        System.Windows.Automation.AutomationProperties.SetName(SettingsNav, settingsLabel);
         DiscordTitleText.Text = _localization.Get("page-discord-title", register);
         DiscordSubtitleText.Text = _localization.Get("page-discord-subtitle", register);
         DiscordOverviewTab.Content = _localization.Get("discord-section-overview", register);

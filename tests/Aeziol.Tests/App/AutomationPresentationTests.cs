@@ -26,7 +26,7 @@ public sealed class AutomationPresentationTests
         Assert.Equal("M 1,1 L 10,6 L 1,11 Z", presentation.IconGeometry);
         Assert.Equal("AeziolSuccess", presentation.AccentBrushKey);
         Assert.Equal("AeziolRaised", presentation.BackgroundBrushKey);
-        Assert.Equal(0.32, presentation.ContentOpacity);
+        Assert.Equal(0.62, presentation.ContentOpacity);
         Assert.False(presentation.ContentIsEnabled);
     }
 }
