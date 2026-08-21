@@ -31,7 +31,7 @@ public enum UpdateChannel
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 2;
+    public const int CurrentSchemaVersion = 3;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -51,7 +51,7 @@ public sealed record AppSettings
 
     public int AmbientMusicVolumePercent { get; init; } = 8;
 
-    public bool PauseAmbientMusicWhenUnfocused { get; init; } = true;
+    public bool KeepAmbientMusicPlayingWhenHidden { get; init; }
 
     public bool UseHardwareAcceleration { get; init; } = true;
 
@@ -70,6 +70,8 @@ public sealed record AppSettings
     public HashSet<string> ExcludedEndpointIds { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 
     public bool StartWithWindows { get; init; }
+
+    public bool OpenHiddenAtWindowsStartup { get; init; }
 
     public CloseBehavior CloseBehavior { get; init; } = CloseBehavior.Ask;
 

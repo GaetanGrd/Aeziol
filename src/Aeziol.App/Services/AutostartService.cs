@@ -8,7 +8,7 @@ public static class AutostartService
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string StartupTaskId = "AeziolStartup";
 
-    public static async Task SetEnabledAsync(bool enabled)
+    public static async Task SetEnabledAsync(bool enabled, bool openHidden)
     {
         if (IsPackaged())
         {
@@ -34,12 +34,18 @@ public static class AutostartService
         {
             var executable = Environment.ProcessPath
                 ?? throw new InvalidOperationException("Unable to determine the Aeziol executable path.");
-            key.SetValue("Aeziol", $"\"{executable}\" --background", RegistryValueKind.String);
+            key.SetValue("Aeziol", BuildRunCommand(executable, openHidden), RegistryValueKind.String);
         }
         else
         {
             key.DeleteValue("Aeziol", throwOnMissingValue: false);
         }
+    }
+
+    internal static string BuildRunCommand(string executable, bool openHidden)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(executable);
+        return $"\"{executable}\"" + (openHidden ? " --background" : string.Empty);
     }
 
     private static bool IsPackaged()

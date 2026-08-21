@@ -12,7 +12,9 @@ public partial class FirstRunWindow : Window
     private readonly AeziolTheme _initialTheme;
     private readonly bool _enhanceContrast;
     private readonly Action<bool>? _ambientMusicEnabledChanged;
+    private readonly Action<int>? _ambientMusicVolumeChanged;
     private bool _accepted;
+    private bool _initializing = true;
     private bool _syncingLanguageChoices;
 
     public FirstRunWindow(
@@ -23,12 +25,16 @@ public partial class FirstRunWindow : Window
         bool startWithWindows = false,
         bool reduceAnimations = false,
         bool ambientMusicEnabled = false,
-        Action<bool>? ambientMusicEnabledChanged = null)
+        Action<bool>? ambientMusicEnabledChanged = null,
+        int ambientMusicVolumePercent = 8,
+        bool keepAmbientMusicPlayingWhenHidden = false,
+        Action<int>? ambientMusicVolumeChanged = null)
     {
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _initialTheme = theme;
         _enhanceContrast = enhanceContrast;
         _ambientMusicEnabledChanged = ambientMusicEnabledChanged;
+        _ambientMusicVolumeChanged = ambientMusicVolumeChanged;
         InitializeComponent();
         SourceInitialized += (_, _) => NativeWindowAppearance.HideSystemBorder(this);
         RefreshLanguageChoices(language);
@@ -38,14 +44,20 @@ public partial class FirstRunWindow : Window
         AutostartCheck.IsChecked = startWithWindows;
         ReduceAnimationsCheck.IsChecked = reduceAnimations;
         MusicEnabledCheck.IsChecked = ambientMusicEnabled;
+        MusicVolumeSlider.Value = Math.Clamp(ambientMusicVolumePercent, 0, 100);
+        KeepMusicPlayingWhenHiddenCheck.IsChecked = keepAmbientMusicPlayingWhenHidden;
+        UpdateMusicControls();
         MotionAssist.SetIsReduced(this, reduceAnimations);
         ApplyLocalization();
+        _initializing = false;
     }
 
     public string SelectedLanguage => FirstRunLanguageList.SelectedValue as string ?? "en";
     public bool StartWithWindows => AutostartCheck.IsChecked == true;
     public bool ReduceAnimations => ReduceAnimationsCheck.IsChecked == true;
     public bool AmbientMusicEnabled => MusicEnabledCheck.IsChecked == true;
+    public int AmbientMusicVolumePercent => Math.Clamp((int)Math.Round(MusicVolumeSlider.Value), 0, 100);
+    public bool KeepAmbientMusicPlayingWhenHidden => KeepMusicPlayingWhenHiddenCheck.IsChecked == true;
     public AeziolTheme SelectedTheme =>
         Enum.TryParse<AeziolTheme>((FirstRunThemeCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString(), out var theme)
             ? theme
@@ -97,6 +109,8 @@ public partial class FirstRunWindow : Window
         MusicCreditText.Text = _localization.Get("ambient-music-credit", register);
         MusicPurposeText.Text = _localization.Get("first-run-music-purpose", register);
         MusicEnabledCheck.Content = _localization.Get("first-run-music-enable", register);
+        MusicVolumeLabelText.Text = _localization.Get("ambient-music-volume", register);
+        KeepMusicPlayingWhenHiddenCheck.Content = _localization.Get("ambient-music-keep-playing-hidden", register);
         MusicChoiceHintText.Text = _localization.Get("first-run-music-choice", register);
         MusicBackButton.Content = _localization.Get("back", register);
         MusicContinueButton.Content = _localization.Get("continue", register);
@@ -115,8 +129,34 @@ public partial class FirstRunWindow : Window
     private void OnReduceAnimationsChanged(object sender, RoutedEventArgs eventArgs) =>
         MotionAssist.SetIsReduced(this, ReduceAnimationsCheck.IsChecked == true);
 
-    private void OnMusicEnabledChanged(object sender, RoutedEventArgs eventArgs) =>
+    private void OnMusicEnabledChanged(object sender, RoutedEventArgs eventArgs)
+    {
+        UpdateMusicControls();
         _ambientMusicEnabledChanged?.Invoke(AmbientMusicEnabled);
+    }
+
+    private void OnMusicVolumeChanged(object sender, RoutedPropertyChangedEventArgs<double> eventArgs)
+    {
+        if (!IsInitialized || _initializing)
+        {
+            return;
+        }
+
+        MusicVolumeValueText.Text = $"{AmbientMusicVolumePercent} %";
+        _ambientMusicVolumeChanged?.Invoke(AmbientMusicVolumePercent);
+    }
+
+    private void UpdateMusicControls()
+    {
+        if (!IsInitialized)
+        {
+            return;
+        }
+
+        MusicVolumeSlider.IsEnabled = AmbientMusicEnabled;
+        KeepMusicPlayingWhenHiddenCheck.IsEnabled = AmbientMusicEnabled;
+        MusicVolumeValueText.Text = $"{AmbientMusicVolumePercent} %";
+    }
 
     private void OnContinue(object sender, RoutedEventArgs eventArgs)
     {

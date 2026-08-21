@@ -16,6 +16,7 @@ public sealed class FirstRunWindowTests
         WpfTestHost.Run(() =>
         {
             var musicPreviewStates = new List<bool>();
+            var musicPreviewVolumes = new List<int>();
             var localization = new LocalizationService(
                 Path.Combine(AppContext.BaseDirectory, "Localization"),
                 Path.Combine(Path.GetTempPath(), "Aeziol.Tests", "Languages"),
@@ -25,17 +26,27 @@ public sealed class FirstRunWindowTests
                 "en",
                 AeziolTheme.Elgo,
                 enhanceContrast: false,
-                ambientMusicEnabledChanged: musicPreviewStates.Add);
+                ambientMusicEnabledChanged: musicPreviewStates.Add,
+                ambientMusicVolumePercent: 12,
+                keepAmbientMusicPlayingWhenHidden: true,
+                ambientMusicVolumeChanged: musicPreviewVolumes.Add);
             try
             {
                 var essentials = Assert.IsType<Grid>(window.FindName("EssentialsStep"));
                 var music = Assert.IsType<Grid>(window.FindName("MusicStep"));
                 var palette = Assert.IsType<Grid>(window.FindName("PaletteStep"));
                 var musicToggle = Assert.IsType<WpfCheckBox>(window.FindName("MusicEnabledCheck"));
+                var musicVolume = Assert.IsType<Slider>(window.FindName("MusicVolumeSlider"));
+                var keepPlaying = Assert.IsType<WpfCheckBox>(
+                    window.FindName("KeepMusicPlayingWhenHiddenCheck"));
 
                 Assert.Equal(Visibility.Visible, essentials.Visibility);
                 Assert.Equal(Visibility.Collapsed, music.Visibility);
                 Assert.False(window.AmbientMusicEnabled);
+                Assert.Equal(12, window.AmbientMusicVolumePercent);
+                Assert.True(window.KeepAmbientMusicPlayingWhenHidden);
+                Assert.False(musicVolume.IsEnabled);
+                Assert.False(keepPlaying.IsEnabled);
 
                 Assert.IsType<WpfButton>(window.FindName("ContinueButton"))
                     .RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
@@ -48,6 +59,12 @@ public sealed class FirstRunWindowTests
                     System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
                 Assert.True(window.AmbientMusicEnabled);
                 Assert.Equal([true], musicPreviewStates);
+                Assert.True(musicVolume.IsEnabled);
+                Assert.True(keepPlaying.IsEnabled);
+
+                musicVolume.Value = 18;
+                Assert.Equal(18, window.AmbientMusicVolumePercent);
+                Assert.Equal([18], musicPreviewVolumes);
 
                 musicToggle.IsChecked = false;
                 musicToggle.RaiseEvent(new RoutedEventArgs(
