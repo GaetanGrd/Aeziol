@@ -1717,6 +1717,9 @@ public partial class MainWindow : Window
             ? System.Windows.FlowDirection.RightToLeft
             : System.Windows.FlowDirection.LeftToRight;
         CloseActionsMenu.FlowDirection = FlowDirection;
+        CurrentOutputCombo.HorizontalAlignment = _localization.IsRightToLeft
+            ? System.Windows.HorizontalAlignment.Right
+            : System.Windows.HorizontalAlignment.Left;
 
         DiscordNavText.Text = _localization.Get("nav-discord", register);
         PassageHeaderText.Text = _localization.Get("nav-passage", register);
