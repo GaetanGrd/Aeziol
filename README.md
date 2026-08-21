@@ -1,63 +1,62 @@
 # Aeziol
 
 <p align="center">
-  <img src="src/Aeziol.App/Assets/Brand/aeziol-cicada.svg" width="150" alt="Logo d’Aeziol">
+  <img src="src/Aeziol.App/Assets/Brand/aeziol-cicada.svg" width="150" alt="Aeziol logo">
 </p>
 
 <p align="center">
-  <strong>Un passage audio local entre Discord et Windows.</strong>
+  <strong>A local audio passage between Discord and Windows.</strong>
+</p>
+
+<p align="center">
+  <a href="README.fr.md">Lire en français</a>
 </p>
 
 [![CI](https://github.com/GaetanGrd/Aeziol/actions/workflows/ci.yml/badge.svg)](https://github.com/GaetanGrd/Aeziol/actions/workflows/ci.yml)
 
-Aeziol est une application Windows 11 légère qui observe l’état vocal de Discord. Lorsqu’une connexion vocale commence, elle dirige la sortie audio globale de Windows vers la destination choisie. À la sortie complète du vocal, elle restaure exactement la route précédente.
+Aeziol is a lightweight Windows 11 application that observes Discord voice state. When a voice connection begins, it routes the global Windows audio output to the selected destination. After leaving voice completely, it restores the exact route that was active before the switch.
 
 > [!WARNING]
-> Aeziol est actuellement en bêta. Le routage audio fonctionne au niveau du système : vérifiez la sortie sélectionnée avant une utilisation importante et conservez une manière simple de revenir aux réglages audio Windows.
+> Aeziol is currently in beta. Audio routing operates at system level: check the selected output before an important session and keep an easy way to return to Windows sound settings.
 
-## Fonctionnalités
+## Features
 
-- détection locale de Discord Stable, PTB, Canary et Development ;
-- autorisation OAuth officielle avec PKCE et les scopes `rpc` et `rpc.voice.read` ;
-- routage des rôles Windows Console, Multimedia et Communications ;
-- restauration transactionnelle après la sortie du vocal, un redémarrage ou un crash ;
-- priorité donnée aux changements manuels de l’utilisateur ;
-- exclusions de périphériques et délai de stabilisation configurable ;
-- interface localisée en anglais, français et arabe, avec prise en charge RTL ;
-- thèmes Aeziol inspirés de l’univers d’Elgo ;
-- mises à jour intégrées avec canaux Stable et Bêta, téléchargement vérifié par SHA-256 et installation confirmée par l’utilisateur ;
-- journaux locaux rotatifs avec censure des chemins, identifiants et secrets.
+- local detection of Discord Stable, PTB, Canary, and Development;
+- official OAuth authorization with PKCE and the `rpc` and `rpc.voice.read` scopes;
+- routing of the Windows Console, Multimedia, and Communications roles;
+- transactional restoration after leaving voice, restarting, or crashing;
+- priority given to manual changes made by the user;
+- device exclusions and a configurable stabilization delay;
+- English, French, and Arabic interface localization with RTL support;
+- Aeziol themes inspired by the Elgo universe;
+- built-in Stable and Beta update channels, SHA-256-verified downloads, and user-confirmed installation;
+- rotating local logs with paths, identifiers, and secrets redacted.
 
-Aeziol n’est ni un bot ni un selfbot. Il ne lit pas les messages, n’intercepte pas le trafic réseau de Discord et ne modifie aucun réglage audio interne à Discord.
+Aeziol is neither a bot nor a selfbot. It does not read messages, intercept Discord network traffic, or change Discord's internal audio settings.
 
-## Prérequis
+## Requirements
 
-- Windows 11 x64, version 21H2 ou ultérieure ;
-- Discord Desktop pour l’automatisation vocale ;
-- aucune installation séparée de .NET pour le package autonome.
+- Windows 11 x64, version 21H2 or later;
+- Discord Desktop for voice automation;
+- no separate .NET installation for the self-contained package.
 
 ## Installation
 
-Les paquets destinés aux utilisateurs seront attachés aux [releases GitHub](https://github.com/GaetanGrd/Aeziol/releases). Une release marquée **Draft** est une préparation réservée à la validation et ne doit pas être distribuée comme version publique.
+User packages are attached to [GitHub releases](https://github.com/GaetanGrd/Aeziol/releases). A release marked **Draft** is reserved for validation and must not be distributed as a public version.
 
-Un MSIX public doit être signé. Vérifiez sa signature Windows ainsi que le fichier `.sha256` fourni avec la release avant installation.
+A public MSIX package must be signed. Verify its Windows signature and the accompanying `.sha256` file before installation.
 
-Les bêtas de test auto-signées fournissent également un fichier
-`Aeziol-<version>-signing.cer`. Avant la première installation, importez ce
-certificat dans **Ordinateur local → Personnes de confiance**, puis vérifiez que
-son sujet est `CN=Aeziol Development`. Cette opération demande les droits
-administrateur. Le certificat de test ne remplace pas une signature publique
-reconnue pour une version stable.
+Self-signed test betas also include an `Aeziol-<version>-signing.cer` file. Before the first installation, import this certificate into **Local Computer → Trusted People**, then verify that its subject is `CN=Aeziol Development`. Administrator rights are required. The test certificate does not replace a publicly trusted signature for a stable release.
 
-## Données et confidentialité
+## Data and privacy
 
-Aeziol travaille localement. La configuration, les journaux et les paquets de mise à jour téléchargés restent dans `%LOCALAPPDATA%\Aeziol`. Les jetons Discord sont conservés par le Gestionnaire d’informations d’identification Windows sous `Aeziol/DiscordOAuth`. Aucun identifiant de serveur ou de salon vocal n’est écrit dans les journaux. La recherche de mises à jour consulte uniquement les releases publiques de ce dépôt GitHub.
+Aeziol works locally. Configuration, logs, and downloaded update packages remain in `%LOCALAPPDATA%\Aeziol`. Discord tokens are kept by Windows Credential Manager under `Aeziol/DiscordOAuth`. No server or voice-channel identifier is written to the logs. Update checks only query public releases from this GitHub repository.
 
-Les détails sont documentés dans [Confidentialité et données locales](docs/privacy.md). Une autorisation Discord peut être révoquée depuis les réglages d’Aeziol.
+See [Privacy and local data](docs/privacy.md) for details. Discord authorization can be revoked from Aeziol's settings.
 
-## Développement
+## Development
 
-Prérequis : Windows 11 x64 et SDK .NET `10.0.101`, ou une version corrective compatible.
+Requirements: Windows 11 x64 and the .NET `10.0.101` SDK, or a compatible servicing release.
 
 ```powershell
 dotnet restore Aeziol.slnx
@@ -65,55 +64,57 @@ dotnet build Aeziol.slnx -c Release
 dotnet test --solution Aeziol.slnx -c Release --timeout 60s
 ```
 
-La sonde de diagnostic ne modifie aucun réglage :
+The diagnostic probe does not change any setting:
 
 ```powershell
 dotnet run --project tools/Aeziol.Probe/Aeziol.Probe.csproj -- audio-list
 dotnet run --project tools/Aeziol.Probe/Aeziol.Probe.csproj -- discord-processes
 ```
 
-Structure principale :
+Main project structure:
 
 ```text
-src/Aeziol.App                       Interface WPF et cycle de vie
-src/Aeziol.Core                      Règles et transactions audio
-src/Aeziol.Infrastructure.Discord    RPC local et OAuth Discord
-src/Aeziol.Infrastructure.Windows    Core Audio Windows
-tests/Aeziol.Tests                   Tests unitaires et visuels isolés
-tools/Aeziol.Probe                   Diagnostics en lecture seule
-packaging                            Construction et publication MSIX
+src/Aeziol.App                       WPF interface and application lifecycle
+src/Aeziol.Core                      Audio rules and transactions
+src/Aeziol.Infrastructure.Discord    Local RPC and Discord OAuth
+src/Aeziol.Infrastructure.Windows    Windows Core Audio integration
+tests/Aeziol.Tests                   Isolated unit and visual tests
+tools/Aeziol.Probe                   Read-only diagnostics
+packaging                            MSIX build and release tooling
 ```
 
-Consultez [CONTRIBUTING.md](CONTRIBUTING.md) avant une contribution. Les vulnérabilités ne doivent pas être signalées dans une issue publique : suivez [SECURITY.md](SECURITY.md).
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before contributing. Do not report vulnerabilities in a public issue; follow [SECURITY.md](SECURITY.md) instead.
 
 ## Documentation
 
+The detailed project documentation is currently maintained in French:
+
 - [Architecture](docs/architecture.md)
-- [Configuration de l’application Discord](docs/discord-setup.md)
-- [Confidentialité et données locales](docs/privacy.md)
-- [Ajouter une langue](docs/localization.md)
-- [Construire et préparer une release](docs/releasing.md)
-- [Historique des changements](CHANGELOG.md)
-- [Support et diagnostic](SUPPORT.md)
+- [Discord application setup](docs/discord-setup.md)
+- [Privacy and local data](docs/privacy.md)
+- [Adding a language](docs/localization.md)
+- [Building and preparing a release](docs/releasing.md)
+- [Changelog](CHANGELOG.md)
+- [Support and diagnostics](SUPPORT.md)
 
-## Préparer une bêta
+## Preparing a beta
 
-Depuis `main`, avec un worktree propre et déjà commité :
+From `main`, with a clean and committed worktree:
 
 ```powershell
 .\packaging\publish-beta.ps1 -Version 0.9.0-beta.1 -Publish
 ```
 
-La commande restaure, compile et teste dans un dossier isolé, pousse `main`, crée le tag puis demande à GitHub Actions de produire une **draft prerelease** avec son checksum. Sans `-Publish`, elle effectue uniquement la validation locale.
+The command restores, builds, and tests in an isolated directory, pushes `main`, creates the tag, and then asks GitHub Actions to produce a **draft prerelease** with its checksum. Without `-Publish`, it only performs local validation.
 
-La procédure complète et les secrets facultatifs de signature sont décrits dans [docs/releasing.md](docs/releasing.md).
+The complete procedure and optional signing secrets are documented in [docs/releasing.md](docs/releasing.md).
 
-## Crédits
+## Credits
 
-Aeziol est créé par [GaetanGrd](https://github.com/GaetanGrd), avec l’aide d’outils d’intelligence artificielle. La direction, les choix techniques et la validation finale restent humains.
+Aeziol is created by [GaetanGrd](https://github.com/GaetanGrd), with assistance from artificial-intelligence tools. Product direction, technical decisions, and final validation remain human responsibilities.
 
-L’identité visuelle et une partie du vocabulaire sont inspirées de l’univers original **Elgo**. La musique d’ambiance « Onde dorée » a été générée avec **Suno**.
+The visual identity and part of the vocabulary are inspired by the original **Elgo** universe. The ambient track “Onde dorée” was generated with **Suno**.
 
-## Licence
+## License
 
-Aeziol est **source-available**, mais n’est pas un logiciel open source. La modification et l’usage privés sont autorisés ; la redistribution du code, des versions modifiées et des builds dérivés est interdite sans autorisation écrite. Consultez [LICENSE.md](LICENSE.md).
+Aeziol is **source-available**, but it is not open-source software. Private modification and use are permitted; redistribution of the source code, modified versions, and derivative builds is prohibited without written permission. See [LICENSE.md](LICENSE.md).
