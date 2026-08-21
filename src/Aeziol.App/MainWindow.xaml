@@ -96,10 +96,11 @@
                                     <Style TargetType="MenuItem">
                                         <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
                                         <Setter Property="Cursor" Value="Hand" />
+                                        <Setter Property="Padding" Value="12,9" />
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="MenuItem">
-                                                    <Border x:Name="MenuChrome" Padding="12,9" CornerRadius="8"
+                                                    <Border x:Name="MenuChrome" Padding="{TemplateBinding Padding}" CornerRadius="8"
                                                             Background="Transparent">
                                                         <ContentPresenter ContentSource="Header" />
                                                     </Border>
@@ -140,17 +141,18 @@
                                         </StackPanel>
                                     </MenuItem.Header>
                                 </MenuItem>
-                                <Separator Margin="8,4" Background="{DynamicResource AeziolBorderSoft}" />
+                                <Separator Height="1" Margin="8,1"
+                                           Background="{DynamicResource AeziolBorderSoft}" />
                                 <MenuItem x:Name="CloseRememberMenuItem" IsCheckable="True"
-                                          StaysOpenOnClick="True">
+                                          StaysOpenOnClick="True" Padding="12,2">
                                     <MenuItem.Header>
-                                        <Grid Margin="0,1">
+                                        <Grid x:Name="CloseRememberContent" Height="22">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="21" />
+                                                <ColumnDefinition Width="18" />
                                                 <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
-                                            <Border Width="14" Height="14" HorizontalAlignment="Left"
-                                                    VerticalAlignment="Top" Margin="0,1,0,0"
+                                            <Border Width="14" Height="14" HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
                                                     CornerRadius="3" BorderThickness="1"
                                                     BorderBrush="{DynamicResource AeziolMuted}">
                                                 <Path Width="9" Height="7" Stretch="Uniform"
@@ -171,13 +173,14 @@
                                                     </Path.Style>
                                                 </Path>
                                             </Border>
-                                            <StackPanel Grid.Column="1">
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                 <TextBlock x:Name="CloseRememberMenuText" FontSize="11"
-                                                           FontWeight="SemiBold" />
-                                                <TextBlock x:Name="CloseRememberMenuNoteText" Margin="0,3,0,0"
-                                                           MaxWidth="185" FontSize="9"
+                                                           LineHeight="12" FontWeight="SemiBold"
+                                                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock x:Name="CloseRememberMenuNoteText" FontSize="8.5"
+                                                           LineHeight="10"
                                                            Foreground="{DynamicResource AeziolDim}"
-                                                           TextWrapping="Wrap" />
+                                                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                                             </StackPanel>
                                         </Grid>
                                     </MenuItem.Header>
