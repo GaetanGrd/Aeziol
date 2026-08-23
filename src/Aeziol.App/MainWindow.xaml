@@ -76,7 +76,7 @@
                     </Button>
                     <Button x:Name="CloseWindowButton" Margin="1,0" Style="{StaticResource WindowButton}" Content="×" Click="OnCloseWindow">
                         <Button.ContextMenu>
-                            <ContextMenu x:Name="CloseActionsMenu" Width="238" Padding="4"
+                            <ContextMenu x:Name="CloseActionsMenu" Padding="4"
                                          Placement="Custom"
                                          Background="{DynamicResource AeziolRaised}"
                                          BorderBrush="{DynamicResource AeziolBorder}" BorderThickness="1"
@@ -96,10 +96,11 @@
                                     <Style TargetType="MenuItem">
                                         <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
                                         <Setter Property="Cursor" Value="Hand" />
+                                        <Setter Property="Padding" Value="12,9" />
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="MenuItem">
-                                                    <Border x:Name="MenuChrome" Padding="12,9" CornerRadius="8"
+                                                    <Border x:Name="MenuChrome" Padding="{TemplateBinding Padding}" CornerRadius="8"
                                                             Background="Transparent">
                                                         <ContentPresenter ContentSource="Header" />
                                                     </Border>
@@ -140,17 +141,26 @@
                                         </StackPanel>
                                     </MenuItem.Header>
                                 </MenuItem>
-                                <Separator Margin="8,4" Background="{DynamicResource AeziolBorderSoft}" />
+                                <Separator x:Name="CloseRememberSeparator" Height="1" Margin="8,5"
+                                           Background="{DynamicResource AeziolBorderSoft}"
+                                           Focusable="False" IsHitTestVisible="False">
+                                    <Separator.Template>
+                                        <ControlTemplate TargetType="Separator">
+                                            <Border Height="{TemplateBinding Height}"
+                                                    Background="{TemplateBinding Background}" />
+                                        </ControlTemplate>
+                                    </Separator.Template>
+                                </Separator>
                                 <MenuItem x:Name="CloseRememberMenuItem" IsCheckable="True"
-                                          StaysOpenOnClick="True">
+                                          StaysOpenOnClick="True" Padding="12,5">
                                     <MenuItem.Header>
-                                        <Grid Margin="0,1">
+                                        <Grid x:Name="CloseRememberContent" Height="22">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="21" />
+                                                <ColumnDefinition Width="23" />
                                                 <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
                                             <Border Width="14" Height="14" HorizontalAlignment="Left"
-                                                    VerticalAlignment="Top" Margin="0,1,0,0"
+                                                    VerticalAlignment="Center"
                                                     CornerRadius="3" BorderThickness="1"
                                                     BorderBrush="{DynamicResource AeziolMuted}">
                                                 <Path Width="9" Height="7" Stretch="Uniform"
@@ -171,13 +181,15 @@
                                                     </Path.Style>
                                                 </Path>
                                             </Border>
-                                            <StackPanel Grid.Column="1">
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                 <TextBlock x:Name="CloseRememberMenuText" FontSize="11"
-                                                           FontWeight="SemiBold" />
-                                                <TextBlock x:Name="CloseRememberMenuNoteText" Margin="0,3,0,0"
-                                                           MaxWidth="185" FontSize="9"
-                                                           Foreground="{DynamicResource AeziolDim}"
-                                                           TextWrapping="Wrap" />
+                                                           LineHeight="12" FontWeight="SemiBold"
+                                                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock x:Name="CloseRememberMenuNoteText" FontSize="8.5"
+                                                           LineHeight="10" FontWeight="Medium"
+                                                           Foreground="{DynamicResource AeziolMuted}"
+                                                           TextOptions.TextFormattingMode="Display"
+                                                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                                             </StackPanel>
                                         </Grid>
                                     </MenuItem.Header>

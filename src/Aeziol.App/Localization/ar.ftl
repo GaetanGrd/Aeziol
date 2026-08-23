@@ -1,5 +1,5 @@
 # aeziol-language-format: 1
-window-title-standard = Aeziol · توجيه الصوت
+window-title-standard = Aeziol - توجيه الصوت
 tagline-standard = يمكن للنشاط الصوتي في Discord توجيه مخرج صوت Windows.
 automation-standard = تفعيل توجيه الصوت التلقائي
 status-standard = حالة Discord
@@ -52,7 +52,7 @@ close-choice-quit-description-standard = تتوقف الأتمتة ويستعي�
 close-one-click-hint-standard = نقرة واحدة تطبق الاختيار
 recommended-standard = موصى به
 close-remember-standard = تذكّر هذا الاختيار
-close-remember-settings-note-standard = يمكنك تغييره لاحقًا من الإعدادات > عام > التطبيق.
+close-remember-settings-note-standard = يمكنك تغييره من الإعدادات.
 cancel-standard = إلغاء
 confirm-standard = تأكيد
 tray-open-standard = فتح Aeziol

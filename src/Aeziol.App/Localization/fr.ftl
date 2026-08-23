@@ -1,5 +1,5 @@
 # aeziol-language-format: 1
-window-title-standard = Aeziol · routage audio
+window-title-standard = Aeziol - routage audio
 tagline-standard = L’activité vocale de Discord peut guider la sortie audio Windows.
 automation-standard = Activer le routage audio automatique
 status-standard = État de Discord
@@ -52,7 +52,7 @@ close-choice-quit-description-standard = L’automatisation s’arrête et Aezio
 close-one-click-hint-standard = Un clic applique le choix
 recommended-standard = Recommandé
 close-remember-standard = Mémoriser ce choix
-close-remember-settings-note-standard = Vous pourrez le modifier dans Paramètres > Général > Application.
+close-remember-settings-note-standard = Modifiable dans les réglages.
 cancel-standard = Annuler
 confirm-standard = Confirmer
 tray-open-standard = Ouvrir Aeziol
