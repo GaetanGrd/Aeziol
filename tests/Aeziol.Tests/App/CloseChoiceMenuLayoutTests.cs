@@ -66,6 +66,10 @@ public sealed class CloseChoiceMenuLayoutTests
             .Attribute("Padding")?.Value);
 
         var note = FindNamedElement(document, "CloseRememberMenuNoteText");
+        Assert.Equal("8.5", note.Attribute("FontSize")?.Value);
+        Assert.Equal("Medium", note.Attribute("FontWeight")?.Value);
+        Assert.Equal("{DynamicResource AeziolMuted}", note.Attribute("Foreground")?.Value);
+        Assert.Equal("Display", note.Attribute("TextOptions.TextFormattingMode")?.Value);
         Assert.Equal("NoWrap", note.Attribute("TextWrapping")?.Value);
         Assert.Equal("CharacterEllipsis", note.Attribute("TextTrimming")?.Value);
 

@@ -186,8 +186,9 @@
                                                            LineHeight="12" FontWeight="SemiBold"
                                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                                                 <TextBlock x:Name="CloseRememberMenuNoteText" FontSize="8.5"
-                                                           LineHeight="10"
-                                                           Foreground="{DynamicResource AeziolDim}"
+                                                           LineHeight="10" FontWeight="Medium"
+                                                           Foreground="{DynamicResource AeziolMuted}"
+                                                           TextOptions.TextFormattingMode="Display"
                                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                                             </StackPanel>
                                         </Grid>
