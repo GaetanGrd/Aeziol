@@ -439,7 +439,7 @@
                                                                     <TranslateTransform x:Name="AutomationSleepingCicadaTranslate" Y="3" />
                                                                 </TransformGroup>
                                                             </Grid.RenderTransform>
-                                                            <Image Width="60" Height="60"
+                                                            <Image x:Name="AutomationSleepingCicadaImage" Width="54" Height="54"
                                                                    Source="{DynamicResource AeziolSleepingCicadaDrawing}" />
                                                             <Viewbox Width="15" Height="15" Margin="0,5,5,0"
                                                                      HorizontalAlignment="Right" VerticalAlignment="Top">

@@ -59,6 +59,7 @@ public sealed class MainWindowLayoutStructureTests
         var actionButton = FindNamedElement(windowDocument, "AutomationActionButton");
         var actionText = FindNamedElement(windowDocument, "AutomationActionText");
         var awakeCicada = FindNamedElement(windowDocument, "AutomationAwakeCicadaImage");
+        var sleepingCicada = FindNamedElement(windowDocument, "AutomationSleepingCicadaImage");
         var sleepingVisual = FindNamedElement(windowDocument, "AutomationSleepingCicadaVisual");
         var navigationBrand = FindNamedElement(windowDocument, "NavigationBrandCicada");
         var sleepingDrawing = appDocument.Descendants()
@@ -83,6 +84,9 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Equal("9", actionText.Attribute("FontSize")?.Value);
         Assert.Equal("SemiBold", actionText.Attribute("FontWeight")?.Value);
         Assert.Equal("{DynamicResource AeziolCicadaDrawing}", awakeCicada.Attribute("Source")?.Value);
+        Assert.Equal("{DynamicResource AeziolSleepingCicadaDrawing}", sleepingCicada.Attribute("Source")?.Value);
+        Assert.Equal(awakeCicada.Attribute("Width")?.Value, sleepingCicada.Attribute("Width")?.Value);
+        Assert.Equal(awakeCicada.Attribute("Height")?.Value, sleepingCicada.Attribute("Height")?.Value);
         Assert.Equal("0", sleepingVisual.Attribute("Opacity")?.Value);
         Assert.Contains(sleepingDrawing.Descendants(), element => element.Name.LocalName == "GeometryDrawing");
         Assert.DoesNotContain(windowDocument.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "AutomationStateDot");
@@ -117,6 +121,9 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Equal(activeRoot.Attribute("height")?.Value, sleepingRoot.Attribute("height")?.Value);
         Assert.Equal(activePaths.Length, sleepingPaths.Length);
         Assert.Equal(8, sleepingPaths.Length);
+        Assert.Equal(
+            activePaths.Select(path => path.Attribute("style")?.Value),
+            sleepingPaths.Select(path => path.Attribute("style")?.Value));
         Assert.All(
             activePaths.Zip(sleepingPaths),
             pair => Assert.NotEqual(pair.First.Attribute("d")?.Value, pair.Second.Attribute("d")?.Value));
