@@ -76,7 +76,7 @@
                     </Button>
                     <Button x:Name="CloseWindowButton" Margin="1,0" Style="{StaticResource WindowButton}" Content="×" Click="OnCloseWindow">
                         <Button.ContextMenu>
-                            <ContextMenu x:Name="CloseActionsMenu" Width="210" Padding="4"
+                            <ContextMenu x:Name="CloseActionsMenu" Padding="4"
                                          Placement="Custom"
                                          Background="{DynamicResource AeziolRaised}"
                                          BorderBrush="{DynamicResource AeziolBorder}" BorderThickness="1"

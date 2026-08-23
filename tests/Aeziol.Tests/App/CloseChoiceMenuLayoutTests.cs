@@ -15,7 +15,9 @@ public sealed class CloseChoiceMenuLayoutTests
         var rememberContent = FindNamedElement(document, "CloseRememberContent");
         var precedingSeparator = FindNamedElement(document, "CloseRememberSeparator");
         var contextMenu = rememberItem.Ancestors().Single(element => element.Name.LocalName == "ContextMenu");
-        Assert.Equal(210, ParseDouble(contextMenu.Attribute("Width")?.Value));
+        Assert.Null(contextMenu.Attribute("Width"));
+        Assert.Null(contextMenu.Attribute("MinWidth"));
+        Assert.Null(contextMenu.Attribute("MaxWidth"));
         var menuItemStyle = contextMenu
             .Descendants()
             .Single(element => element.Name.LocalName == "Style"
