@@ -350,7 +350,6 @@
             <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
         </Style>
         <Style x:Key="AutomationCicadaButton" TargetType="Button">
-            <Setter Property="Height" Value="62" />
             <Setter Property="Background" Value="{DynamicResource AeziolDanger}" />
             <Setter Property="Foreground" Value="{DynamicResource AeziolDanger}" />
             <Setter Property="BorderThickness" Value="0" />
@@ -362,13 +361,13 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Grid x:Name="Chrome" Background="Transparent">
-                            <Border x:Name="HoverWash" Margin="1" CornerRadius="12"
+                            <Border x:Name="HoverWash" Margin="10,1,10,27" CornerRadius="23"
                                     Background="{TemplateBinding Background}" Opacity="0" />
-                            <Border x:Name="HoverOutline" Margin="1" CornerRadius="12"
+                            <Border x:Name="HoverOutline" Margin="10,1,10,27" CornerRadius="23"
                                     BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0" />
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
                                               TextElement.Foreground="{TemplateBinding Foreground}" />
-                            <Border x:Name="FocusRing" Margin="1" CornerRadius="12"
+                            <Border x:Name="FocusRing" Margin="8,0,8,26" CornerRadius="24"
                                     BorderBrush="{DynamicResource AeziolGold}" BorderThickness="1.5"
                                     Opacity="0" IsHitTestVisible="False" />
                         </Grid>

@@ -44,7 +44,7 @@ public sealed class MainWindowLayoutStructureTests
     }
 
     [Fact]
-    public void AutomationCicadaIsDiscoverableAndKeepsSemanticHoverFeedback()
+    public void RouteCicadaIsDiscoverableAndHasAwakeAndSleepingStates()
     {
         var appDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "App.xaml"));
         var windowDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml"));
@@ -58,6 +58,8 @@ public sealed class MainWindowLayoutStructureTests
         var actionButton = FindNamedElement(windowDocument, "AutomationActionButton");
         var actionText = FindNamedElement(windowDocument, "AutomationActionText");
         var stateDot = FindNamedElement(windowDocument, "AutomationStateDot");
+        var sleepIndicator = FindNamedElement(windowDocument, "AutomationSleepIndicator");
+        var navigationBrand = FindNamedElement(windowDocument, "NavigationBrandCicada");
 
         Assert.Contains(
             hoverTrigger.Elements(),
@@ -71,14 +73,19 @@ public sealed class MainWindowLayoutStructureTests
                 && element.Attribute("TargetName")?.Value == "HoverOutline"
                 && element.Attribute("Property")?.Value == "Opacity");
         Assert.Equal("{StaticResource AutomationCicadaButton}", actionButton.Attribute("Style")?.Value);
-        Assert.Equal(
-            "True",
-            actionButton.Attributes().Single(attribute =>
-                attribute.Name.LocalName.EndsWith("IsHitTestVisibleInChrome", StringComparison.Ordinal)).Value);
-        Assert.Equal("8.5", actionText.Attribute("FontSize")?.Value);
+        Assert.Equal("AutomationRouteControlHost", actionButton.Ancestors().First(element => element.Attribute(Xaml + "Name") is not null).Attribute(Xaml + "Name")?.Value);
+        Assert.Equal("False", navigationBrand.Attribute("IsHitTestVisible")?.Value);
+        Assert.Null(navigationBrand.Attribute("Click"));
+        Assert.Equal("9", actionText.Attribute("FontSize")?.Value);
         Assert.Equal("SemiBold", actionText.Attribute("FontWeight")?.Value);
         Assert.Equal("Ellipse", stateDot.Name.LocalName);
+        Assert.Equal("zZ", sleepIndicator.Attribute("Text")?.Value);
+        Assert.Equal("0", sleepIndicator.Attribute("Opacity")?.Value);
         Assert.Contains("AutomationCicadaScale.BeginAnimation", windowSource, StringComparison.Ordinal);
+        Assert.Contains("AutomationCicadaTranslate.BeginAnimation", windowSource, StringComparison.Ordinal);
+        Assert.Contains("AutomationSleepIndicator.BeginAnimation", windowSource, StringComparison.Ordinal);
+        Assert.Contains("var targetRotation = enabled ? 0 : 8;", windowSource, StringComparison.Ordinal);
+        Assert.Contains("var targetCicadaOpacity = enabled ? 1 : 0.48;", windowSource, StringComparison.Ordinal);
         Assert.Contains("animate && !_runtime.Settings.ReduceAnimations", windowSource, StringComparison.Ordinal);
     }
 
@@ -95,7 +102,7 @@ public sealed class MainWindowLayoutStructureTests
         var automationAction = FindNamedElement(document, "AutomationActionButton");
 
         Assert.Contains(settingsHost, rulesView.Descendants());
-        Assert.Equal("NavigationRail", automationAction.Ancestors().First(element => element.Attribute(Xaml + "Name") is not null).Attribute(Xaml + "Name")?.Value);
+        Assert.Equal("AutomationRouteControlHost", automationAction.Ancestors().First(element => element.Attribute(Xaml + "Name") is not null).Attribute(Xaml + "Name")?.Value);
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RuleDestinationCombo");
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "SettingsDiscordTab");
         Assert.Contains("DiscordSettingsHost.Content = DiscordSettingsCard;", source, StringComparison.Ordinal);
