@@ -22,6 +22,18 @@ namespace Aeziol.Tests.App;
 [Collection(WpfUiTestGroup.Name)]
 public sealed class ButtonStyleTests
 {
+    private static readonly string[] ButtonStyleKeys =
+    [
+        "PrimaryButton",
+        "QuietButton",
+        "ActionButton",
+        "DangerButton",
+        "SuccessButton",
+        "WarningButton",
+    ];
+
+    private static readonly int[] SecondaryFeedbackButtonIndexes = [0, 1, 2, 5];
+
     [Fact]
     public void ChaosStains_AreAsymmetricCompoundMassesRatherThanSimpleBandsOrDiscs()
     {
@@ -53,7 +65,7 @@ public sealed class ButtonStyleTests
                 AeziolThemeService.Apply(AeziolTheme.Elgo);
                 var application = Assert.IsType<Aeziol.App.App>(System.Windows.Application.Current);
                 var secondary = Assert.IsType<SolidColorBrush>(application.Resources["AeziolSecondary"]).Color;
-                var onAccent = Assert.IsType<SolidColorBrush>(application.Resources["AeziolOnAccent"]).Color;
+                var onSecondary = Assert.IsType<SolidColorBrush>(application.Resources["AeziolOnSecondary"]).Color;
 
                 var primaryButton = new PressableButton
                 {
@@ -143,12 +155,127 @@ public sealed class ButtonStyleTests
                 Assert.Equal(secondary, GetBackgroundColor(GetTemplateBorder(settingsCommand, "Surface")));
                 Assert.Equal(secondary, GetBackgroundColor(GetTemplateBorder(navButton, "Selection")));
                 Assert.Equal(secondary, GetBackgroundColor(GetTemplateBorder(settingsTab, "HoverSurface")));
-                Assert.Equal(onAccent, Assert.IsType<SolidColorBrush>(primaryButton.Foreground).Color);
-                Assert.Equal(onAccent, Assert.IsType<SolidColorBrush>(windowButton.Foreground).Color);
-                Assert.Equal(onAccent, Assert.IsType<SolidColorBrush>(settingsCommand.Foreground).Color);
-                Assert.Equal(onAccent, Assert.IsType<SolidColorBrush>(navButton.Foreground).Color);
-                Assert.Equal(onAccent, Assert.IsType<SolidColorBrush>(settingsTab.Foreground).Color);
+                Assert.Equal(onSecondary, Assert.IsType<SolidColorBrush>(primaryButton.Foreground).Color);
+                Assert.Equal(onSecondary, Assert.IsType<SolidColorBrush>(windowButton.Foreground).Color);
+                Assert.Equal(onSecondary, Assert.IsType<SolidColorBrush>(settingsCommand.Foreground).Color);
+                Assert.Equal(onSecondary, Assert.IsType<SolidColorBrush>(navButton.Foreground).Color);
+                Assert.Equal(onSecondary, Assert.IsType<SolidColorBrush>(settingsTab.Foreground).Color);
 
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        });
+
+        Assert.Null(failure);
+    }
+
+    [Fact]
+    public void ButtonTemplates_UseEnabledSecondaryHoverAndPreserveSemanticNormalStates()
+    {
+        Exception? failure = null;
+        WpfTestHost.Run(() =>
+        {
+            try
+            {
+                AeziolThemeService.Apply(AeziolTheme.Elgo);
+                var application = Assert.IsType<Aeziol.App.App>(System.Windows.Application.Current);
+                var secondary = Assert.IsType<SolidColorBrush>(application.Resources["AeziolSecondary"]).Color;
+                var onSecondary = Assert.IsType<SolidColorBrush>(application.Resources["AeziolOnSecondary"]).Color;
+                var semanticButtons = ButtonStyleKeys.Select(key => new PressableButton
+                {
+                    Width = 180,
+                    Height = 44,
+                    Content = key,
+                    Style = Assert.IsType<Style>(application.Resources[key]),
+                }).ToArray();
+                var windowButton = new PressableButton
+                {
+                    Content = "?",
+                    Style = Assert.IsType<Style>(application.Resources["WindowButton"]),
+                };
+                var settingsCommand = new PressableButton
+                {
+                    Width = 260,
+                    Content = "Language",
+                    Style = Assert.IsType<Style>(application.Resources["SettingsCommandRow"]),
+                };
+                var allButtons = semanticButtons.Append(windowButton).Append(settingsCommand).ToArray();
+                var initialStates = allButtons.Select(button => new
+                {
+                    Background = button.Background,
+                    Foreground = button.Foreground,
+                    BorderBrush = button.BorderBrush,
+                }).ToArray();
+
+                var host = new StackPanel { Width = 280 };
+                foreach (var button in allButtons)
+                {
+                    host.Children.Add(button);
+                    button.ApplyTemplate();
+                }
+
+                host.Measure(new WpfSize(280, 500));
+                host.Arrange(new Rect(0, 0, 280, 500));
+                host.UpdateLayout();
+
+                AssertEnabledSecondaryHover(semanticButtons[0].Template, "Chrome");
+                AssertSemanticHover(semanticButtons[3].Template, ButtonTone.Danger, "AeziolDangerHoverWash");
+                AssertSemanticHover(semanticButtons[4].Template, ButtonTone.Success, "AeziolSuccessHover");
+                AssertEnabledSecondaryHover(windowButton.Template, "Chrome");
+                AssertEnabledSecondaryHover(settingsCommand.Template, "Surface");
+
+                Assert.Equal(System.Windows.HorizontalAlignment.Center, semanticButtons[0].HorizontalContentAlignment);
+                Assert.Equal(VerticalAlignment.Center, semanticButtons[0].VerticalContentAlignment);
+                Assert.Equal(System.Windows.HorizontalAlignment.Center, windowButton.HorizontalContentAlignment);
+                Assert.Equal(VerticalAlignment.Center, windowButton.VerticalContentAlignment);
+                Assert.Equal(VerticalAlignment.Center, settingsCommand.VerticalContentAlignment);
+
+                foreach (var button in allButtons)
+                {
+                    button.SetPressed(true);
+                }
+
+                host.UpdateLayout();
+                foreach (var index in SecondaryFeedbackButtonIndexes)
+                {
+                    Assert.Equal(secondary, GetBackgroundColor(GetTemplateBorder(semanticButtons[index], "Chrome")));
+                    Assert.Equal(onSecondary, Assert.IsType<SolidColorBrush>(semanticButtons[index].Foreground).Color);
+                }
+
+                Assert.Equal(
+                    Assert.IsType<SolidColorBrush>(application.Resources["AeziolDangerPressedWash"]).Color,
+                    GetBackgroundColor(GetTemplateBorder(semanticButtons[3], "Chrome")));
+                Assert.Equal(
+                    Assert.IsType<SolidColorBrush>(application.Resources["AeziolDanger"]).Color,
+                    Assert.IsType<SolidColorBrush>(semanticButtons[3].Foreground).Color);
+                Assert.Equal(
+                    Assert.IsType<SolidColorBrush>(application.Resources["AeziolSuccessPressed"]).Color,
+                    GetBackgroundColor(GetTemplateBorder(semanticButtons[4], "Chrome")));
+                Assert.Equal(
+                    Assert.IsType<SolidColorBrush>(application.Resources["AeziolOnSuccessPressed"]).Color,
+                    Assert.IsType<SolidColorBrush>(semanticButtons[4].Foreground).Color);
+                Assert.Equal(ButtonTone.Danger, ButtonToneAssist.GetTone(semanticButtons[3]));
+                Assert.Equal(ButtonTone.Success, ButtonToneAssist.GetTone(semanticButtons[4]));
+
+                Assert.Equal(secondary, GetBackgroundColor(GetTemplateBorder(windowButton, "Chrome")));
+                Assert.Equal(onSecondary, Assert.IsType<SolidColorBrush>(windowButton.Foreground).Color);
+                Assert.Equal(secondary, GetBackgroundColor(GetTemplateBorder(settingsCommand, "Surface")));
+                Assert.Equal(onSecondary, Assert.IsType<SolidColorBrush>(settingsCommand.Foreground).Color);
+
+                foreach (var button in allButtons)
+                {
+                    button.SetPressed(false);
+                }
+
+                host.UpdateLayout();
+                for (var index = 0; index < allButtons.Length; index++)
+                {
+                    Assert.Equal(initialStates[index].Background, allButtons[index].Background);
+                    Assert.Equal(initialStates[index].Foreground, allButtons[index].Foreground);
+                    Assert.Equal(initialStates[index].BorderBrush, allButtons[index].BorderBrush);
+                }
             }
             catch (Exception exception)
             {
@@ -591,6 +718,74 @@ public sealed class ButtonStyleTests
         GradientBrush gradient => gradient.GradientStops.Any(stop => stop.Color.A > 0),
         _ => brush.Opacity > 0,
     };
+
+    private static void AssertEnabledSecondaryHover(ControlTemplate template, string backgroundTarget)
+    {
+        var hoverTrigger = Assert.Single(template.Triggers.OfType<MultiTrigger>(), trigger =>
+            trigger.Conditions.Count == 2 &&
+            HasCondition(trigger, UIElement.IsMouseOverProperty, true) &&
+            HasCondition(trigger, UIElement.IsEnabledProperty, true));
+
+        AssertDynamicResourceSetter(
+            hoverTrigger.Setters,
+            Border.BackgroundProperty,
+            backgroundTarget,
+            "AeziolSecondary");
+        AssertDynamicResourceSetter(
+            hoverTrigger.Setters,
+            System.Windows.Controls.Control.ForegroundProperty,
+            targetName: null,
+            "AeziolOnSecondary");
+
+        var pressedTrigger = Assert.Single(template.Triggers.OfType<Trigger>(), trigger =>
+            trigger.Property == System.Windows.Controls.Primitives.ButtonBase.IsPressedProperty && Equals(trigger.Value, true));
+        AssertDynamicResourceSetter(
+            pressedTrigger.Setters,
+            Border.BackgroundProperty,
+            backgroundTarget,
+            "AeziolSecondary");
+        AssertDynamicResourceSetter(
+            pressedTrigger.Setters,
+            System.Windows.Controls.Control.ForegroundProperty,
+            targetName: null,
+            "AeziolOnSecondary");
+
+        Assert.Single(template.Triggers.OfType<Trigger>(), trigger =>
+            trigger.Property == UIElement.IsEnabledProperty && Equals(trigger.Value, false));
+        Assert.Single(template.Triggers.OfType<Trigger>(), trigger =>
+            trigger.Property == UIElement.IsKeyboardFocusedProperty && Equals(trigger.Value, true));
+    }
+
+    private static void AssertSemanticHover(ControlTemplate template, ButtonTone tone, object backgroundResource)
+    {
+        var hoverTrigger = Assert.Single(template.Triggers.OfType<MultiTrigger>(), trigger =>
+            trigger.Conditions.Count == 3 &&
+            HasCondition(trigger, UIElement.IsMouseOverProperty, true) &&
+            HasCondition(trigger, UIElement.IsEnabledProperty, true) &&
+            HasCondition(trigger, ButtonToneAssist.ToneProperty, tone));
+
+        AssertDynamicResourceSetter(
+            hoverTrigger.Setters,
+            Border.BackgroundProperty,
+            "Chrome",
+            backgroundResource);
+    }
+
+    private static bool HasCondition(MultiTrigger trigger, DependencyProperty property, object value) =>
+        trigger.Conditions.Cast<Condition>().Any(condition =>
+            condition.Property == property && Equals(condition.Value, value));
+
+    private static void AssertDynamicResourceSetter(
+        SetterBaseCollection setters,
+        DependencyProperty property,
+        string? targetName,
+        object resourceKey)
+    {
+        var setter = Assert.Single(setters.OfType<Setter>(), candidate =>
+            candidate.Property == property && candidate.TargetName == targetName);
+        var resource = Assert.IsType<DynamicResourceExtension>(setter.Value);
+        Assert.Equal(resourceKey, resource.ResourceKey);
+    }
 
     private static Border GetTemplateBorder(System.Windows.Controls.Control control, string name)
     {
