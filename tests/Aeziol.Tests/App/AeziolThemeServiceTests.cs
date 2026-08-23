@@ -1,6 +1,7 @@
 using Aeziol.App.Appearance;
 using Aeziol.App.Settings;
 using System.Windows.Media;
+using MediaColor = System.Windows.Media.Color;
 
 namespace Aeziol.Tests.App;
 
@@ -50,6 +51,28 @@ public sealed class AeziolThemeServiceTests
         Assert.Equal(normal, enhanced);
     }
 
+    [Theory]
+    [MemberData(nameof(Themes))]
+    public void SemanticButtonFeedback_RemainsReadableInEveryTheme(AeziolTheme theme)
+    {
+        _ = AeziolThemeService.GetPalette(theme);
+
+        foreach (var enhanced in new[] { false, true })
+        {
+            var appearance = AeziolThemeService.GetAppearancePalette(enhanced);
+            var feedback = AeziolThemeService.GetSemanticButtonPalette(appearance);
+
+            Assert.True(AeziolThemeService.ContrastRatio(feedback.SuccessHover, feedback.OnSuccessHover) >= 4.5);
+            Assert.True(AeziolThemeService.ContrastRatio(feedback.SuccessPressed, feedback.OnSuccessPressed) >= 4.5);
+            Assert.True(AeziolThemeService.ContrastRatio(
+                CompositeOver(feedback.DangerHoverWash, appearance.Raised),
+                appearance.Danger) >= 4.5);
+            Assert.True(AeziolThemeService.ContrastRatio(
+                CompositeOver(feedback.DangerPressedWash, appearance.Raised),
+                appearance.Danger) >= 4.5);
+        }
+    }
+
     [Fact]
     public void OledAppearance_UsesTrueBlackForTheWindowAndRail()
     {
@@ -65,6 +88,15 @@ public sealed class AeziolThemeServiceTests
         var dark = AeziolThemeService.GetAppearancePalette(enhancedContrast: false);
 
         Assert.Equal(System.Windows.Media.Color.FromRgb(0x07, 0x07, 0x09), dark.Canvas);
+    }
+
+    private static MediaColor CompositeOver(MediaColor foreground, MediaColor background)
+    {
+        var alpha = foreground.A / 255d;
+        return MediaColor.FromRgb(
+            (byte)Math.Round((foreground.R * alpha) + (background.R * (1 - alpha))),
+            (byte)Math.Round((foreground.G * alpha) + (background.G * (1 - alpha))),
+            (byte)Math.Round((foreground.B * alpha) + (background.B * (1 - alpha))));
     }
 
 }

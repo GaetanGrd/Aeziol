@@ -18,6 +18,7 @@ public static class AeziolThemeService
         var corruption = isCorrupted ? new Random(corruptionSeed) : null;
         var onAccent = GetContrastingText(uiAccent);
         var onSecondary = GetContrastingText(palette.Secondary);
+        var semanticButtons = GetSemanticButtonPalette(appearance);
         var washAlpha = enhanceContrast ? 0x30 : 0x18;
         var lineAlpha = enhanceContrast ? 0xA0 : 0x46;
         var resources = System.Windows.Application.Current?.Resources
@@ -43,7 +44,14 @@ public static class AeziolThemeService
         Set(resources, "AeziolMutedColor", appearance.Muted);
         Set(resources, "AeziolDimColor", appearance.Dim);
         Set(resources, "AeziolSuccessColor", appearance.Success);
+        Set(resources, "AeziolOnSuccessColor", semanticButtons.OnSuccess);
+        Set(resources, "AeziolSuccessHoverColor", semanticButtons.SuccessHover);
+        Set(resources, "AeziolSuccessPressedColor", semanticButtons.SuccessPressed);
+        Set(resources, "AeziolOnSuccessHoverColor", semanticButtons.OnSuccessHover);
+        Set(resources, "AeziolOnSuccessPressedColor", semanticButtons.OnSuccessPressed);
         Set(resources, "AeziolDangerColor", appearance.Danger);
+        Set(resources, "AeziolDangerHoverWashColor", semanticButtons.DangerHoverWash);
+        Set(resources, "AeziolDangerPressedWashColor", semanticButtons.DangerPressedWash);
         Set(resources, "AeziolGoldWashColor", WithAlpha(uiAccent, washAlpha));
         Set(resources, "AeziolGoldLineColor", WithAlpha(uiAccent, lineAlpha));
         Set(resources, "AeziolPrimaryTraceColor", WithAlpha(palette.Primary, enhanceContrast ? 0x88 : 0x50));
@@ -72,7 +80,14 @@ public static class AeziolThemeService
         SetBrush(resources, "AeziolMuted", appearance.Muted);
         SetBrush(resources, "AeziolDim", appearance.Dim);
         SetBrush(resources, "AeziolSuccess", appearance.Success);
+        SetBrush(resources, "AeziolOnSuccess", semanticButtons.OnSuccess);
+        SetBrush(resources, "AeziolSuccessHover", semanticButtons.SuccessHover);
+        SetBrush(resources, "AeziolSuccessPressed", semanticButtons.SuccessPressed);
+        SetBrush(resources, "AeziolOnSuccessHover", semanticButtons.OnSuccessHover);
+        SetBrush(resources, "AeziolOnSuccessPressed", semanticButtons.OnSuccessPressed);
         SetBrush(resources, "AeziolDanger", appearance.Danger);
+        SetBrush(resources, "AeziolDangerHoverWash", semanticButtons.DangerHoverWash);
+        SetBrush(resources, "AeziolDangerPressedWash", semanticButtons.DangerPressedWash);
         SetBrush(resources, "AeziolGoldWash", WithAlpha(uiAccent, washAlpha));
         SetBrush(resources, "AeziolGoldLine", WithAlpha(uiAccent, lineAlpha));
         SetBrush(resources, "AeziolDangerWash", WithAlpha(appearance.Danger, 0x20));
@@ -117,6 +132,20 @@ public static class AeziolThemeService
         var blackContrast = ContrastRatio(background, Colors.Black);
         var whiteContrast = ContrastRatio(background, Colors.White);
         return blackContrast >= whiteContrast ? Colors.Black : Colors.White;
+    }
+
+    internal static SemanticButtonPalette GetSemanticButtonPalette(AppearancePalette appearance)
+    {
+        var successHover = Mix(appearance.Success, Colors.White, 0.08);
+        var successPressed = Mix(appearance.Success, appearance.Canvas, 0.16);
+        return new SemanticButtonPalette(
+            GetContrastingText(appearance.Success),
+            successHover,
+            successPressed,
+            GetContrastingText(successHover),
+            GetContrastingText(successPressed),
+            WithAlpha(appearance.Danger, 0x30),
+            WithAlpha(appearance.Danger, 0x44));
     }
 
     internal static double ContrastRatio(MediaColor first, MediaColor second)
@@ -435,8 +464,27 @@ public static class AeziolThemeService
         return corruption.Next(2) == 0 ? -distance : distance;
     }
 
+    private static MediaColor Mix(MediaColor first, MediaColor second, double secondWeight)
+    {
+        var weight = Math.Clamp(secondWeight, 0, 1);
+        return MediaColor.FromArgb(
+            0xFF,
+            (byte)Math.Round(first.R + ((second.R - first.R) * weight)),
+            (byte)Math.Round(first.G + ((second.G - first.G) * weight)),
+            (byte)Math.Round(first.B + ((second.B - first.B) * weight)));
+    }
+
     private static MediaColor WithAlpha(MediaColor color, int alpha) => MediaColor.FromArgb((byte)alpha, color.R, color.G, color.B);
 }
+
+internal sealed record SemanticButtonPalette(
+    MediaColor OnSuccess,
+    MediaColor SuccessHover,
+    MediaColor SuccessPressed,
+    MediaColor OnSuccessHover,
+    MediaColor OnSuccessPressed,
+    MediaColor DangerHoverWash,
+    MediaColor DangerPressedWash);
 
 internal sealed record ThemePalette(MediaColor Primary, MediaColor Secondary)
 {

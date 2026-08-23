@@ -23,7 +23,14 @@
         <Color x:Key="AeziolMutedColor">#AAA8A1</Color>
         <Color x:Key="AeziolDimColor">#74747C</Color>
         <Color x:Key="AeziolSuccessColor">#86C7A5</Color>
+        <Color x:Key="AeziolOnSuccessColor">#000000</Color>
+        <Color x:Key="AeziolSuccessHoverColor">#92CEAF</Color>
+        <Color x:Key="AeziolSuccessPressedColor">#70A88D</Color>
+        <Color x:Key="AeziolOnSuccessHoverColor">#000000</Color>
+        <Color x:Key="AeziolOnSuccessPressedColor">#000000</Color>
         <Color x:Key="AeziolDangerColor">#E08A82</Color>
+        <Color x:Key="AeziolDangerHoverWashColor">#30E08A82</Color>
+        <Color x:Key="AeziolDangerPressedWashColor">#44E08A82</Color>
         <Color x:Key="AeziolWarningOrangeColor">#E3A05B</Color>
         <Color x:Key="AeziolGoldWashColor">#18DEBD68</Color>
         <Color x:Key="AeziolGoldLineColor">#46DEBD68</Color>
@@ -53,7 +60,14 @@
         <SolidColorBrush x:Key="AeziolMuted" Color="{DynamicResource AeziolMutedColor}" />
         <SolidColorBrush x:Key="AeziolDim" Color="{DynamicResource AeziolDimColor}" />
         <SolidColorBrush x:Key="AeziolSuccess" Color="{DynamicResource AeziolSuccessColor}" />
+        <SolidColorBrush x:Key="AeziolOnSuccess" Color="{DynamicResource AeziolOnSuccessColor}" />
+        <SolidColorBrush x:Key="AeziolSuccessHover" Color="{DynamicResource AeziolSuccessHoverColor}" />
+        <SolidColorBrush x:Key="AeziolSuccessPressed" Color="{DynamicResource AeziolSuccessPressedColor}" />
+        <SolidColorBrush x:Key="AeziolOnSuccessHover" Color="{DynamicResource AeziolOnSuccessHoverColor}" />
+        <SolidColorBrush x:Key="AeziolOnSuccessPressed" Color="{DynamicResource AeziolOnSuccessPressedColor}" />
         <SolidColorBrush x:Key="AeziolDanger" Color="{DynamicResource AeziolDangerColor}" />
+        <SolidColorBrush x:Key="AeziolDangerHoverWash" Color="{DynamicResource AeziolDangerHoverWashColor}" />
+        <SolidColorBrush x:Key="AeziolDangerPressedWash" Color="{DynamicResource AeziolDangerPressedWashColor}" />
         <SolidColorBrush x:Key="AeziolWarningOrange" Color="{DynamicResource AeziolWarningOrangeColor}" />
         <SolidColorBrush x:Key="AeziolGoldWash" Color="{DynamicResource AeziolGoldWashColor}" />
         <SolidColorBrush x:Key="AeziolGoldLine" Color="{DynamicResource AeziolGoldLineColor}" />
@@ -229,6 +243,46 @@
                             </Trigger>
                             <MultiTrigger>
                                 <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsEnabled" Value="True" />
+                                    <Condition Property="appearance:ButtonToneAssist.Tone" Value="Success" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolSuccessHover}" />
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolSuccessHover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSuccessHover}" />
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsEnabled" Value="True" />
+                                    <Condition Property="appearance:ButtonToneAssist.Tone" Value="Danger" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolDangerHoverWash}" />
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolDangerHoverWash}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolDanger}" />
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsPressed" Value="True" />
+                                    <Condition Property="appearance:ButtonToneAssist.Tone" Value="Success" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolSuccessPressed}" />
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolSuccessPressed}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSuccessPressed}" />
+                                <Setter TargetName="Chrome" Property="Opacity" Value="1" />
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsPressed" Value="True" />
+                                    <Condition Property="appearance:ButtonToneAssist.Tone" Value="Danger" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolDangerPressedWash}" />
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolDangerPressedWash}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolDanger}" />
+                                <Setter TargetName="Chrome" Property="Opacity" Value="1" />
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
                                     <Condition Property="IsPressed" Value="True" />
                                     <Condition Property="appearance:MotionAssist.IsReduced" Value="False" />
                                 </MultiTrigger.Conditions>
@@ -296,14 +350,16 @@
             <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
         </Style>
         <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+            <Setter Property="appearance:ButtonToneAssist.Tone" Value="Danger" />
             <Setter Property="Background" Value="{DynamicResource AeziolDangerWash}" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource AeziolDanger}" />
         </Style>
         <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+            <Setter Property="appearance:ButtonToneAssist.Tone" Value="Success" />
             <Setter Property="Background" Value="{DynamicResource AeziolSuccess}" />
             <Setter Property="BorderBrush" Value="{DynamicResource AeziolSuccess}" />
-            <Setter Property="Foreground" Value="#000000" />
+            <Setter Property="Foreground" Value="{DynamicResource AeziolOnSuccess}" />
         </Style>
         <Style x:Key="WarningButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
             <Setter Property="Background" Value="{DynamicResource AeziolRaised}" />
