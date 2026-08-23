@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace Aeziol.Tests.App;
@@ -59,7 +58,7 @@ public sealed class MainWindowLayoutStructureTests
     }
 
     [Fact]
-    public void RouteCicadaIsDiscoverableAndHasAwakeAndSleepingStates()
+    public void RouteCicadaIsDiscoverableAndUsesOneBrandIconForBothStates()
     {
         var appDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "App.xaml"));
         var windowDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml"));
@@ -72,13 +71,8 @@ public sealed class MainWindowLayoutStructureTests
                 && element.Attribute("Value")?.Value == "True");
         var actionButton = FindNamedElement(windowDocument, "AutomationActionButton");
         var actionText = FindNamedElement(windowDocument, "AutomationActionText");
-        var awakeCicada = FindNamedElement(windowDocument, "AutomationAwakeCicadaImage");
-        var sleepingCicada = FindNamedElement(windowDocument, "AutomationSleepingCicadaImage");
-        var sleepingVisual = FindNamedElement(windowDocument, "AutomationSleepingCicadaVisual");
+        var cicada = FindNamedElement(windowDocument, "AutomationCicadaImage");
         var navigationBrand = FindNamedElement(windowDocument, "NavigationBrandCicada");
-        var sleepingDrawing = appDocument.Descendants()
-            .Single(element => element.Name.LocalName == "DrawingImage"
-                && element.Attribute(Xaml + "Key")?.Value == "AeziolSleepingCicadaDrawing");
 
         Assert.Contains(
             hoverTrigger.Elements(),
@@ -97,55 +91,13 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Null(navigationBrand.Attribute("Click"));
         Assert.Equal("9", actionText.Attribute("FontSize")?.Value);
         Assert.Equal("SemiBold", actionText.Attribute("FontWeight")?.Value);
-        Assert.Equal("{DynamicResource AeziolCicadaDrawing}", awakeCicada.Attribute("Source")?.Value);
-        Assert.Equal("{DynamicResource AeziolSleepingCicadaDrawing}", sleepingCicada.Attribute("Source")?.Value);
-        Assert.Equal(awakeCicada.Attribute("Width")?.Value, sleepingCicada.Attribute("Width")?.Value);
-        Assert.Equal(awakeCicada.Attribute("Height")?.Value, sleepingCicada.Attribute("Height")?.Value);
-        Assert.Equal("0", sleepingVisual.Attribute("Opacity")?.Value);
-        Assert.Contains(sleepingDrawing.Descendants(), element => element.Name.LocalName == "GeometryDrawing");
+        Assert.Equal("{DynamicResource AeziolCicadaDrawing}", cicada.Attribute("Source")?.Value);
         Assert.DoesNotContain(windowDocument.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "AutomationStateDot");
-        Assert.Contains("AutomationAwakeWingScale.BeginAnimation", windowSource, StringComparison.Ordinal);
-        Assert.Contains("AutomationSleepingCicadaScale.BeginAnimation", windowSource, StringComparison.Ordinal);
-        Assert.Contains("AutomationSleepingCicadaRotation.BeginAnimation", windowSource, StringComparison.Ordinal);
-        Assert.Contains("var targetAwakeScaleX = enabled ? 1 : 0.62;", windowSource, StringComparison.Ordinal);
-        Assert.Contains("var targetSleepingOpacity = enabled ? 0 : 1;", windowSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("SleepingCicada", appDocument.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("SleepingCicada", windowDocument.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("SleepingCicada", windowSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("AwakeCicada", windowSource, StringComparison.Ordinal);
         Assert.Contains("animate && !_runtime.Settings.ReduceAnimations", windowSource, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void SleepingCicadaSvgKeepsTheBrandLanguageAndOwnsItsRestingPosture()
-    {
-        var activeDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "Assets", "Brand", "aeziol-cicada.svg"));
-        var sleepingDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "Assets", "Brand", "aeziol-cicada-sleeping.svg"));
-        var appDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "App.xaml"));
-        var activeRoot = activeDocument.Root ?? throw new InvalidDataException("The active cicada SVG has no root element.");
-        var sleepingRoot = sleepingDocument.Root ?? throw new InvalidDataException("The sleeping cicada SVG has no root element.");
-        var activePaths = activeDocument.Descendants().Where(element => element.Name.LocalName == "path").ToArray();
-        var sleepingPaths = sleepingDocument.Descendants().Where(element => element.Name.LocalName == "path").ToArray();
-        var sleepingDrawingPaths = appDocument.Descendants()
-            .Single(element => element.Name.LocalName == "DrawingImage"
-                && element.Attribute(Xaml + "Key")?.Value == "AeziolSleepingCicadaDrawing")
-            .Descendants()
-            .Where(element => element.Name.LocalName == "GeometryDrawing")
-            .Select(element => element.Attribute("Geometry")?.Value ?? string.Empty)
-            .ToArray();
-
-        Assert.Equal(activeRoot.Attribute("viewBox")?.Value, sleepingRoot.Attribute("viewBox")?.Value);
-        Assert.Equal(activeRoot.Attribute("width")?.Value, sleepingRoot.Attribute("width")?.Value);
-        Assert.Equal(activeRoot.Attribute("height")?.Value, sleepingRoot.Attribute("height")?.Value);
-        Assert.Equal(activePaths.Length, sleepingPaths.Length);
-        Assert.Equal(8, sleepingPaths.Length);
-        Assert.Equal(
-            activePaths.Select(path => path.Attribute("style")?.Value),
-            sleepingPaths.Select(path => path.Attribute("style")?.Value));
-        Assert.All(
-            activePaths.Zip(sleepingPaths),
-            pair => Assert.NotEqual(pair.First.Attribute("d")?.Value, pair.Second.Attribute("d")?.Value));
-        Assert.DoesNotContain("zzz", sleepingDocument.ToString(), StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("moon", sleepingDocument.ToString(), StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(
-            sleepingPaths.Select(path => ExtractGeometryNumbers(path.Attribute("d")?.Value ?? string.Empty)),
-            sleepingDrawingPaths.Select(ExtractGeometryNumbers));
     }
 
     [Fact]
@@ -169,9 +121,6 @@ public sealed class MainWindowLayoutStructureTests
 
     private static XElement FindNamedElement(XDocument document, string name) =>
         document.Descendants().Single(element => element.Attribute(Xaml + "Name")?.Value == name);
-
-    private static string ExtractGeometryNumbers(string geometry) =>
-        string.Join(',', Regex.Matches(geometry, @"-?\d+(?:\.\d+)?").Select(match => match.Value));
 
     private static string FindSourceFile(params string[] relativeSegments)
     {

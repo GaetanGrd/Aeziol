@@ -424,38 +424,8 @@
                                                         HorizontalAlignment="Center" VerticalAlignment="Center"
                                                         Background="{DynamicResource AeziolRaised}"
                                                         BorderBrush="{DynamicResource AeziolGoldLine}" BorderThickness="1">
-                                                    <Grid>
-                                                        <Image x:Name="AutomationAwakeCicadaImage" Width="54" Height="54"
-                                                               RenderTransformOrigin="0.5,0.55"
-                                                               Source="{DynamicResource AeziolCicadaDrawing}">
-                                                            <Image.RenderTransform>
-                                                                <ScaleTransform x:Name="AutomationAwakeWingScale" ScaleX="1" ScaleY="1" />
-                                                            </Image.RenderTransform>
-                                                        </Image>
-                                                        <Grid x:Name="AutomationSleepingCicadaVisual" Opacity="0"
-                                                              RenderTransformOrigin="0.5,0.55">
-                                                            <Grid.RenderTransform>
-                                                                <TransformGroup>
-                                                                    <ScaleTransform x:Name="AutomationSleepingCicadaScale" ScaleX="0.84" ScaleY="0.84" />
-                                                                    <RotateTransform x:Name="AutomationSleepingCicadaRotation" Angle="0" />
-                                                                    <TranslateTransform x:Name="AutomationSleepingCicadaTranslate" Y="3" />
-                                                                </TransformGroup>
-                                                            </Grid.RenderTransform>
-                                                            <Image x:Name="AutomationSleepingCicadaImage" Width="54" Height="54"
-                                                                   Source="{DynamicResource AeziolSleepingCicadaDrawing}" />
-                                                            <Viewbox Width="15" Height="15" Margin="0,5,5,0"
-                                                                     HorizontalAlignment="Right" VerticalAlignment="Top">
-                                                                <Path Fill="{DynamicResource AeziolMuted}"
-                                                                      Data="M 12,1 A 10,10 0 1 0 20,17 A 8,8 0 0 1 12,1 Z" />
-                                                            </Viewbox>
-                                                            <Ellipse Width="3" Height="3" Margin="0,20,13,0"
-                                                                     HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                                     Fill="{DynamicResource AeziolGold}" Opacity="0.8" />
-                                                            <Ellipse Width="2" Height="2" Margin="0,25,18,0"
-                                                                     HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                                     Fill="{DynamicResource AeziolMuted}" Opacity="0.7" />
-                                                        </Grid>
-                                                    </Grid>
+                                                    <Image x:Name="AutomationCicadaImage" Width="54" Height="54"
+                                                           Source="{DynamicResource AeziolCicadaDrawing}" />
                                                 </Border>
                                                 <TextBlock x:Name="AutomationActionText" Margin="0,0,0,2"
                                                            HorizontalAlignment="Center" VerticalAlignment="Bottom"
