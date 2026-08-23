@@ -9,12 +9,12 @@ internal readonly record struct AutomationPresentation(
     public static AutomationPresentation For(bool enabled) => enabled
         ? new(
             "automation-disable",
-            "AeziolDanger",
+            "AeziolGold",
             1,
             true)
         : new(
             "automation-enable",
-            "AeziolSuccess",
-            0.62,
+            "AeziolGold",
+            0.32,
             false);
 }

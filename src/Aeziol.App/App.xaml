@@ -361,31 +361,13 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Grid x:Name="Chrome" Background="Transparent">
-                            <Border x:Name="HoverWash" Margin="10,1,10,27" CornerRadius="23"
-                                    Background="{TemplateBinding Background}" Opacity="0" />
-                            <Border x:Name="HoverOutline" Margin="10,1,10,27" CornerRadius="23"
-                                    BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0" />
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
                                               TextElement.Foreground="{TemplateBinding Foreground}" />
-                            <Border x:Name="FocusRing" Margin="8,0,8,26" CornerRadius="24"
-                                    BorderBrush="{DynamicResource AeziolGold}" BorderThickness="1.5"
-                                    Opacity="0" IsHitTestVisible="False" />
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="HoverWash" Property="Opacity" Value="0.16" />
-                                <Setter TargetName="HoverOutline" Property="Opacity" Value="0.62" />
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="HoverWash" Property="Opacity" Value="0.28" />
-                                <Setter TargetName="HoverOutline" Property="Opacity" Value="0.82" />
-                            </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="Chrome" Property="Opacity" Value="0.42" />
                                 <Setter Property="Cursor" Value="Arrow" />
-                            </Trigger>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="FocusRing" Property="Opacity" Value="1" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

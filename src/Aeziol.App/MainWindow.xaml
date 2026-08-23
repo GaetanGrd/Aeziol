@@ -397,6 +397,7 @@
                                             <controls:JourneyTrace x:Name="PassageJourneyTrace"
                                                                    Width="200" Height="62"
                                                                    Orientation="Horizontal"
+                                                                   ProgressMode="SymmetricFromCenter"
                                                                    EdgeFade="0.06" HighlightFade="0.14" HighlightRadius="12"
                                                                    BaseStrokeA="1.2" BaseStrokeB="0.9"
                                                                    BaseOpacityA="1" BaseOpacityB="0.44"
@@ -415,23 +416,96 @@
                                                 </controls:JourneyTrace.Particles>
                                             </controls:JourneyTrace>
                                         </Viewbox>
-                                        <Button x:Name="AutomationActionButton" Width="102" Height="110"
+                                        <Button x:Name="AutomationActionButton" Width="82" Height="82"
                                                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                Focusable="False" IsTabStop="False"
                                                 Style="{StaticResource AutomationCicadaButton}"
                                                 Click="OnAutomationAction">
-                                            <Grid x:Name="AutomationCicadaContent" Width="102" Height="110">
-                                                <Border Width="82" Height="82" Margin="0,0,0,26" CornerRadius="23"
+                                            <Grid x:Name="AutomationCicadaContent">
+                                                <Border x:Name="AutomationControlSurface"
+                                                        Width="82" Height="82" Margin="0" CornerRadius="23"
                                                         HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                        Background="{DynamicResource AeziolRaised}"
-                                                        BorderBrush="{DynamicResource AeziolGoldLine}" BorderThickness="1">
-                                                    <Image x:Name="AutomationCicadaImage" Width="54" Height="54"
-                                                           Source="{DynamicResource AeziolCicadaDrawing}" />
+                                                        ClipToBounds="True">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="{DynamicResource AeziolRaised}" />
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource AeziolGoldLine}" />
+                                                            <Setter Property="BorderThickness" Value="1" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                                             Value="True">
+                                                                    <Setter Property="BorderBrush"
+                                                                            Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <Grid>
+                                                        <Border CornerRadius="{Binding CornerRadius, ElementName=AutomationControlSurface}"
+                                                                Background="{Binding Background, RelativeSource={RelativeSource AncestorType=Button}}">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Opacity" Value="0" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                                                     Value="True">
+                                                                            <Setter Property="Opacity" Value="0.14" />
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding IsPressed, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                                                     Value="True">
+                                                                            <Setter Property="Opacity" Value="0.24" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                        </Border>
+                                                        <Image x:Name="AutomationCicadaImage" Width="54" Height="54"
+                                                               RenderTransformOrigin="0.5,0.5"
+                                                               Source="{DynamicResource AeziolCicadaDrawing}">
+                                                            <Image.RenderTransform>
+                                                                <TransformGroup>
+                                                                    <ScaleTransform x:Name="AutomationCicadaScale"
+                                                                                    ScaleX="1" ScaleY="1" />
+                                                                    <RotateTransform x:Name="AutomationCicadaRotation" Angle="0" />
+                                                                    <TranslateTransform x:Name="AutomationCicadaTranslation" Y="0" />
+                                                                </TransformGroup>
+                                                            </Image.RenderTransform>
+                                                        </Image>
+                                                        <Viewbox x:Name="AutomationActiveStopGlyph"
+                                                                 Width="14" Height="14" Margin="0,8,8,0"
+                                                                 HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                                 IsHitTestVisible="False">
+                                                            <Viewbox.Style>
+                                                                <Style TargetType="Viewbox">
+                                                                    <Setter Property="Opacity" Value="0.48" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                                                     Value="True">
+                                                                            <Setter Property="Opacity" Value="0.94" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Viewbox.Style>
+                                                            <Path Data="M 9,1.5 L 9,7.2 M 4.7,4.6 C 1.2,7.5 2.8,14.5 9,14.5 C 15.2,14.5 16.8,7.5 13.3,4.6 M 2.2,2.2 L 15.8,15.8"
+                                                                  Fill="Transparent" Stroke="{DynamicResource AeziolGold}"
+                                                                  StrokeThickness="1.7" StrokeStartLineCap="Round"
+                                                                  StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                                                        </Viewbox>
+                                                        <Viewbox x:Name="AutomationInactiveActivationIcon"
+                                                                 Width="18" Height="18" Opacity="0"
+                                                                 RenderTransformOrigin="0.5,0.5">
+                                                            <Viewbox.RenderTransform>
+                                                                <ScaleTransform x:Name="AutomationInactiveActivationScale"
+                                                                                ScaleX="0.72" ScaleY="0.72" />
+                                                            </Viewbox.RenderTransform>
+                                                            <Path Data="M 9,1 L 9,8 M 4.4,4.2 C 0.4,7.4 2.1,15 9,15 C 15.9,15 17.6,7.4 13.6,4.2"
+                                                                  Fill="Transparent"
+                                                                  Stroke="{DynamicResource AeziolGold}"
+                                                                  StrokeThickness="1.8" StrokeStartLineCap="Round"
+                                                                  StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                                                        </Viewbox>
+                                                    </Grid>
                                                 </Border>
-                                                <TextBlock x:Name="AutomationActionText" Margin="0,0,0,2"
-                                                           HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                                                           FontSize="9" FontWeight="SemiBold"
-                                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                                                           TextOptions.TextFormattingMode="Display" />
                                             </Grid>
                                         </Button>
                                     </Grid>
