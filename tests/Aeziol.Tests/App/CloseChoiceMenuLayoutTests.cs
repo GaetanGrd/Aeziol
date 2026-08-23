@@ -31,7 +31,8 @@ public sealed class CloseChoiceMenuLayoutTests
         var rememberItemHeight = ParseDouble(rememberContent.Attribute("Height")?.Value)
             + rememberPadding.Top
             + rememberPadding.Bottom;
-        var separatorFootprint = ParseDouble(precedingSeparator.Attribute("Height")?.Value)
+        var separatorThickness = ParseThickness(precedingSeparator.Attribute("BorderThickness")?.Value);
+        var separatorFootprint = separatorThickness.Top
             + separatorMargin.Top
             + separatorMargin.Bottom;
         var rememberSectionHeight = rememberItemHeight + separatorFootprint;
@@ -42,11 +43,13 @@ public sealed class CloseChoiceMenuLayoutTests
         Assert.InRange(separatorMargin.Bottom, 4, 6);
         Assert.True(rememberSectionHeight <= actionHeight + 12,
             $"Remember section is {rememberSectionHeight}px high but the compact budget is {actionHeight + 12}px.");
-        Assert.Equal("{DynamicResource AeziolMuted}", precedingSeparator.Attribute("Background")?.Value);
-        Assert.InRange(ParseDouble(precedingSeparator.Attribute("Opacity")?.Value), 0.85, 1);
-        Assert.Contains(precedingSeparator.Descendants(), element =>
-            element.Name.LocalName == "Border"
-            && (string?)element.Attribute("Background") == "{TemplateBinding Background}");
+        Assert.Equal("Border", precedingSeparator.Name.LocalName);
+        Assert.Equal("{DynamicResource AeziolBorderSoft}", precedingSeparator.Attribute("BorderBrush")?.Value);
+        Assert.Equal(1, separatorThickness.Top);
+        Assert.Equal(0, separatorThickness.Left);
+        Assert.Equal(0, separatorThickness.Right);
+        Assert.Equal(0, separatorThickness.Bottom);
+        Assert.Empty(precedingSeparator.Elements());
         Assert.Equal("True", rememberItem.Attribute("IsCheckable")?.Value);
         Assert.Equal("True", rememberItem.Attribute("StaysOpenOnClick")?.Value);
         Assert.Equal("{TemplateBinding Padding}", menuItemStyle
