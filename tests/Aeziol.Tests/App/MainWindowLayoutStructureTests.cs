@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace Aeziol.Tests.App;
@@ -94,6 +95,39 @@ public sealed class MainWindowLayoutStructureTests
     }
 
     [Fact]
+    public void SleepingCicadaSvgKeepsTheBrandLanguageAndOwnsItsRestingPosture()
+    {
+        var activeDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "Assets", "Brand", "aeziol-cicada.svg"));
+        var sleepingDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "Assets", "Brand", "aeziol-cicada-sleeping.svg"));
+        var appDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "App.xaml"));
+        var activeRoot = activeDocument.Root ?? throw new InvalidDataException("The active cicada SVG has no root element.");
+        var sleepingRoot = sleepingDocument.Root ?? throw new InvalidDataException("The sleeping cicada SVG has no root element.");
+        var activePaths = activeDocument.Descendants().Where(element => element.Name.LocalName == "path").ToArray();
+        var sleepingPaths = sleepingDocument.Descendants().Where(element => element.Name.LocalName == "path").ToArray();
+        var sleepingDrawingPaths = appDocument.Descendants()
+            .Single(element => element.Name.LocalName == "DrawingImage"
+                && element.Attribute(Xaml + "Key")?.Value == "AeziolSleepingCicadaDrawing")
+            .Descendants()
+            .Where(element => element.Name.LocalName == "GeometryDrawing")
+            .Select(element => element.Attribute("Geometry")?.Value ?? string.Empty)
+            .ToArray();
+
+        Assert.Equal(activeRoot.Attribute("viewBox")?.Value, sleepingRoot.Attribute("viewBox")?.Value);
+        Assert.Equal(activeRoot.Attribute("width")?.Value, sleepingRoot.Attribute("width")?.Value);
+        Assert.Equal(activeRoot.Attribute("height")?.Value, sleepingRoot.Attribute("height")?.Value);
+        Assert.Equal(activePaths.Length, sleepingPaths.Length);
+        Assert.Equal(8, sleepingPaths.Length);
+        Assert.All(
+            activePaths.Zip(sleepingPaths),
+            pair => Assert.NotEqual(pair.First.Attribute("d")?.Value, pair.Second.Attribute("d")?.Value));
+        Assert.DoesNotContain("zzz", sleepingDocument.ToString(), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("moon", sleepingDocument.ToString(), StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(
+            sleepingPaths.Select(path => ExtractGeometryNumbers(path.Attribute("d")?.Value ?? string.Empty)),
+            sleepingDrawingPaths.Select(ExtractGeometryNumbers));
+    }
+
+    [Fact]
     public void DiscordRuleOwnsConnectionSettingsAndNoLongerDuplicatesTheDestination()
     {
         var xamlPath = FindSourceFile("src", "Aeziol.App", "MainWindow.xaml");
@@ -114,6 +148,9 @@ public sealed class MainWindowLayoutStructureTests
 
     private static XElement FindNamedElement(XDocument document, string name) =>
         document.Descendants().Single(element => element.Attribute(Xaml + "Name")?.Value == name);
+
+    private static string ExtractGeometryNumbers(string geometry) =>
+        string.Join(',', Regex.Matches(geometry, @"-?\d+(?:\.\d+)?").Select(match => match.Value));
 
     private static string FindSourceFile(params string[] relativeSegments)
     {

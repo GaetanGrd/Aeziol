@@ -435,7 +435,7 @@ public partial class MainWindow : Window
         var targetAwakeScaleY = enabled ? 1 : 0.9;
         var targetSleepingOpacity = enabled ? 0 : 1;
         var targetSleepingScale = enabled ? 0.82 : 1;
-        var targetSleepingRotation = enabled ? -2 : -7;
+        var targetSleepingRotation = enabled ? -3 : 0;
         var targetSleepingOffset = enabled ? 0 : 3;
         AutomationAwakeCicadaImage.Opacity = targetAwakeOpacity;
         AutomationAwakeWingScale.ScaleX = targetAwakeScaleX;

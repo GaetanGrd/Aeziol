@@ -435,7 +435,7 @@
                                                             <Grid.RenderTransform>
                                                                 <TransformGroup>
                                                                     <ScaleTransform x:Name="AutomationSleepingCicadaScale" ScaleX="0.84" ScaleY="0.84" />
-                                                                    <RotateTransform x:Name="AutomationSleepingCicadaRotation" Angle="-7" />
+                                                                    <RotateTransform x:Name="AutomationSleepingCicadaRotation" Angle="0" />
                                                                     <TranslateTransform x:Name="AutomationSleepingCicadaTranslate" Y="3" />
                                                                 </TransformGroup>
                                                             </Grid.RenderTransform>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg role="img" aria-label="Aeziol, cigale assoupie" width="1024" height="1024" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>Aeziol, cigale assoupie</title>
+	<desc>La cigale Aeziol au repos, tête abaissée, antennes détendues et ailes repliées.</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1024" height="1024"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-1024)" style="clip-path: url(#clip)">
+		<g transform="">
+			<g transform=" matrix(1,0,0,-1,0,1024)">
+				<path d="M 470 397 C 413 377 350 414 344 480 C 338 549 392 613 492 638 C 487 548 484 466 470 397 Z " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-linejoin: round; stroke-width: 26; fill: rgb(87%,74%,40%); fill-rule: evenodd; fill-opacity: 0.08;"/>
+				<path d="M 520 384 C 568 373 621 408 625 465 C 630 526 591 577 531 606 C 548 523 549 447 520 384 Z " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-linejoin: round; stroke-width: 26; fill: rgb(87%,74%,40%); fill-rule: evenodd; fill-opacity: 0.08;"/>
+				<path d="M 461 449 C 417 421 377 435 354 478 " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-width: 14; fill: none; fill-rule: evenodd;"/>
+				<path d="M 529 438 C 566 419 599 435 614 470 " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-width: 14; fill: none; fill-rule: evenodd;"/>
+				<path d="M 445 370 C 462 330 530 344 540 383 C 520 405 463 398 445 370 Z " style="stroke: none; stroke-linecap: round; stroke-width: 0; fill: rgb(95%,85%,54%); fill-rule: evenodd;"/>
+				<path d="M 495 388 C 460 400 472 462 499 523 C 533 598 574 656 610 697 C 606 635 592 566 567 497 C 542 429 531 383 495 388 Z " style="stroke: none; stroke-linecap: round; stroke-width: 0; fill: rgb(95%,85%,54%); fill-rule: evenodd;"/>
+				<path d="M 458 350 C 423 355 394 384 395 420 C 396 441 407 456 422 465 " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-width: 18; fill: none; fill-rule: evenodd;"/>
+				<path d="M 520 358 C 549 365 569 390 565 420 C 562 439 551 452 538 459 " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-width: 18; fill: none; fill-rule: evenodd;"/>
+			</g>
+		</g>
+	</g>
+</svg>
