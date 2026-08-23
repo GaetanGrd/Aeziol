@@ -1838,8 +1838,12 @@ public partial class MainWindow : Window
         System.Windows.Automation.AutomationProperties.SetName(CloseWindowButton, closeLabel);
         CloseHideMenuText.Text = _localization.Get("close-choice-hide-compact", register);
         CloseQuitMenuText.Text = _localization.Get("close-choice-quit-compact", register);
-        CloseRememberMenuText.Text = _localization.Get("close-remember", register);
-        CloseRememberMenuNoteText.Text = _localization.Get("close-remember-settings-note", register);
+        var closeRememberLabel = _localization.Get("close-remember", register);
+        var closeRememberNote = _localization.Get("close-remember-settings-note", register);
+        CloseRememberMenuText.Text = closeRememberLabel;
+        CloseRememberMenuNoteText.Text = closeRememberNote;
+        System.Windows.Automation.AutomationProperties.SetName(CloseRememberMenuItem, closeRememberLabel);
+        System.Windows.Automation.AutomationProperties.SetHelpText(CloseRememberMenuItem, closeRememberNote);
         UpdateWindowStateVisuals();
         AboutTitleText.Text = _localization.Get("about-title", register);
         AboutSubtitleText.Text = _localization.Get("about-subtitle", register);
