@@ -11,14 +11,14 @@
 	<g id="group" transform="scale(1,-1) translate(0,-1024)" style="clip-path: url(#clip)">
 		<g transform="">
 			<g transform=" matrix(1,0,0,-1,0,1024)">
-				<path d="M 470 397 C 413 377 350 414 344 480 C 338 549 392 613 492 638 C 487 548 484 466 470 397 Z " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-linejoin: round; stroke-width: 26; fill: rgb(87%,74%,40%); fill-rule: evenodd; fill-opacity: 0.08;"/>
-				<path d="M 520 384 C 568 373 621 408 625 465 C 630 526 591 577 531 606 C 548 523 549 447 520 384 Z " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-linejoin: round; stroke-width: 26; fill: rgb(87%,74%,40%); fill-rule: evenodd; fill-opacity: 0.08;"/>
-				<path d="M 461 449 C 417 421 377 435 354 478 " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-width: 14; fill: none; fill-rule: evenodd;"/>
-				<path d="M 529 438 C 566 419 599 435 614 470 " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-width: 14; fill: none; fill-rule: evenodd;"/>
-				<path d="M 445 370 C 462 330 530 344 540 383 C 520 405 463 398 445 370 Z " style="stroke: none; stroke-linecap: round; stroke-width: 0; fill: rgb(95%,85%,54%); fill-rule: evenodd;"/>
-				<path d="M 495 388 C 460 400 472 462 499 523 C 533 598 574 656 610 697 C 606 635 592 566 567 497 C 542 429 531 383 495 388 Z " style="stroke: none; stroke-linecap: round; stroke-width: 0; fill: rgb(95%,85%,54%); fill-rule: evenodd;"/>
-				<path d="M 458 350 C 423 355 394 384 395 420 C 396 441 407 456 422 465 " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-width: 18; fill: none; fill-rule: evenodd;"/>
-				<path d="M 520 358 C 549 365 569 390 565 420 C 562 439 551 452 538 459 " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-width: 18; fill: none; fill-rule: evenodd;"/>
+				<path d="M 466 395 C 370 390 292 430 292 494 C 292 563 378 630 491 661 C 464 570 454 475 466 395 Z " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-linejoin: round; stroke-width: 26; fill: rgb(87%,74%,40%); fill-rule: evenodd; fill-opacity: 0.08;"/>
+				<path d="M 537 397 C 616 404 670 441 663 496 C 654 555 586 611 518 641 C 547 555 557 469 537 397 Z " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-linejoin: round; stroke-width: 26; fill: rgb(87%,74%,40%); fill-rule: evenodd; fill-opacity: 0.08;"/>
+				<path d="M 437 449 C 379 446 337 470 339 503 " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-width: 14; fill: none; fill-rule: evenodd;"/>
+				<path d="M 562 452 C 602 459 623 479 616 501 " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-width: 14; fill: none; fill-rule: evenodd;"/>
+				<path d="M 456 351 C 470 311 546 322 558 365 C 539 389 476 383 456 351 Z " style="stroke: none; stroke-linecap: round; stroke-width: 0; fill: rgb(95%,85%,54%); fill-rule: evenodd;"/>
+				<path d="M 503 379 C 470 388 477 447 494 511 C 515 588 548 657 581 710 C 584 640 576 570 560 501 C 543 428 536 371 503 379 Z " style="stroke: none; stroke-linecap: round; stroke-width: 0; fill: rgb(95%,85%,54%); fill-rule: evenodd;"/>
+				<path d="M 472 335 C 441 326 417 345 413 371 C 410 388 417 401 428 410 " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-width: 18; fill: none; fill-rule: evenodd;"/>
+				<path d="M 536 341 C 559 343 574 360 572 381 C 570 396 562 406 551 413 " style="stroke: rgb(87%,74%,40%); stroke-linecap: round; stroke-width: 18; fill: none; fill-rule: evenodd;"/>
 			</g>
 		</g>
 	</g>
