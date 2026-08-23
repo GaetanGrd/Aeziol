@@ -23,4 +23,9 @@
     <ProjectReference Include="../../src/Aeziol.Infrastructure.Discord/Aeziol.Infrastructure.Discord.csproj" />
     <ProjectReference Include="../../src/Aeziol.Infrastructure.Windows/Aeziol.Infrastructure.Windows.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="../../src/Aeziol.App/MainWindow.xaml"
+          Link="Fixtures/MainWindow.xaml"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
