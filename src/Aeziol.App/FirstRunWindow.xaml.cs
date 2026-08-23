@@ -38,9 +38,6 @@ public partial class FirstRunWindow : Window
         _ambientMusicVolumeChanged = ambientMusicVolumeChanged;
         InitializeComponent();
         SourceInitialized += (_, _) => NativeWindowAppearance.HideSystemBorder(this);
-        Activated += OnWindowActivated;
-        Deactivated += OnWindowDeactivated;
-        Closed += OnWindowClosed;
         RefreshLanguageChoices(language);
         FirstRunThemeCombo.SelectedItem = FirstRunThemeCombo.Items.OfType<ComboBoxItem>()
             .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), theme.ToString(), StringComparison.OrdinalIgnoreCase))
@@ -136,30 +133,6 @@ public partial class FirstRunWindow : Window
 
     private void OnReduceAnimationsChanged(object sender, RoutedEventArgs eventArgs) =>
         MotionAssist.SetIsReduced(this, ReduceAnimationsCheck.IsChecked == true);
-
-    private static void OnWindowActivated(object? sender, EventArgs eventArgs)
-    {
-        if (System.Windows.Application.Current is App app)
-        {
-            app.SetAmbientMusicHostFocused(true);
-        }
-    }
-
-    private static void OnWindowDeactivated(object? sender, EventArgs eventArgs)
-    {
-        if (System.Windows.Application.Current is App app)
-        {
-            app.SetAmbientMusicHostFocused(false);
-        }
-    }
-
-    private void OnWindowClosed(object? sender, EventArgs eventArgs)
-    {
-        OnWindowDeactivated(sender, eventArgs);
-        Activated -= OnWindowActivated;
-        Deactivated -= OnWindowDeactivated;
-        Closed -= OnWindowClosed;
-    }
 
     private void OnMusicEnabledChanged(object sender, RoutedEventArgs eventArgs)
     {

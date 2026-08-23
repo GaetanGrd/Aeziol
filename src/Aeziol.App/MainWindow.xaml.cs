@@ -72,8 +72,6 @@ public partial class MainWindow : Window
         SourceInitialized += (_, _) => NativeWindowAppearance.HideSystemBorder(this);
 
         Loaded += OnLoaded;
-        Activated += OnWindowActivated;
-        Deactivated += OnWindowDeactivated;
         Closing += OnClosing;
         Closed += OnClosed;
         SizeChanged += OnWindowSizeChanged;
@@ -2477,22 +2475,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnWindowActivated(object? sender, EventArgs eventArgs)
-    {
-        if (System.Windows.Application.Current is App app)
-        {
-            app.SetAmbientMusicHostFocused(true);
-        }
-    }
-
-    private void OnWindowDeactivated(object? sender, EventArgs eventArgs)
-    {
-        if (System.Windows.Application.Current is App app)
-        {
-            app.SetAmbientMusicHostFocused(false);
-        }
-    }
-
     private void UpdateWindowStateVisuals()
     {
         if (!IsInitialized)
@@ -2636,8 +2618,6 @@ public partial class MainWindow : Window
         _runtime.RoutingStateChanged -= OnRoutingStateChanged;
         _runtime.DiscordAuthorizationChanged -= OnDiscordAuthorizationChanged;
         _runtime.AudioEndpointsChanged -= OnAudioEndpointsChanged;
-        Activated -= OnWindowActivated;
-        Deactivated -= OnWindowDeactivated;
         StateChanged -= OnWindowStateChanged;
         IsVisibleChanged -= OnWindowVisibilityChanged;
     }

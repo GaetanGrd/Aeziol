@@ -277,6 +277,18 @@ public partial class App : System.Windows.Application
         }
     }
 
+    protected override void OnActivated(EventArgs e)
+    {
+        base.OnActivated(e);
+        _ambientMusic?.SetApplicationFocused(true);
+    }
+
+    protected override void OnDeactivated(EventArgs e)
+    {
+        _ambientMusic?.SetApplicationFocused(false);
+        base.OnDeactivated(e);
+    }
+
     public void HandleMainWindowClosing(CancelEventArgs eventArgs)
     {
         if (_isQuitting || MainWindow is not MainWindow window || _localization is null)
@@ -445,9 +457,6 @@ public partial class App : System.Windows.Application
 
     public void SetAmbientMusicHostVisible(bool isVisible) =>
         _ambientMusic?.SetApplicationVisible(isVisible);
-
-    public void SetAmbientMusicHostFocused(bool isFocused) =>
-        _ambientMusic?.SetApplicationFocused(isFocused);
 
     internal static bool ShouldShowMainWindow(
         bool activationRequested,
