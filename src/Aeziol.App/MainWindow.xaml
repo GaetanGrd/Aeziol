@@ -141,9 +141,16 @@
                                         </StackPanel>
                                     </MenuItem.Header>
                                 </MenuItem>
-                                <Border x:Name="CloseRememberSeparator" Margin="8,5"
-                                        BorderBrush="{DynamicResource AeziolBorderSoft}"
-                                        BorderThickness="0,1,0,0" />
+                                <Separator x:Name="CloseRememberSeparator" Height="1" Margin="8,5"
+                                           Background="{DynamicResource AeziolBorderSoft}"
+                                           Focusable="False" IsHitTestVisible="False">
+                                    <Separator.Template>
+                                        <ControlTemplate TargetType="Separator">
+                                            <Border Height="{TemplateBinding Height}"
+                                                    Background="{TemplateBinding Background}" />
+                                        </ControlTemplate>
+                                    </Separator.Template>
+                                </Separator>
                                 <MenuItem x:Name="CloseRememberMenuItem" IsCheckable="True"
                                           StaysOpenOnClick="True" Padding="12,5">
                                     <MenuItem.Header>
