@@ -154,6 +154,49 @@
             </DrawingImage.Drawing>
         </DrawingImage>
 
+        <DrawingImage x:Key="AeziolSleepingCicadaDrawing">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="{DynamicResource AeziolGoldWash}"
+                                     Geometry="M489,376 C428,341 351,374 329,447 C305,530 365,625 478,654 C461,558 465,462 489,376 Z">
+                        <GeometryDrawing.Pen>
+                            <Pen Brush="{DynamicResource AeziolGold}" Thickness="26" StartLineCap="Round" EndLineCap="Round" LineJoin="Round" />
+                        </GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="{DynamicResource AeziolGoldWash}"
+                                     Geometry="M535,376 C596,341 673,374 695,447 C719,530 659,625 546,654 C563,558 559,462 535,376 Z">
+                        <GeometryDrawing.Pen>
+                            <Pen Brush="{DynamicResource AeziolGold}" Thickness="26" StartLineCap="Round" EndLineCap="Round" LineJoin="Round" />
+                        </GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                    <GeometryDrawing Geometry="M470,432 C420,409 379,425 354,464">
+                        <GeometryDrawing.Pen>
+                            <Pen Brush="{DynamicResource AeziolGold}" Thickness="14" StartLineCap="Round" EndLineCap="Round" />
+                        </GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                    <GeometryDrawing Geometry="M554,432 C604,409 645,425 670,464">
+                        <GeometryDrawing.Pen>
+                            <Pen Brush="{DynamicResource AeziolGold}" Thickness="14" StartLineCap="Round" EndLineCap="Round" />
+                        </GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="{DynamicResource AeziolSecondary}"
+                                     Geometry="M443,318 C456,265 568,265 581,318 C565,352 459,352 443,318 Z" />
+                    <GeometryDrawing Brush="{DynamicResource AeziolSecondary}"
+                                     Geometry="M512,340 C472,340 458,414 466,497 C475,582 492,659 512,706 C532,659 549,582 558,497 C566,414 552,340 512,340 Z" />
+                    <GeometryDrawing Geometry="M472,286 C438,248 400,252 379,284">
+                        <GeometryDrawing.Pen>
+                            <Pen Brush="{DynamicResource AeziolGold}" Thickness="18" StartLineCap="Round" EndLineCap="Round" />
+                        </GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                    <GeometryDrawing Geometry="M552,286 C586,248 624,252 645,284">
+                        <GeometryDrawing.Pen>
+                            <Pen Brush="{DynamicResource AeziolGold}" Thickness="18" StartLineCap="Round" EndLineCap="Round" />
+                        </GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+
         <Style TargetType="Window">
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI" />
             <Setter Property="TextOptions.TextFormattingMode" Value="Display" />

@@ -382,9 +382,6 @@ public partial class MainWindow : Window
         AutomationActionButton.SetResourceReference(
             System.Windows.Controls.Control.BackgroundProperty,
             presentation.AccentBrushKey);
-        AutomationStateDot.SetResourceReference(
-            System.Windows.Shapes.Shape.FillProperty,
-            presentation.StateBrushKey);
         AutomationActionButton.ToolTip = actionText;
         System.Windows.Automation.AutomationProperties.SetName(AutomationActionButton, actionText);
         System.Windows.Automation.AutomationProperties.SetHelpText(AutomationActionButton, actionText);
@@ -417,79 +414,108 @@ public partial class MainWindow : Window
             }
         }
 
-        var currentScale = AutomationCicadaScale.ScaleX;
-        var currentRotation = AutomationCicadaRotation.Angle;
-        var currentOffset = AutomationCicadaTranslate.Y;
-        var currentCicadaOpacity = AutomationCicadaImage.Opacity;
-        var currentSleepOpacity = AutomationSleepIndicator.Opacity;
-        AutomationCicadaScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-        AutomationCicadaScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-        AutomationCicadaRotation.BeginAnimation(RotateTransform.AngleProperty, null);
-        AutomationCicadaTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-        AutomationCicadaImage.BeginAnimation(OpacityProperty, null);
-        AutomationSleepIndicator.BeginAnimation(OpacityProperty, null);
+        var currentAwakeOpacity = AutomationAwakeCicadaImage.Opacity;
+        var currentAwakeScaleX = AutomationAwakeWingScale.ScaleX;
+        var currentAwakeScaleY = AutomationAwakeWingScale.ScaleY;
+        var currentSleepingOpacity = AutomationSleepingCicadaVisual.Opacity;
+        var currentSleepingScale = AutomationSleepingCicadaScale.ScaleX;
+        var currentSleepingRotation = AutomationSleepingCicadaRotation.Angle;
+        var currentSleepingOffset = AutomationSleepingCicadaTranslate.Y;
+        AutomationAwakeCicadaImage.BeginAnimation(OpacityProperty, null);
+        AutomationAwakeWingScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        AutomationAwakeWingScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        AutomationSleepingCicadaVisual.BeginAnimation(OpacityProperty, null);
+        AutomationSleepingCicadaScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        AutomationSleepingCicadaScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        AutomationSleepingCicadaRotation.BeginAnimation(RotateTransform.AngleProperty, null);
+        AutomationSleepingCicadaTranslate.BeginAnimation(TranslateTransform.YProperty, null);
 
-        var targetScale = enabled ? 1 : 0.86;
-        var targetRotation = enabled ? 0 : 8;
-        var targetOffset = enabled ? 0 : 4;
-        var targetCicadaOpacity = enabled ? 1 : 0.48;
-        var targetSleepOpacity = enabled ? 0 : 1;
-        AutomationCicadaScale.ScaleX = targetScale;
-        AutomationCicadaScale.ScaleY = targetScale;
-        AutomationCicadaRotation.Angle = targetRotation;
-        AutomationCicadaTranslate.Y = targetOffset;
-        AutomationCicadaImage.Opacity = targetCicadaOpacity;
-        AutomationSleepIndicator.Opacity = targetSleepOpacity;
+        var targetAwakeOpacity = enabled ? 1 : 0;
+        var targetAwakeScaleX = enabled ? 1 : 0.62;
+        var targetAwakeScaleY = enabled ? 1 : 0.9;
+        var targetSleepingOpacity = enabled ? 0 : 1;
+        var targetSleepingScale = enabled ? 0.82 : 1;
+        var targetSleepingRotation = enabled ? -2 : -7;
+        var targetSleepingOffset = enabled ? 0 : 3;
+        AutomationAwakeCicadaImage.Opacity = targetAwakeOpacity;
+        AutomationAwakeWingScale.ScaleX = targetAwakeScaleX;
+        AutomationAwakeWingScale.ScaleY = targetAwakeScaleY;
+        AutomationSleepingCicadaVisual.Opacity = targetSleepingOpacity;
+        AutomationSleepingCicadaScale.ScaleX = targetSleepingScale;
+        AutomationSleepingCicadaScale.ScaleY = targetSleepingScale;
+        AutomationSleepingCicadaRotation.Angle = targetSleepingRotation;
+        AutomationSleepingCicadaTranslate.Y = targetSleepingOffset;
 
         if (animate && !_runtime.Settings.ReduceAnimations)
         {
-            var scaleAnimation = new DoubleAnimation(
-                currentScale,
-                targetScale,
-                TimeSpan.FromMilliseconds(enabled ? 260 : 220))
+            var awakeScaleXAnimation = new DoubleAnimation(
+                currentAwakeScaleX,
+                targetAwakeScaleX,
+                TimeSpan.FromMilliseconds(enabled ? 280 : 170))
             {
                 EasingFunction = enabled
-                    ? new BackEase { Amplitude = 0.28, EasingMode = EasingMode.EaseOut }
+                    ? new BackEase { Amplitude = 0.34, EasingMode = EasingMode.EaseOut }
                     : new CubicEase { EasingMode = EasingMode.EaseInOut },
                 FillBehavior = FillBehavior.Stop,
             };
-            AutomationCicadaScale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnimation);
-            AutomationCicadaScale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnimation.Clone());
-            AutomationCicadaRotation.BeginAnimation(
-                RotateTransform.AngleProperty,
+            AutomationAwakeWingScale.BeginAnimation(ScaleTransform.ScaleXProperty, awakeScaleXAnimation);
+            AutomationAwakeWingScale.BeginAnimation(
+                ScaleTransform.ScaleYProperty,
                 new DoubleAnimation(
-                    currentRotation,
-                    targetRotation,
-                    TimeSpan.FromMilliseconds(enabled ? 230 : 260))
-                {
-                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
-                    FillBehavior = FillBehavior.Stop,
-                });
-            AutomationCicadaTranslate.BeginAnimation(
-                TranslateTransform.YProperty,
-                new DoubleAnimation(
-                    currentOffset,
-                    targetOffset,
-                    TimeSpan.FromMilliseconds(220))
+                    currentAwakeScaleY,
+                    targetAwakeScaleY,
+                    TimeSpan.FromMilliseconds(enabled ? 230 : 180))
                 {
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut },
                     FillBehavior = FillBehavior.Stop,
                 });
-            AutomationCicadaImage.BeginAnimation(
+            AutomationAwakeCicadaImage.BeginAnimation(
                 OpacityProperty,
                 new DoubleAnimation(
-                    currentCicadaOpacity,
-                    targetCicadaOpacity,
-                    TimeSpan.FromMilliseconds(180))
+                    currentAwakeOpacity,
+                    targetAwakeOpacity,
+                    TimeSpan.FromMilliseconds(enabled ? 170 : 130))
                 {
                     FillBehavior = FillBehavior.Stop,
                 });
-            AutomationSleepIndicator.BeginAnimation(
+            var sleepingScaleAnimation = new DoubleAnimation(
+                currentSleepingScale,
+                targetSleepingScale,
+                TimeSpan.FromMilliseconds(enabled ? 150 : 260))
+            {
+                EasingFunction = enabled
+                    ? new CubicEase { EasingMode = EasingMode.EaseIn }
+                    : new BackEase { Amplitude = 0.16, EasingMode = EasingMode.EaseOut },
+                FillBehavior = FillBehavior.Stop,
+            };
+            AutomationSleepingCicadaScale.BeginAnimation(ScaleTransform.ScaleXProperty, sleepingScaleAnimation);
+            AutomationSleepingCicadaScale.BeginAnimation(ScaleTransform.ScaleYProperty, sleepingScaleAnimation.Clone());
+            AutomationSleepingCicadaRotation.BeginAnimation(
+                RotateTransform.AngleProperty,
+                new DoubleAnimation(
+                    currentSleepingRotation,
+                    targetSleepingRotation,
+                    TimeSpan.FromMilliseconds(240))
+                {
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut },
+                    FillBehavior = FillBehavior.Stop,
+                });
+            AutomationSleepingCicadaTranslate.BeginAnimation(
+                TranslateTransform.YProperty,
+                new DoubleAnimation(
+                    currentSleepingOffset,
+                    targetSleepingOffset,
+                    TimeSpan.FromMilliseconds(240))
+                {
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut },
+                    FillBehavior = FillBehavior.Stop,
+                });
+            AutomationSleepingCicadaVisual.BeginAnimation(
                 OpacityProperty,
                 new DoubleAnimation(
-                    currentSleepOpacity,
-                    targetSleepOpacity,
-                    TimeSpan.FromMilliseconds(enabled ? 120 : 240))
+                    currentSleepingOpacity,
+                    targetSleepingOpacity,
+                    TimeSpan.FromMilliseconds(enabled ? 120 : 220))
                 {
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
                     FillBehavior = FillBehavior.Stop,

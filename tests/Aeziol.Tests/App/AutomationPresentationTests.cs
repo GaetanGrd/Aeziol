@@ -11,7 +11,6 @@ public sealed class AutomationPresentationTests
 
         Assert.Equal("automation-disable", presentation.ActionLocalizationKey);
         Assert.Equal("AeziolDanger", presentation.AccentBrushKey);
-        Assert.Equal("AeziolSuccess", presentation.StateBrushKey);
         Assert.Equal(1, presentation.ContentOpacity);
         Assert.True(presentation.ContentIsEnabled);
     }
@@ -23,7 +22,6 @@ public sealed class AutomationPresentationTests
 
         Assert.Equal("automation-enable", presentation.ActionLocalizationKey);
         Assert.Equal("AeziolSuccess", presentation.AccentBrushKey);
-        Assert.Equal("AeziolDanger", presentation.StateBrushKey);
         Assert.Equal(0.62, presentation.ContentOpacity);
         Assert.False(presentation.ContentIsEnabled);
     }

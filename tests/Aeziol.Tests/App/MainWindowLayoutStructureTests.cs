@@ -57,9 +57,12 @@ public sealed class MainWindowLayoutStructureTests
                 && element.Attribute("Value")?.Value == "True");
         var actionButton = FindNamedElement(windowDocument, "AutomationActionButton");
         var actionText = FindNamedElement(windowDocument, "AutomationActionText");
-        var stateDot = FindNamedElement(windowDocument, "AutomationStateDot");
-        var sleepIndicator = FindNamedElement(windowDocument, "AutomationSleepIndicator");
+        var awakeCicada = FindNamedElement(windowDocument, "AutomationAwakeCicadaImage");
+        var sleepingVisual = FindNamedElement(windowDocument, "AutomationSleepingCicadaVisual");
         var navigationBrand = FindNamedElement(windowDocument, "NavigationBrandCicada");
+        var sleepingDrawing = appDocument.Descendants()
+            .Single(element => element.Name.LocalName == "DrawingImage"
+                && element.Attribute(Xaml + "Key")?.Value == "AeziolSleepingCicadaDrawing");
 
         Assert.Contains(
             hoverTrigger.Elements(),
@@ -78,14 +81,15 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Null(navigationBrand.Attribute("Click"));
         Assert.Equal("9", actionText.Attribute("FontSize")?.Value);
         Assert.Equal("SemiBold", actionText.Attribute("FontWeight")?.Value);
-        Assert.Equal("Ellipse", stateDot.Name.LocalName);
-        Assert.Equal("zZ", sleepIndicator.Attribute("Text")?.Value);
-        Assert.Equal("0", sleepIndicator.Attribute("Opacity")?.Value);
-        Assert.Contains("AutomationCicadaScale.BeginAnimation", windowSource, StringComparison.Ordinal);
-        Assert.Contains("AutomationCicadaTranslate.BeginAnimation", windowSource, StringComparison.Ordinal);
-        Assert.Contains("AutomationSleepIndicator.BeginAnimation", windowSource, StringComparison.Ordinal);
-        Assert.Contains("var targetRotation = enabled ? 0 : 8;", windowSource, StringComparison.Ordinal);
-        Assert.Contains("var targetCicadaOpacity = enabled ? 1 : 0.48;", windowSource, StringComparison.Ordinal);
+        Assert.Equal("{DynamicResource AeziolCicadaDrawing}", awakeCicada.Attribute("Source")?.Value);
+        Assert.Equal("0", sleepingVisual.Attribute("Opacity")?.Value);
+        Assert.Contains(sleepingDrawing.Descendants(), element => element.Name.LocalName == "GeometryDrawing");
+        Assert.DoesNotContain(windowDocument.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "AutomationStateDot");
+        Assert.Contains("AutomationAwakeWingScale.BeginAnimation", windowSource, StringComparison.Ordinal);
+        Assert.Contains("AutomationSleepingCicadaScale.BeginAnimation", windowSource, StringComparison.Ordinal);
+        Assert.Contains("AutomationSleepingCicadaRotation.BeginAnimation", windowSource, StringComparison.Ordinal);
+        Assert.Contains("var targetAwakeScaleX = enabled ? 1 : 0.62;", windowSource, StringComparison.Ordinal);
+        Assert.Contains("var targetSleepingOpacity = enabled ? 0 : 1;", windowSource, StringComparison.Ordinal);
         Assert.Contains("animate && !_runtime.Settings.ReduceAnimations", windowSource, StringComparison.Ordinal);
     }
 

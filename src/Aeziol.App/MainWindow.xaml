@@ -423,25 +423,36 @@
                                                         Background="{DynamicResource AeziolRaised}"
                                                         BorderBrush="{DynamicResource AeziolGoldLine}" BorderThickness="1">
                                                     <Grid>
-                                                        <Image x:Name="AutomationCicadaImage" Width="54" Height="54"
-                                                               RenderTransformOrigin="0.5,0.5"
+                                                        <Image x:Name="AutomationAwakeCicadaImage" Width="54" Height="54"
+                                                               RenderTransformOrigin="0.5,0.55"
                                                                Source="{DynamicResource AeziolCicadaDrawing}">
                                                             <Image.RenderTransform>
-                                                                <TransformGroup>
-                                                                    <ScaleTransform x:Name="AutomationCicadaScale" ScaleX="1" ScaleY="1" />
-                                                                    <RotateTransform x:Name="AutomationCicadaRotation" Angle="0" />
-                                                                    <TranslateTransform x:Name="AutomationCicadaTranslate" Y="0" />
-                                                                </TransformGroup>
+                                                                <ScaleTransform x:Name="AutomationAwakeWingScale" ScaleX="1" ScaleY="1" />
                                                             </Image.RenderTransform>
                                                         </Image>
-                                                        <TextBlock x:Name="AutomationSleepIndicator" Text="zZ"
-                                                                   Margin="0,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                                   FontSize="11" FontWeight="SemiBold"
-                                                                   Foreground="{DynamicResource AeziolMuted}" Opacity="0" />
-                                                        <Ellipse x:Name="AutomationStateDot" Width="8" Height="8" Margin="0,0,7,7"
-                                                                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                                                 Fill="{DynamicResource AeziolSuccess}"
-                                                                 Stroke="{DynamicResource AeziolRaised}" StrokeThickness="1" />
+                                                        <Grid x:Name="AutomationSleepingCicadaVisual" Opacity="0"
+                                                              RenderTransformOrigin="0.5,0.55">
+                                                            <Grid.RenderTransform>
+                                                                <TransformGroup>
+                                                                    <ScaleTransform x:Name="AutomationSleepingCicadaScale" ScaleX="0.84" ScaleY="0.84" />
+                                                                    <RotateTransform x:Name="AutomationSleepingCicadaRotation" Angle="-7" />
+                                                                    <TranslateTransform x:Name="AutomationSleepingCicadaTranslate" Y="3" />
+                                                                </TransformGroup>
+                                                            </Grid.RenderTransform>
+                                                            <Image Width="49" Height="49"
+                                                                   Source="{DynamicResource AeziolSleepingCicadaDrawing}" />
+                                                            <Viewbox Width="15" Height="15" Margin="0,5,5,0"
+                                                                     HorizontalAlignment="Right" VerticalAlignment="Top">
+                                                                <Path Fill="{DynamicResource AeziolMuted}"
+                                                                      Data="M 12,1 A 10,10 0 1 0 20,17 A 8,8 0 0 1 12,1 Z" />
+                                                            </Viewbox>
+                                                            <Ellipse Width="3" Height="3" Margin="0,20,13,0"
+                                                                     HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                                     Fill="{DynamicResource AeziolGold}" Opacity="0.8" />
+                                                            <Ellipse Width="2" Height="2" Margin="0,25,18,0"
+                                                                     HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                                     Fill="{DynamicResource AeziolMuted}" Opacity="0.7" />
+                                                        </Grid>
                                                     </Grid>
                                                 </Border>
                                                 <TextBlock x:Name="AutomationActionText" Margin="0,0,0,2"
