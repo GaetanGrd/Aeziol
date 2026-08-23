@@ -242,7 +242,8 @@
                             </StackPanel>
                         </Border>
 
-                        <RadioButton x:Name="DiscordNav" Grid.Row="3" Style="{StaticResource NavRadio}"
+                        <RadioButton x:Name="DiscordNav" Grid.Row="3" GroupName="MainNavigation"
+                                     Style="{StaticResource NavRadio}"
                                      IsChecked="True" Checked="OnNavigateDiscord">
                             <StackPanel>
                                 <Path Width="23" Height="18" Stretch="Uniform"
@@ -275,7 +276,8 @@
                             </Grid.RowDefinitions>
                             <Border Margin="18,0,18,5" BorderBrush="{DynamicResource AeziolBorderSoft}"
                                     BorderThickness="0,1,0,0" />
-                            <RadioButton x:Name="SettingsNav" Grid.Row="1" Style="{StaticResource NavRadio}"
+                            <RadioButton x:Name="SettingsNav" Grid.Row="1" GroupName="MainNavigation"
+                                         Style="{StaticResource NavRadio}"
                                          Checked="OnNavigateSettings">
                                 <StackPanel>
                                     <Path Width="21" Height="21" Stretch="Uniform" SnapsToDevicePixels="True"

@@ -45,6 +45,20 @@ public sealed class MainWindowLayoutStructureTests
     }
 
     [Fact]
+    public void MainNavigationEntriesShareAGroupAcrossTheirDifferentContainers()
+    {
+        var document = XDocument.Load(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml"));
+        var discordNavigation = FindNamedElement(document, "DiscordNav");
+        var settingsNavigation = FindNamedElement(document, "SettingsNav");
+
+        Assert.Equal("MainNavigation", discordNavigation.Attribute("GroupName")?.Value);
+        Assert.Equal(
+            discordNavigation.Attribute("GroupName")?.Value,
+            settingsNavigation.Attribute("GroupName")?.Value);
+        Assert.NotEqual(discordNavigation.Parent, settingsNavigation.Parent);
+    }
+
+    [Fact]
     public void RouteCicadaIsDiscoverableAndHasAwakeAndSleepingStates()
     {
         var appDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "App.xaml"));
