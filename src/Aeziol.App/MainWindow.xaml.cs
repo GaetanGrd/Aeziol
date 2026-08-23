@@ -376,22 +376,29 @@ public partial class MainWindow : Window
         var presentation = AutomationPresentation.For(enabled);
         var actionText = _localization.Get(presentation.ActionLocalizationKey, SelectedRegister);
         AutomationActionText.Text = actionText;
-        AutomationActionIcon.Data = Geometry.Parse(presentation.IconGeometry);
         AutomationActionButton.SetResourceReference(
             System.Windows.Controls.Control.ForegroundProperty,
             presentation.AccentBrushKey);
         AutomationActionButton.SetResourceReference(
             System.Windows.Controls.Control.BackgroundProperty,
-            presentation.BackgroundBrushKey);
-        AutomationActionButton.SetResourceReference(
-            System.Windows.Controls.Control.BorderBrushProperty,
-            "AeziolBorder");
+            presentation.AccentBrushKey);
+        AutomationStateDot.SetResourceReference(
+            System.Windows.Shapes.Shape.FillProperty,
+            presentation.StateBrushKey);
+        AutomationActionButton.ToolTip = actionText;
         System.Windows.Automation.AutomationProperties.SetName(AutomationActionButton, actionText);
+        System.Windows.Automation.AutomationProperties.SetHelpText(AutomationActionButton, actionText);
         PassageAutomationContent.IsEnabled = presentation.ContentIsEnabled;
 
         var currentOpacity = PassageAutomationContent.Opacity;
         PassageAutomationContent.BeginAnimation(OpacityProperty, null);
         PassageAutomationContent.Opacity = presentation.ContentOpacity;
+        AutomationCicadaScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        AutomationCicadaScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        AutomationCicadaRotation.BeginAnimation(RotateTransform.AngleProperty, null);
+        AutomationCicadaScale.ScaleX = 1;
+        AutomationCicadaScale.ScaleY = 1;
+        AutomationCicadaRotation.Angle = 0;
         if (animate && !_runtime.Settings.ReduceAnimations)
         {
             PassageAutomationContent.BeginAnimation(
@@ -404,7 +411,32 @@ public partial class MainWindow : Window
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
                     FillBehavior = FillBehavior.Stop,
                 });
-            return;
+            var scaleStart = enabled ? 0.84 : 1.12;
+            var rotationStart = enabled ? -5 : 5;
+            var scaleAnimation = new DoubleAnimation(
+                scaleStart,
+                1,
+                TimeSpan.FromMilliseconds(230))
+            {
+                EasingFunction = new BackEase
+                {
+                    Amplitude = 0.24,
+                    EasingMode = EasingMode.EaseOut,
+                },
+                FillBehavior = FillBehavior.Stop,
+            };
+            AutomationCicadaScale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnimation);
+            AutomationCicadaScale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnimation.Clone());
+            AutomationCicadaRotation.BeginAnimation(
+                RotateTransform.AngleProperty,
+                new DoubleAnimation(
+                    rotationStart,
+                    0,
+                    TimeSpan.FromMilliseconds(190))
+                {
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+                    FillBehavior = FillBehavior.Stop,
+                });
         }
     }
 

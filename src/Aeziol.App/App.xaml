@@ -349,40 +349,44 @@
             <Setter Property="BorderBrush" Value="{DynamicResource AeziolBorder}" />
             <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
         </Style>
-        <Style x:Key="AutomationHeaderButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="MinHeight" Value="28" />
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="FontSize" Value="10" />
-            <Setter Property="FontWeight" Value="SemiBold" />
+        <Style x:Key="AutomationCicadaButton" TargetType="Button">
+            <Setter Property="Height" Value="62" />
+            <Setter Property="Background" Value="{DynamicResource AeziolDanger}" />
+            <Setter Property="Foreground" Value="{DynamicResource AeziolDanger}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Chrome" Padding="{TemplateBinding Padding}" CornerRadius="8"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}">
+                        <Grid x:Name="Chrome" Background="Transparent">
+                            <Border x:Name="HoverWash" Margin="1" CornerRadius="12"
+                                    Background="{TemplateBinding Background}" Opacity="0" />
+                            <Border x:Name="HoverOutline" Margin="1" CornerRadius="12"
+                                    BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0" />
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
                                               TextElement.Foreground="{TemplateBinding Foreground}" />
-                        </Border>
+                            <Border x:Name="FocusRing" Margin="1" CornerRadius="12"
+                                    BorderBrush="{DynamicResource AeziolGold}" BorderThickness="1.5"
+                                    Opacity="0" IsHitTestVisible="False" />
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolSecondary}" />
-                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolSecondary}" />
-                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
+                                <Setter TargetName="HoverWash" Property="Opacity" Value="0.16" />
+                                <Setter TargetName="HoverOutline" Property="Opacity" Value="0.62" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolSecondary}" />
-                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolSecondary}" />
-                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
+                                <Setter TargetName="HoverWash" Property="Opacity" Value="0.28" />
+                                <Setter TargetName="HoverOutline" Property="Opacity" Value="0.82" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="Chrome" Property="Opacity" Value="0.42" />
-                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AeziolRaised}" />
-                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolBorder}" />
-                                <Setter Property="Foreground" Value="{DynamicResource AeziolDim}" />
+                                <Setter Property="Cursor" Value="Arrow" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AeziolGold}" />
+                                <Setter TargetName="FocusRing" Property="Opacity" Value="1" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
