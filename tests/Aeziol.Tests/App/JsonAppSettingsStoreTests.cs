@@ -18,6 +18,7 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
         Assert.False(settings.ReduceAnimations);
         Assert.False(settings.AmbientMusicEnabled);
         Assert.Equal(8, settings.AmbientMusicVolumePercent);
+        Assert.False(settings.KeepAmbientMusicPlayingWhenUnfocused);
         Assert.False(settings.KeepAmbientMusicPlayingWhenHidden);
         Assert.False(settings.OpenHiddenAtWindowsStartup);
         Assert.True(settings.UseHardwareAcceleration);
@@ -50,6 +51,7 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
             ReduceAnimations = true,
             AmbientMusicEnabled = false,
             AmbientMusicVolumePercent = 12,
+            KeepAmbientMusicPlayingWhenUnfocused = true,
             KeepAmbientMusicPlayingWhenHidden = true,
             UseHardwareAcceleration = false,
             UpdateChannel = UpdateChannel.Beta,
@@ -70,6 +72,9 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
         Assert.Equal(expected.ReduceAnimations, actual.ReduceAnimations);
         Assert.Equal(expected.AmbientMusicEnabled, actual.AmbientMusicEnabled);
         Assert.Equal(expected.AmbientMusicVolumePercent, actual.AmbientMusicVolumePercent);
+        Assert.Equal(
+            expected.KeepAmbientMusicPlayingWhenUnfocused,
+            actual.KeepAmbientMusicPlayingWhenUnfocused);
         Assert.Equal(expected.KeepAmbientMusicPlayingWhenHidden, actual.KeepAmbientMusicPlayingWhenHidden);
         Assert.Equal(expected.UseHardwareAcceleration, actual.UseHardwareAcceleration);
         Assert.Equal(expected.UpdateChannel, actual.UpdateChannel);
@@ -129,11 +134,9 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
     }
 
     [Theory]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    public async Task LoadAsync_MigratesTheLegacyUnfocusedMusicPreference(
-        bool pauseWhenUnfocused,
-        bool expectedKeepPlayingWhenHidden)
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task LoadAsync_InvertsTheLegacyUnfocusedMusicPreference(bool pauseWhenUnfocused)
     {
         Directory.CreateDirectory(_root);
         var path = Path.Combine(_root, "settings.json");
@@ -149,8 +152,66 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
 
         var settings = await new JsonAppSettingsStore(path).LoadAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(expectedKeepPlayingWhenHidden, settings.KeepAmbientMusicPlayingWhenHidden);
+        Assert.Equal(!pauseWhenUnfocused, settings.KeepAmbientMusicPlayingWhenUnfocused);
+        Assert.False(settings.KeepAmbientMusicPlayingWhenHidden);
         Assert.Equal(AppSettings.CurrentSchemaVersion, settings.SchemaVersion);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LoadAsync_PreservesSchemaThreeUnfocusedPlaybackBehavior(bool keepPlayingWhenHidden)
+    {
+        Directory.CreateDirectory(_root);
+        var path = Path.Combine(_root, "settings.json");
+        await File.WriteAllTextAsync(
+            path,
+            $$"""
+            {
+              "schemaVersion": 3,
+              "keepAmbientMusicPlayingWhenHidden": {{keepPlayingWhenHidden.ToString().ToLowerInvariant()}}
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        var settings = await new JsonAppSettingsStore(path).LoadAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(keepPlayingWhenHidden, settings.KeepAmbientMusicPlayingWhenUnfocused);
+        Assert.Equal(keepPlayingWhenHidden, settings.KeepAmbientMusicPlayingWhenHidden);
+        Assert.Equal(AppSettings.CurrentSchemaVersion, settings.SchemaVersion);
+    }
+
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    public async Task LoadAsync_InvertsSchemaFourUnfocusedPlaybackBehavior(
+        bool legacyPause,
+        bool expectedKeepPlayingWhenUnfocused)
+    {
+        Directory.CreateDirectory(_root);
+        var path = Path.Combine(_root, "settings.json");
+        await File.WriteAllTextAsync(
+            path,
+            $$"""
+            {
+              "schemaVersion": 4,
+              "pauseAmbientMusicWhenUnfocused": {{legacyPause.ToString().ToLowerInvariant()}},
+              "keepAmbientMusicPlayingWhenHidden": true
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        var settings = await new JsonAppSettingsStore(path).LoadAsync(TestContext.Current.CancellationToken);
+        var persisted = await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken);
+
+        Assert.Equal(expectedKeepPlayingWhenUnfocused, settings.KeepAmbientMusicPlayingWhenUnfocused);
+        Assert.True(settings.KeepAmbientMusicPlayingWhenHidden);
+        Assert.Equal(AppSettings.CurrentSchemaVersion, settings.SchemaVersion);
+        Assert.Contains(
+            $"\"keepAmbientMusicPlayingWhenUnfocused\": {expectedKeepPlayingWhenUnfocused.ToString().ToLowerInvariant()}",
+            persisted,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("pauseAmbientMusicWhenUnfocused", persisted, StringComparison.Ordinal);
     }
 
     [Fact]

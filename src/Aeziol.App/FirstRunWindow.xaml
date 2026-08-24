@@ -150,8 +150,28 @@
                                         ValueChanged="OnMusicVolumeChanged" />
                                 <Border Margin="0,12" BorderBrush="{DynamicResource AeziolBorderSoft}"
                                         BorderThickness="0,1,0,0" />
-                                <CheckBox x:Name="KeepMusicPlayingWhenHiddenCheck"
-                                          Style="{StaticResource ToggleSwitch}" />
+                                <CheckBox x:Name="KeepMusicPlayingWhenUnfocusedCheck"
+                                          Style="{StaticResource ToggleSwitch}"
+                                          Click="OnKeepMusicPlayingWhenUnfocusedChanged" />
+                                <Border Margin="0,10" BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                        BorderThickness="0,1,0,0" />
+                                <Border x:Name="KeepMusicPlayingWhenHiddenRow" Margin="18,0,0,0">
+                                    <Border.Style>
+                                        <Style TargetType="{x:Type Border}">
+                                            <Setter Property="Opacity" Value="1" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter Property="Opacity" Value="0.45" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <CheckBox x:Name="KeepMusicPlayingWhenHiddenCheck"
+                                              Style="{StaticResource ToggleSwitch}" />
+                                </Border>
+                                <TextBlock x:Name="MusicFocusHiddenCombinationText" Margin="2,8,0,0"
+                                           FontSize="9" Foreground="{DynamicResource AeziolDim}"
+                                           TextWrapping="Wrap" LineHeight="13" />
                             </StackPanel>
                         </Border>
                         <TextBlock x:Name="MusicChoiceHintText" Margin="2,12,0,0" FontSize="10"

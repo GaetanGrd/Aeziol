@@ -213,6 +213,7 @@ public partial class App : System.Windows.Application
                     },
                     settings.AmbientMusicVolumePercent,
                     settings.KeepAmbientMusicPlayingWhenHidden,
+                    settings.KeepAmbientMusicPlayingWhenUnfocused,
                     volume =>
                     {
                         previewMusicVolume = volume;
@@ -238,6 +239,7 @@ public partial class App : System.Windows.Application
                     AmbientMusicEnabled = firstRun.AmbientMusicEnabled,
                     AmbientMusicVolumePercent = firstRun.AmbientMusicVolumePercent,
                     KeepAmbientMusicPlayingWhenHidden = firstRun.KeepAmbientMusicPlayingWhenHidden,
+                    KeepAmbientMusicPlayingWhenUnfocused = firstRun.KeepAmbientMusicPlayingWhenUnfocused,
                 };
                 await _settingsStore.SaveAsync(settings).ConfigureAwait(true);
                 await AutostartService.SetEnabledAsync(
@@ -275,6 +277,18 @@ public partial class App : System.Windows.Application
             MessageBox.Show(exception.Message, "Aeziol", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
+    }
+
+    protected override void OnActivated(EventArgs e)
+    {
+        base.OnActivated(e);
+        _ambientMusic?.SetApplicationFocused(true);
+    }
+
+    protected override void OnDeactivated(EventArgs e)
+    {
+        _ambientMusic?.SetApplicationFocused(false);
+        base.OnDeactivated(e);
     }
 
     public void HandleMainWindowClosing(CancelEventArgs eventArgs)
