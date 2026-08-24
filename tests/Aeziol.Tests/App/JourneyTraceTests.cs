@@ -96,6 +96,92 @@ public sealed class JourneyTraceTests
     }
 
     [Fact]
+    public void ReusableTrace_ProgressMasksCurvesAndParticlesAlongItsOrientation()
+    {
+        Exception? failure = null;
+        WpfTestHost.Run(() =>
+        {
+            try
+            {
+                var trace = new JourneyTrace
+                {
+                    Width = 200,
+                    Height = 62,
+                    Orientation = JourneyTraceOrientation.Horizontal,
+                    TraceA = Geometry.Parse("M 0,35 C 50,0 120,62 200,31"),
+                    TraceB = Geometry.Parse("M 0,31 C 55,8 125,55 200,35"),
+                };
+                trace.Measure(new WpfSize(200, 62));
+                trace.Arrange(new Rect(0, 0, 200, 62));
+
+                trace.Progress = 0.5;
+                Assert.Equal(JourneyTraceProgressMode.Directional, trace.ProgressMode);
+                Assert.True(trace.UsesDirectionalProgressMask);
+                Assert.False(trace.UsesSymmetricProgressMask);
+                Assert.Equal(1, trace.RenderedProgressOpacity);
+
+                trace.Progress = 0;
+                Assert.False(trace.UsesDirectionalProgressMask);
+                Assert.Equal(0, trace.RenderedProgressOpacity);
+
+                trace.Progress = 1;
+                Assert.False(trace.UsesDirectionalProgressMask);
+                Assert.Equal(1, trace.RenderedProgressOpacity);
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        });
+
+        Assert.Null(failure);
+    }
+
+    [Fact]
+    public void ReusableTrace_SymmetricProgressExpandsBothSidesFromTheCenter()
+    {
+        Exception? failure = null;
+        WpfTestHost.Run(() =>
+        {
+            try
+            {
+                var trace = new JourneyTrace
+                {
+                    Width = 200,
+                    Height = 62,
+                    Orientation = JourneyTraceOrientation.Horizontal,
+                    ProgressMode = JourneyTraceProgressMode.SymmetricFromCenter,
+                    TraceA = Geometry.Parse("M 0,35 C 50,0 120,62 200,31"),
+                    TraceB = Geometry.Parse("M 0,31 C 55,8 125,55 200,35"),
+                };
+                trace.Measure(new WpfSize(200, 62));
+                trace.Arrange(new Rect(0, 0, 200, 62));
+
+                trace.Progress = 0.5;
+                Assert.True(trace.UsesSymmetricProgressMask);
+                Assert.False(trace.UsesDirectionalProgressMask);
+                Assert.Equal(
+                    0.5 - trace.RenderedSymmetricLeftEdge,
+                    trace.RenderedSymmetricRightEdge - 0.5,
+                    precision: 10);
+
+                trace.Progress = 0;
+                Assert.Equal(0, trace.RenderedProgressOpacity);
+
+                trace.Progress = 1;
+                Assert.False(trace.UsesSymmetricProgressMask);
+                Assert.Equal(1, trace.RenderedProgressOpacity);
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        });
+
+        Assert.Null(failure);
+    }
+
+    [Fact]
     public void ReusableTrace_ReusesTwoVectorLayersDuringRepeatedAlternation()
     {
         Exception? failure = null;

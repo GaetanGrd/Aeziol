@@ -5,17 +5,19 @@
              IsHitTestVisible="False"
              SnapsToDevicePixels="False">
     <Grid x:Name="TraceRoot">
-        <Canvas x:Name="BaseLayer">
-            <Path x:Name="BaseTraceA"
-                  Stroke="{DynamicResource AeziolGoldLine}"
-                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
-            <Path x:Name="BaseTraceB"
-                  Stroke="{DynamicResource AeziolSecondary}"
-                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
-            <Canvas x:Name="BaseParticleLayer" />
-        </Canvas>
+        <Grid x:Name="ProgressLayer">
+            <Canvas x:Name="BaseLayer">
+                <Path x:Name="BaseTraceA"
+                      Stroke="{DynamicResource AeziolGoldLine}"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Path x:Name="BaseTraceB"
+                      Stroke="{DynamicResource AeziolSecondary}"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Canvas x:Name="BaseParticleLayer" />
+            </Canvas>
 
-        <Grid x:Name="HighlightHost"
-              IsHitTestVisible="False" />
+            <Grid x:Name="HighlightHost"
+                  IsHitTestVisible="False" />
+        </Grid>
     </Grid>
 </UserControl>

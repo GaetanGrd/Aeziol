@@ -16,6 +16,12 @@ public enum JourneyTraceOrientation
     Vertical,
 }
 
+public enum JourneyTraceProgressMode
+{
+    Directional,
+    SymmetricFromCenter,
+}
+
 public partial class JourneyTrace : System.Windows.Controls.UserControl
 {
     private static int _nextCorruptionIdentity;
@@ -25,6 +31,20 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
     private readonly object _anonymousOwner = new();
     private readonly int _corruptionIdentity = System.Threading.Interlocked.Increment(ref _nextCorruptionIdentity);
     private readonly Dictionary<object, HighlightState> _highlights = new(ReferenceEqualityComparer.Instance);
+    private readonly LinearGradientBrush _directionalProgressMask = new()
+    {
+        MappingMode = BrushMappingMode.RelativeToBoundingBox,
+    };
+    private readonly GradientStop _directionalVisibleEdge = new(Colors.White, 1);
+    private readonly GradientStop _directionalHiddenEdge = new(Colors.Transparent, 1);
+    private readonly LinearGradientBrush _symmetricProgressMask = new()
+    {
+        MappingMode = BrushMappingMode.RelativeToBoundingBox,
+    };
+    private readonly GradientStop _symmetricLeftHiddenEdge = new(Colors.Transparent, 0);
+    private readonly GradientStop _symmetricLeftVisibleEdge = new(Colors.White, 0);
+    private readonly GradientStop _symmetricRightVisibleEdge = new(Colors.White, 1);
+    private readonly GradientStop _symmetricRightHiddenEdge = new(Colors.Transparent, 1);
     private object? _highlightOwner;
     private int _nextZIndex;
 
@@ -39,6 +59,18 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
     public static readonly DependencyProperty OrientationProperty = DependencyProperty.Register(
         nameof(Orientation), typeof(JourneyTraceOrientation), typeof(JourneyTrace),
         new FrameworkPropertyMetadata(JourneyTraceOrientation.Vertical, OnAppearanceChanged));
+
+    public static readonly DependencyProperty ProgressProperty = DependencyProperty.Register(
+        nameof(Progress), typeof(double), typeof(JourneyTrace),
+        new FrameworkPropertyMetadata(
+            1d,
+            FrameworkPropertyMetadataOptions.AffectsRender,
+            OnProgressChanged,
+            static (_, baseValue) => CoerceProgress((double)baseValue)));
+
+    public static readonly DependencyProperty ProgressModeProperty = DependencyProperty.Register(
+        nameof(ProgressMode), typeof(JourneyTraceProgressMode), typeof(JourneyTrace),
+        new FrameworkPropertyMetadata(JourneyTraceProgressMode.Directional, OnProgressChanged));
 
     public static readonly DependencyProperty EdgeFadeProperty = DependencyProperty.Register(
         nameof(EdgeFade), typeof(double), typeof(JourneyTrace),
@@ -86,6 +118,16 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
     public JourneyTrace()
     {
         InitializeComponent();
+        _directionalProgressMask.GradientStops.Add(new GradientStop(Colors.White, 0));
+        _directionalProgressMask.GradientStops.Add(_directionalVisibleEdge);
+        _directionalProgressMask.GradientStops.Add(_directionalHiddenEdge);
+        _directionalProgressMask.GradientStops.Add(new GradientStop(Colors.Transparent, 1));
+        _symmetricProgressMask.GradientStops.Add(new GradientStop(Colors.Transparent, 0));
+        _symmetricProgressMask.GradientStops.Add(_symmetricLeftHiddenEdge);
+        _symmetricProgressMask.GradientStops.Add(_symmetricLeftVisibleEdge);
+        _symmetricProgressMask.GradientStops.Add(_symmetricRightVisibleEdge);
+        _symmetricProgressMask.GradientStops.Add(_symmetricRightHiddenEdge);
+        _symmetricProgressMask.GradientStops.Add(new GradientStop(Colors.Transparent, 1));
         Particles.CollectionChanged += OnParticlesChanged;
         Loaded += (_, _) => RefreshVisuals();
     }
@@ -106,6 +148,18 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
     {
         get => (JourneyTraceOrientation)GetValue(OrientationProperty);
         set => SetValue(OrientationProperty, value);
+    }
+
+    public double Progress
+    {
+        get => (double)GetValue(ProgressProperty);
+        set => SetValue(ProgressProperty, value);
+    }
+
+    public JourneyTraceProgressMode ProgressMode
+    {
+        get => (JourneyTraceProgressMode)GetValue(ProgressModeProperty);
+        set => SetValue(ProgressModeProperty, value);
     }
 
     public double EdgeFade
@@ -182,6 +236,16 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
 
     internal bool UsesSpottedCorruptionMask => TraceRoot.OpacityMask is DrawingBrush;
 
+    internal bool UsesDirectionalProgressMask => ReferenceEquals(ProgressLayer.OpacityMask, _directionalProgressMask);
+
+    internal bool UsesSymmetricProgressMask => ReferenceEquals(ProgressLayer.OpacityMask, _symmetricProgressMask);
+
+    internal double RenderedSymmetricLeftEdge => _symmetricLeftVisibleEdge.Offset;
+
+    internal double RenderedSymmetricRightEdge => _symmetricRightVisibleEdge.Offset;
+
+    internal double RenderedProgressOpacity => ProgressLayer.Opacity;
+
     internal int HighlightLayerCount => _highlights.Count;
 
     internal int OutgoingHighlightCount =>
@@ -255,9 +319,17 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
     private static void OnAppearanceChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
         => ((JourneyTrace)dependencyObject).RefreshVisuals();
 
+    private static void OnProgressChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
+        => ((JourneyTrace)dependencyObject).ConfigureProgressMask();
+
     private static double CoerceDisplayScale(double scale)
     {
         return double.IsFinite(scale) && scale > 0 ? scale : 1d;
+    }
+
+    private static double CoerceProgress(double progress)
+    {
+        return double.IsFinite(progress) ? Math.Clamp(progress, 0, 1) : 1d;
     }
 
     private void OnParticlesChanged(object? sender, NotifyCollectionChangedEventArgs eventArgs) => RebuildParticles();
@@ -359,6 +431,7 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
         BaseTraceB.StrokeThickness = BaseStrokeB;
         BaseTraceB.Opacity = BaseOpacityB;
         ConfigureEdgeMask();
+        ConfigureProgressMask();
         RebuildParticles();
         foreach (var state in _highlights.Values)
         {
@@ -427,6 +500,50 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
                 corruption,
                 erosionCount: corruption.Next(3, 7),
                 edgeFadeBrush);
+    }
+
+    private void ConfigureProgressMask()
+    {
+        if (!IsInitialized)
+        {
+            return;
+        }
+
+        var progress = Progress;
+        ProgressLayer.Opacity = progress <= 0 ? 0 : 1;
+        if (progress <= 0 || progress >= 1)
+        {
+            ProgressLayer.OpacityMask = null;
+            return;
+        }
+
+        var startPoint = Orientation == JourneyTraceOrientation.Horizontal
+            ? new System.Windows.Point(0, 0.5)
+            : new System.Windows.Point(0.5, 0);
+        var endPoint = Orientation == JourneyTraceOrientation.Horizontal
+            ? new System.Windows.Point(1, 0.5)
+            : new System.Windows.Point(0.5, 1);
+        if (ProgressMode == JourneyTraceProgressMode.SymmetricFromCenter)
+        {
+            var halfExtent = progress / 2;
+            var softness = Math.Min(0.035, halfExtent * 0.7);
+            var leftEdge = 0.5 - halfExtent;
+            var rightEdge = 0.5 + halfExtent;
+            _symmetricProgressMask.StartPoint = startPoint;
+            _symmetricProgressMask.EndPoint = endPoint;
+            _symmetricLeftHiddenEdge.Offset = Math.Max(0, leftEdge - softness);
+            _symmetricLeftVisibleEdge.Offset = Math.Min(0.5, leftEdge + softness);
+            _symmetricRightVisibleEdge.Offset = Math.Max(0.5, rightEdge - softness);
+            _symmetricRightHiddenEdge.Offset = Math.Min(1, rightEdge + softness);
+            ProgressLayer.OpacityMask = _symmetricProgressMask;
+            return;
+        }
+
+        _directionalProgressMask.StartPoint = startPoint;
+        _directionalProgressMask.EndPoint = endPoint;
+        _directionalVisibleEdge.Offset = Math.Max(0, progress - 0.035);
+        _directionalHiddenEdge.Offset = Math.Min(1, progress + 0.035);
+        ProgressLayer.OpacityMask = _directionalProgressMask;
     }
 
     private void RebuildParticles()

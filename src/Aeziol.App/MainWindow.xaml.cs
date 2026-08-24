@@ -21,6 +21,20 @@ namespace Aeziol.App;
 public partial class MainWindow : Window
 {
     private const string ProjectUrl = "https://github.com/GaetanGrd/Aeziol";
+    private const int AutomationContextFadeDurationMilliseconds = 240;
+    private const int AutomationResizeDurationMilliseconds = 280;
+    private const int AutomationCicadaExitDurationMilliseconds = 220;
+    private const int AutomationTraceExitDurationMilliseconds = 280;
+    private const int AutomationTraceArrivalDurationMilliseconds = 310;
+    private const int AutomationCicadaArrivalDelayMilliseconds = 250;
+    private const int AutomationCicadaArrivalDurationMilliseconds = 340;
+    private const int AutomationCompactIconRevealDelayMilliseconds = 405;
+    private const double AutomationCicadaExitX = -16;
+    private const double AutomationCicadaExitY = -16;
+    private const double AutomationCicadaExitAngle = -8;
+    private const double AutomationCicadaReturnX = -14;
+    private const double AutomationCicadaReturnY = 12;
+    private const double AutomationCicadaReturnAngle = 7;
     private static readonly HttpClient UpdateHttpClient = new() { Timeout = TimeSpan.FromMinutes(10) };
     private readonly AeziolRuntime _runtime;
     private readonly JsonAppSettingsStore _settingsStore;
@@ -48,6 +62,7 @@ public partial class MainWindow : Window
     private bool _updateCheckCompleted;
     private bool _updateCheckInProgress;
     private bool _updateDownloadInProgress;
+    private int _automationVisualGeneration;
     private double _updateDownloadProgress;
     private AppUpdateRelease? _availableUpdate;
     private readonly ScaleTransform _closeActionsMenuScale = new(1, 1);
@@ -66,6 +81,8 @@ public partial class MainWindow : Window
         _runtimeInitialization = runtimeInitialization;
         _updateService = new AppUpdateService(UpdateHttpClient, paths.UpdatesDirectory);
         InitializeComponent();
+        SettingsDiscordScrollViewer.Content = null;
+        DiscordSettingsHost.Content = DiscordSettingsCard;
         CloseActionsMenu.LayoutTransform = _closeActionsMenuScale;
         NotificationItems.ItemsSource = _notifications.Items;
         MotionAssist.SetIsReduced(this, runtime.Settings.ReduceAnimations);
@@ -96,7 +113,6 @@ public partial class MainWindow : Window
             _initializing = false;
             UpdateVoiceState(_runtime.VoiceState);
             UpdateAuthorizationState(_runtime.IsDiscordAuthorized);
-
             var recovery = await _runtime.InspectRecoveryAsync().ConfigureAwait(true);
             if (recovery is not null)
             {
@@ -206,11 +222,9 @@ public partial class MainWindow : Window
             try
             {
                 PassageDestinationCombo.ItemsSource = choices;
-                RuleDestinationCombo.ItemsSource = choices;
                 CurrentOutputCombo.ItemsSource = choices;
                 ExclusionsList.ItemsSource = choices;
                 PassageDestinationCombo.SelectedValue = _runtime.Settings.TargetEndpointId;
-                RuleDestinationCombo.SelectedValue = _runtime.Settings.TargetEndpointId;
             }
             finally
             {
@@ -266,15 +280,11 @@ public partial class MainWindow : Window
             targetId,
             hasPendingRestoration: _runtime.ActiveRouteTransaction is not null);
         var showWarning = presentation.ShowIdenticalOutputWarning;
-        var warning = _localization.Get("identical-output-warning", SelectedRegister);
-
         TargetHelpText.Text = _localization.Get(
             showWarning ? "identical-output-warning" : "target-help",
             SelectedRegister);
         TargetHelpText.Foreground = (System.Windows.Media.Brush)FindResource(
             showWarning ? "AeziolGold" : "AeziolMuted");
-        RuleDestinationWarningText.Text = warning;
-        RuleDestinationWarningText.Visibility = showWarning ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private string ResolveEndpointName(string? endpointId, string fallback)
@@ -379,27 +389,390 @@ public partial class MainWindow : Window
     private void UpdateAutomationPresentation(bool enabled, bool animate)
     {
         var presentation = AutomationPresentation.For(enabled);
-        AutomationActionButton.Content = _localization.Get(presentation.ActionLocalizationKey, SelectedRegister);
-        AutomationActionButton.Style = (Style)FindResource(presentation.ButtonStyleKey);
-        PassageAutomationContent.IsEnabled = presentation.ContentIsEnabled;
+        var actionText = _localization.Get(presentation.ActionLocalizationKey, SelectedRegister);
+        AutomationActionButton.SetResourceReference(
+            System.Windows.Controls.Control.ForegroundProperty,
+            presentation.AccentBrushKey);
+        AutomationActionButton.SetResourceReference(
+            System.Windows.Controls.Control.BackgroundProperty,
+            presentation.AccentBrushKey);
+        AutomationActionButton.ToolTip = actionText;
+        System.Windows.Automation.AutomationProperties.SetName(AutomationActionButton, actionText);
+        System.Windows.Automation.AutomationProperties.SetHelpText(AutomationActionButton, actionText);
+        UpdateAutomationControlVisual(enabled, animate);
 
-        var currentOpacity = PassageAutomationContent.Opacity;
-        PassageAutomationContent.BeginAnimation(OpacityProperty, null);
-        PassageAutomationContent.Opacity = presentation.ContentOpacity;
-        if (animate && !_runtime.Settings.ReduceAnimations)
+        var routeElements = new UIElement[]
         {
-            PassageAutomationContent.BeginAnimation(
-                OpacityProperty,
-                new DoubleAnimation(
-                    currentOpacity,
-                    presentation.ContentOpacity,
-                    TimeSpan.FromMilliseconds(160))
-                {
-                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
-                    FillBehavior = FillBehavior.Stop,
-                });
+            PassageSourcePanel,
+            PassageTargetPanel,
+            PassageOutputPanel,
+        };
+        foreach (var routeElement in routeElements)
+        {
+            var currentOpacity = routeElement.Opacity;
+            routeElement.BeginAnimation(OpacityProperty, null);
+            routeElement.Opacity = presentation.ContentOpacity;
+            routeElement.IsEnabled = presentation.ContentIsEnabled;
+            if (animate && !_runtime.Settings.ReduceAnimations)
+            {
+                routeElement.BeginAnimation(
+                    OpacityProperty,
+                    new DoubleAnimation(
+                        currentOpacity,
+                        presentation.ContentOpacity,
+                        TimeSpan.FromMilliseconds(AutomationContextFadeDurationMilliseconds))
+                    {
+                        EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+                        FillBehavior = FillBehavior.Stop,
+                    });
+            }
+        }
+
+    }
+
+    private void UpdateAutomationControlVisual(bool enabled, bool animate)
+    {
+        var generation = ++_automationVisualGeneration;
+        var buttonWidth = AutomationActionButton.Width;
+        var buttonHeight = AutomationActionButton.Height;
+        var surfaceWidth = AutomationControlSurface.Width;
+        var surfaceHeight = AutomationControlSurface.Height;
+        var cicadaOpacity = AutomationCicadaImage.Opacity;
+        var cicadaScaleX = AutomationCicadaScale.ScaleX;
+        var cicadaScaleY = AutomationCicadaScale.ScaleY;
+        var cicadaAngle = AutomationCicadaRotation.Angle;
+        var cicadaX = AutomationCicadaTranslation.X;
+        var cicadaY = AutomationCicadaTranslation.Y;
+        var activationOpacity = AutomationInactiveActivationIcon.Opacity;
+        var activationScale = AutomationInactiveActivationScale.ScaleX;
+        var traceProgress = PassageJourneyTrace.Progress;
+
+        ClearAutomationVisualAnimations();
+
+        AutomationActionButton.Width = enabled ? 82 : 36;
+        AutomationActionButton.Height = enabled ? 82 : 36;
+        AutomationControlSurface.Width = enabled ? 82 : 36;
+        AutomationControlSurface.Height = enabled ? 82 : 36;
+        AutomationControlSurface.CornerRadius = enabled ? new CornerRadius(23) : new CornerRadius(18);
+        AutomationControlSurface.Margin = new Thickness(0);
+        AutomationCicadaImage.Opacity = enabled ? 1 : 0;
+        AutomationActiveStopGlyph.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
+        AutomationInactiveActivationIcon.Opacity = enabled ? 0 : 1;
+        AutomationInactiveActivationScale.ScaleX = enabled ? 0.72 : 1;
+        AutomationInactiveActivationScale.ScaleY = enabled ? 0.72 : 1;
+        PassageJourneyTrace.Progress = enabled ? 1 : 0;
+
+        if (enabled)
+        {
+            AutomationCicadaScale.ScaleX = 1;
+            AutomationCicadaScale.ScaleY = 1;
+            AutomationCicadaRotation.Angle = 0;
+            AutomationCicadaTranslation.X = 0;
+            AutomationCicadaTranslation.Y = 0;
+        }
+        else
+        {
+            AutomationCicadaScale.ScaleX = 0.58;
+            AutomationCicadaScale.ScaleY = 0.88;
+            AutomationCicadaRotation.Angle = AutomationCicadaReturnAngle;
+            AutomationCicadaTranslation.X = AutomationCicadaReturnX;
+            AutomationCicadaTranslation.Y = AutomationCicadaReturnY;
+        }
+
+        if (!animate || MotionAssist.GetIsReduced(this))
+        {
             return;
         }
+
+        if (enabled)
+        {
+            var arrivalDelay = cicadaOpacity > 0.05 ? 0 : AutomationCicadaArrivalDelayMilliseconds;
+            var expansionDelay = buttonWidth < 80 ? 0 : 30;
+            var traceDelay = traceProgress > 0.05 ? 0 : 170;
+            BeginAutomationDoubleTransition(
+                AutomationInactiveActivationIcon,
+                OpacityProperty,
+                activationOpacity,
+                0,
+                0,
+                110,
+                new CubicEase { EasingMode = EasingMode.EaseIn });
+            BeginAutomationDoubleTransition(
+                AutomationInactiveActivationScale,
+                ScaleTransform.ScaleXProperty,
+                activationScale,
+                0.72,
+                0,
+                110,
+                new CubicEase { EasingMode = EasingMode.EaseIn });
+            BeginAutomationDoubleTransition(
+                AutomationInactiveActivationScale,
+                ScaleTransform.ScaleYProperty,
+                activationScale,
+                0.72,
+                0,
+                110,
+                new CubicEase { EasingMode = EasingMode.EaseIn });
+            BeginAutomationExpansionTransitions(
+                buttonWidth,
+                buttonHeight,
+                surfaceWidth,
+                surfaceHeight,
+                expansionDelay);
+            BeginAutomationDoubleTransition(
+                PassageJourneyTrace,
+                Aeziol.App.Controls.JourneyTrace.ProgressProperty,
+                traceProgress,
+                1,
+                traceDelay,
+                AutomationTraceArrivalDurationMilliseconds,
+                new CubicEase { EasingMode = EasingMode.EaseOut });
+            BeginAutomationDoubleTransition(
+                AutomationCicadaImage,
+                OpacityProperty,
+                cicadaOpacity,
+                1,
+                arrivalDelay,
+                AutomationTraceArrivalDurationMilliseconds,
+                new CubicEase { EasingMode = EasingMode.EaseOut });
+            BeginAutomationDoubleTransition(
+                AutomationCicadaScale,
+                ScaleTransform.ScaleXProperty,
+                cicadaScaleX,
+                1,
+                arrivalDelay,
+                AutomationCicadaArrivalDurationMilliseconds,
+                new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.16 });
+            BeginAutomationDoubleTransition(
+                AutomationCicadaScale,
+                ScaleTransform.ScaleYProperty,
+                cicadaScaleY,
+                1,
+                arrivalDelay,
+                AutomationCicadaArrivalDurationMilliseconds,
+                new CubicEase { EasingMode = EasingMode.EaseOut });
+            BeginAutomationDoubleTransition(
+                AutomationCicadaRotation,
+                RotateTransform.AngleProperty,
+                cicadaAngle,
+                0,
+                arrivalDelay,
+                AutomationCicadaArrivalDurationMilliseconds,
+                new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.08 });
+            BeginAutomationDoubleTransition(
+                AutomationCicadaTranslation,
+                TranslateTransform.XProperty,
+                cicadaX,
+                0,
+                arrivalDelay,
+                AutomationCicadaArrivalDurationMilliseconds,
+                new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.12 });
+            BeginAutomationDoubleTransition(
+                AutomationCicadaTranslation,
+                TranslateTransform.YProperty,
+                cicadaY,
+                0,
+                arrivalDelay,
+                AutomationCicadaArrivalDurationMilliseconds,
+                new CubicEase { EasingMode = EasingMode.EaseOut });
+            return;
+        }
+
+        var compressionDelay = buttonWidth < 80 ? 0 : 210;
+        var traceExitDelay = traceProgress < 0.95 ? 0 : 45;
+        var cicadaExit = CreateAutomationDoubleTransition(
+            cicadaOpacity,
+            0,
+            0,
+            AutomationCicadaExitDurationMilliseconds,
+            new CubicEase { EasingMode = EasingMode.EaseIn });
+        cicadaExit.Completed += (_, _) =>
+        {
+            if (generation != _automationVisualGeneration || AutomationCicadaImage.Opacity > 0)
+            {
+                return;
+            }
+
+            AutomationCicadaScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            AutomationCicadaScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            AutomationCicadaRotation.BeginAnimation(RotateTransform.AngleProperty, null);
+            AutomationCicadaTranslation.BeginAnimation(TranslateTransform.XProperty, null);
+            AutomationCicadaTranslation.BeginAnimation(TranslateTransform.YProperty, null);
+            AutomationCicadaScale.ScaleX = 0.58;
+            AutomationCicadaScale.ScaleY = 0.88;
+            AutomationCicadaRotation.Angle = AutomationCicadaReturnAngle;
+            AutomationCicadaTranslation.X = AutomationCicadaReturnX;
+            AutomationCicadaTranslation.Y = AutomationCicadaReturnY;
+        };
+        AutomationCicadaImage.BeginAnimation(OpacityProperty, cicadaExit);
+        BeginAutomationDoubleTransition(
+            AutomationCicadaScale,
+            ScaleTransform.ScaleXProperty,
+            cicadaScaleX,
+            0.82,
+            0,
+            AutomationCicadaExitDurationMilliseconds,
+            new CubicEase { EasingMode = EasingMode.EaseIn });
+        BeginAutomationDoubleTransition(
+            AutomationCicadaScale,
+            ScaleTransform.ScaleYProperty,
+            cicadaScaleY,
+            0.82,
+            0,
+            AutomationCicadaExitDurationMilliseconds,
+            new CubicEase { EasingMode = EasingMode.EaseIn });
+        BeginAutomationDoubleTransition(
+            AutomationCicadaTranslation,
+            TranslateTransform.XProperty,
+            cicadaX,
+            AutomationCicadaExitX,
+            0,
+            AutomationCicadaExitDurationMilliseconds,
+            new QuadraticEase { EasingMode = EasingMode.EaseIn });
+        BeginAutomationDoubleTransition(
+            AutomationCicadaTranslation,
+            TranslateTransform.YProperty,
+            cicadaY,
+            AutomationCicadaExitY,
+            0,
+            AutomationCicadaExitDurationMilliseconds,
+            new CubicEase { EasingMode = EasingMode.EaseIn });
+        BeginAutomationDoubleTransition(
+            AutomationCicadaRotation,
+            RotateTransform.AngleProperty,
+            cicadaAngle,
+            AutomationCicadaExitAngle,
+            0,
+            AutomationCicadaExitDurationMilliseconds,
+            new QuadraticEase { EasingMode = EasingMode.EaseIn });
+        BeginAutomationDoubleTransition(
+            PassageJourneyTrace,
+            Aeziol.App.Controls.JourneyTrace.ProgressProperty,
+            traceProgress,
+            0,
+            traceExitDelay,
+            AutomationTraceExitDurationMilliseconds,
+            new CubicEase { EasingMode = EasingMode.EaseIn });
+        BeginAutomationCompressionTransitions(
+            buttonWidth,
+            buttonHeight,
+            surfaceWidth,
+            surfaceHeight,
+            compressionDelay);
+        BeginAutomationDoubleTransition(
+            AutomationInactiveActivationIcon,
+            OpacityProperty,
+            activationOpacity,
+            1,
+            AutomationCompactIconRevealDelayMilliseconds,
+            110,
+            new CubicEase { EasingMode = EasingMode.EaseOut });
+        BeginAutomationDoubleTransition(
+            AutomationInactiveActivationScale,
+            ScaleTransform.ScaleXProperty,
+            activationScale,
+            1,
+            AutomationCompactIconRevealDelayMilliseconds,
+            110,
+            new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.12 });
+        BeginAutomationDoubleTransition(
+            AutomationInactiveActivationScale,
+            ScaleTransform.ScaleYProperty,
+            activationScale,
+            1,
+            AutomationCompactIconRevealDelayMilliseconds,
+            110,
+            new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.12 });
+    }
+
+    private void BeginAutomationExpansionTransitions(
+        double buttonWidth,
+        double buttonHeight,
+        double surfaceWidth,
+        double surfaceHeight,
+        int delay)
+    {
+        var easing = new CubicEase { EasingMode = EasingMode.EaseOut };
+        BeginAutomationDoubleTransition(AutomationActionButton, WidthProperty, buttonWidth, 82, delay, AutomationResizeDurationMilliseconds, easing);
+        BeginAutomationDoubleTransition(AutomationActionButton, HeightProperty, buttonHeight, 82, delay, AutomationResizeDurationMilliseconds, easing);
+        BeginAutomationDoubleTransition(AutomationControlSurface, WidthProperty, surfaceWidth, 82, delay, AutomationResizeDurationMilliseconds, easing);
+        BeginAutomationDoubleTransition(AutomationControlSurface, HeightProperty, surfaceHeight, 82, delay, AutomationResizeDurationMilliseconds, easing);
+    }
+
+    private void BeginAutomationCompressionTransitions(
+        double buttonWidth,
+        double buttonHeight,
+        double surfaceWidth,
+        double surfaceHeight,
+        int delay)
+    {
+        var easing = new CubicEase { EasingMode = EasingMode.EaseInOut };
+        BeginAutomationDoubleTransition(AutomationActionButton, WidthProperty, buttonWidth, 36, delay, AutomationResizeDurationMilliseconds, easing);
+        BeginAutomationDoubleTransition(AutomationActionButton, HeightProperty, buttonHeight, 36, delay, AutomationResizeDurationMilliseconds, easing);
+        BeginAutomationDoubleTransition(AutomationControlSurface, WidthProperty, surfaceWidth, 36, delay, AutomationResizeDurationMilliseconds, easing);
+        BeginAutomationDoubleTransition(AutomationControlSurface, HeightProperty, surfaceHeight, 36, delay, AutomationResizeDurationMilliseconds, easing);
+    }
+
+    private void ClearAutomationVisualAnimations()
+    {
+        AutomationActionButton.BeginAnimation(WidthProperty, null);
+        AutomationActionButton.BeginAnimation(HeightProperty, null);
+        AutomationControlSurface.BeginAnimation(WidthProperty, null);
+        AutomationControlSurface.BeginAnimation(HeightProperty, null);
+        AutomationCicadaImage.BeginAnimation(OpacityProperty, null);
+        AutomationCicadaScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        AutomationCicadaScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        AutomationCicadaRotation.BeginAnimation(RotateTransform.AngleProperty, null);
+        AutomationCicadaTranslation.BeginAnimation(TranslateTransform.XProperty, null);
+        AutomationCicadaTranslation.BeginAnimation(TranslateTransform.YProperty, null);
+        AutomationInactiveActivationIcon.BeginAnimation(OpacityProperty, null);
+        AutomationInactiveActivationScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        AutomationInactiveActivationScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        PassageJourneyTrace.BeginAnimation(Aeziol.App.Controls.JourneyTrace.ProgressProperty, null);
+    }
+
+    private static void BeginAutomationDoubleTransition(
+        IAnimatable target,
+        DependencyProperty property,
+        double from,
+        double to,
+        int delayMilliseconds,
+        int durationMilliseconds,
+        IEasingFunction easing) =>
+        target.BeginAnimation(
+            property,
+            CreateAutomationDoubleTransition(
+                from,
+                to,
+                delayMilliseconds,
+                durationMilliseconds,
+                easing));
+
+    private static DoubleAnimationUsingKeyFrames CreateAutomationDoubleTransition(
+        double from,
+        double to,
+        int delayMilliseconds,
+        int durationMilliseconds,
+        IEasingFunction easing)
+    {
+        var delay = TimeSpan.FromMilliseconds(delayMilliseconds);
+        var end = delay + TimeSpan.FromMilliseconds(durationMilliseconds);
+        var animation = new DoubleAnimationUsingKeyFrames
+        {
+            Duration = new Duration(end),
+            FillBehavior = FillBehavior.Stop,
+        };
+        animation.KeyFrames.Add(new DiscreteDoubleKeyFrame(from, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+        if (delay > TimeSpan.Zero)
+        {
+            animation.KeyFrames.Add(new DiscreteDoubleKeyFrame(from, KeyTime.FromTimeSpan(delay)));
+        }
+
+        animation.KeyFrames.Add(new EasingDoubleKeyFrame(to, KeyTime.FromTimeSpan(end))
+        {
+            EasingFunction = easing,
+        });
+        return animation;
     }
 
     private async void OnDestinationChanged(object sender, SelectionChangedEventArgs eventArgs)
@@ -434,7 +807,6 @@ public partial class MainWindow : Window
         try
         {
             PassageDestinationCombo.SelectedValue = targetId;
-            RuleDestinationCombo.SelectedValue = targetId;
         }
         finally
         {
@@ -608,6 +980,7 @@ public partial class MainWindow : Window
 
         var reduced = ReduceAnimationsToggle.IsChecked == true;
         MotionAssist.SetIsReduced(this, reduced);
+        UpdateAutomationControlVisual(_runtime.Settings.AutomationEnabled, animate: false);
         UpdateMusicCovers();
         try
         {
@@ -1000,6 +1373,7 @@ public partial class MainWindow : Window
             if (setting == "ReduceAnimations")
             {
                 MotionAssist.SetIsReduced(this, _runtime.Settings.ReduceAnimations);
+                UpdateAutomationControlVisual(_runtime.Settings.AutomationEnabled, animate: false);
                 UpdateMusicCovers();
             }
 
@@ -1750,10 +2124,21 @@ public partial class MainWindow : Window
             ? System.Windows.HorizontalAlignment.Right
             : System.Windows.HorizontalAlignment.Left;
 
-        DiscordNavText.Text = _localization.Get("nav-discord", register);
-        PassageHeaderText.Text = _localization.Get("nav-passage", register);
-        ComingSoonNavText.Text = _localization.Get("nav-coming-soon", register);
-        SettingsNavText.Text = _localization.Get("nav-settings", register);
+        var discordLabel = _localization.Get("nav-discord", register);
+        DiscordNavText.Text = discordLabel;
+        System.Windows.Automation.AutomationProperties.SetName(DiscordNav, discordLabel);
+        var passageLabel = _localization.Get("nav-passage", register);
+        PassageHeaderText.Text = passageLabel;
+        System.Windows.Automation.AutomationProperties.SetName(PassageCategoryHeader, passageLabel);
+        var comingSoonLabel = _localization.Get("nav-coming-soon", register);
+        ComingSoonNavText.Text = comingSoonLabel;
+        System.Windows.Automation.AutomationProperties.SetName(ComingSoonNav, comingSoonLabel);
+        System.Windows.Automation.AutomationProperties.SetHelpText(
+            ComingSoonNav,
+            _localization.Get("nav-coming-soon-help", register));
+        var settingsLabel = _localization.Get("nav-settings", register);
+        SettingsNavText.Text = settingsLabel;
+        System.Windows.Automation.AutomationProperties.SetName(SettingsNav, settingsLabel);
         DiscordTitleText.Text = _localization.Get("page-discord-title", register);
         DiscordSubtitleText.Text = _localization.Get("page-discord-subtitle", register);
         DiscordOverviewTab.Content = _localization.Get("discord-section-overview", register);
@@ -1772,16 +2157,13 @@ public partial class MainWindow : Window
         RuleWhenLabelText.Text = _localization.Get("rule-when-label", register);
         RuleWhenText.Text = _localization.Get("rule-when", register);
         RulePriorityLabelText.Text = _localization.Get("rule-priority", register);
-        RuleFutureText.Text = _localization.Get("rule-future", register);
-        RuleDestinationLabelText.Text = _localization.Get("rule-destination", register);
+        RuleRouteHintText.Text = _localization.Get("rule-route-hint", register);
         ExclusionsTitleText.Text = _localization.Get("exclusions", register);
         ExclusionsHelpText.Text = _localization.Get("exclusions-help", register);
         UpdateDestinationWarning();
 
         SettingsTitleText.Text = _localization.Get("page-settings-title", register);
         SettingsSubtitleText.Text = _localization.Get("page-settings-subtitle", register);
-        SettingsGeneralTab.Content = _localization.Get("settings-section-general", register);
-        SettingsDiscordTab.Content = _localization.Get("settings-section-discord", register);
         DiscordSettingsTitleText.Text = _localization.Get("discord-connection", register);
         DiscordRouteCaptionText.Text = _localization.Get("discord-route-caption", register);
         DiscordFallbackTitleText.Text = _localization.Get("discord-fallback-title", register);
@@ -1871,8 +2253,12 @@ public partial class MainWindow : Window
         System.Windows.Automation.AutomationProperties.SetName(CloseWindowButton, closeLabel);
         CloseHideMenuText.Text = _localization.Get("close-choice-hide-compact", register);
         CloseQuitMenuText.Text = _localization.Get("close-choice-quit-compact", register);
-        CloseRememberMenuText.Text = _localization.Get("close-remember", register);
-        CloseRememberMenuNoteText.Text = _localization.Get("close-remember-settings-note", register);
+        var closeRememberLabel = _localization.Get("close-remember", register);
+        var closeRememberNote = _localization.Get("close-remember-settings-note", register);
+        CloseRememberMenuText.Text = closeRememberLabel;
+        CloseRememberMenuNoteText.Text = closeRememberNote;
+        System.Windows.Automation.AutomationProperties.SetName(CloseRememberMenuItem, closeRememberLabel);
+        System.Windows.Automation.AutomationProperties.SetHelpText(CloseRememberMenuItem, closeRememberNote);
         UpdateWindowStateVisuals();
         AboutTitleText.Text = _localization.Get("about-title", register);
         AboutSubtitleText.Text = _localization.Get("about-subtitle", register);
@@ -1935,31 +2321,6 @@ public partial class MainWindow : Window
         SettingsView.Visibility = Visibility.Visible;
         UpdateSettingsMusicCover();
         UpdateNavigationContext();
-    }
-
-    private void OnSettingsSectionChanged(object sender, RoutedEventArgs eventArgs)
-    {
-        if (!IsInitialized)
-        {
-            return;
-        }
-
-        var showDiscord = ReferenceEquals(sender, SettingsDiscordTab);
-        HideSettingsEditor();
-        SettingsGeneralPanel.Visibility = showDiscord ? Visibility.Collapsed : Visibility.Visible;
-        SettingsDiscordPanel.Visibility = showDiscord ? Visibility.Visible : Visibility.Collapsed;
-        if (showDiscord)
-        {
-            SettingsDiscordScrollViewer.ScrollToTop();
-        }
-        else
-        {
-            SettingsGeneralDetailsScrollViewer.ScrollToTop();
-        }
-
-        var panel = showDiscord ? SettingsDiscordPanel : SettingsGeneralPanel;
-        AnimateSettingsPanel(panel);
-        UpdateSettingsMusicCover();
     }
 
     private void OnSettingsJourneyEnter(
