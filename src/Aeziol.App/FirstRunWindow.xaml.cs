@@ -144,6 +144,9 @@ public partial class FirstRunWindow : Window
         _ambientMusicEnabledChanged?.Invoke(AmbientMusicEnabled);
     }
 
+    private void OnKeepMusicPlayingWhenUnfocusedChanged(object sender, RoutedEventArgs eventArgs) =>
+        UpdateMusicControls();
+
     private void OnMusicVolumeChanged(object sender, RoutedPropertyChangedEventArgs<double> eventArgs)
     {
         if (!IsInitialized || _initializing)
@@ -164,7 +167,8 @@ public partial class FirstRunWindow : Window
 
         MusicVolumeSlider.IsEnabled = AmbientMusicEnabled;
         KeepMusicPlayingWhenUnfocusedCheck.IsEnabled = AmbientMusicEnabled;
-        KeepMusicPlayingWhenHiddenCheck.IsEnabled = AmbientMusicEnabled;
+        KeepMusicPlayingWhenHiddenRow.IsEnabled =
+            AmbientMusicEnabled && KeepAmbientMusicPlayingWhenUnfocused;
         MusicVolumeValueText.Text = $"{AmbientMusicVolumePercent} %";
     }
 

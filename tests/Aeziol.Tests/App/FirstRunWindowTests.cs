@@ -40,6 +40,8 @@ public sealed class FirstRunWindowTests
                 var musicVolume = Assert.IsType<Slider>(window.FindName("MusicVolumeSlider"));
                 var keepPlaying = Assert.IsType<WpfCheckBox>(
                     window.FindName("KeepMusicPlayingWhenHiddenCheck"));
+                var keepPlayingRow = Assert.IsType<Border>(
+                    window.FindName("KeepMusicPlayingWhenHiddenRow"));
                 var keepPlayingWhenUnfocused = Assert.IsType<WpfCheckBox>(
                     window.FindName("KeepMusicPlayingWhenUnfocusedCheck"));
 
@@ -51,7 +53,9 @@ public sealed class FirstRunWindowTests
                 Assert.True(window.KeepAmbientMusicPlayingWhenUnfocused);
                 Assert.False(musicVolume.IsEnabled);
                 Assert.False(keepPlaying.IsEnabled);
+                Assert.False(keepPlayingRow.IsEnabled);
                 Assert.False(keepPlayingWhenUnfocused.IsEnabled);
+                Assert.Equal(18, keepPlayingRow.Margin.Left);
 
                 Assert.IsType<WpfButton>(window.FindName("ContinueButton"))
                     .RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
@@ -66,10 +70,23 @@ public sealed class FirstRunWindowTests
                 Assert.Equal([true], musicPreviewStates);
                 Assert.True(musicVolume.IsEnabled);
                 Assert.True(keepPlaying.IsEnabled);
+                Assert.True(keepPlayingRow.IsEnabled);
                 Assert.True(keepPlayingWhenUnfocused.IsEnabled);
 
                 keepPlayingWhenUnfocused.IsChecked = false;
+                keepPlayingWhenUnfocused.RaiseEvent(new RoutedEventArgs(
+                    System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
                 Assert.False(window.KeepAmbientMusicPlayingWhenUnfocused);
+                Assert.False(keepPlayingRow.IsEnabled);
+                Assert.False(keepPlaying.IsEnabled);
+                Assert.True(window.KeepAmbientMusicPlayingWhenHidden);
+
+                keepPlayingWhenUnfocused.IsChecked = true;
+                keepPlayingWhenUnfocused.RaiseEvent(new RoutedEventArgs(
+                    System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+                Assert.True(keepPlayingRow.IsEnabled);
+                Assert.True(keepPlaying.IsEnabled);
+                Assert.True(window.KeepAmbientMusicPlayingWhenHidden);
 
                 musicVolume.Value = 18;
                 Assert.Equal(18, window.AmbientMusicVolumePercent);

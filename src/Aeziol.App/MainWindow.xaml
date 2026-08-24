@@ -1193,8 +1193,20 @@
                                                                         Click="OnResetSetting" />
                                                             </Grid>
                                                         </Border>
-                                                        <Border Margin="0,8,0,0"
-                                                                Style="{StaticResource SettingsOptionRow}">
+                                                        <Border x:Name="KeepAmbientMusicPlayingWhenHiddenRow"
+                                                                Margin="18,8,0,0"
+                                                                IsEnabled="{Binding IsChecked, ElementName=KeepAmbientMusicPlayingWhenUnfocusedToggle}">
+                                                            <Border.Style>
+                                                                <Style TargetType="{x:Type Border}"
+                                                                       BasedOn="{StaticResource SettingsOptionRow}">
+                                                                    <Setter Property="Opacity" Value="1" />
+                                                                    <Style.Triggers>
+                                                                        <Trigger Property="IsEnabled" Value="False">
+                                                                            <Setter Property="Opacity" Value="0.45" />
+                                                                        </Trigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
