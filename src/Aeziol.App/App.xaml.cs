@@ -213,7 +213,7 @@ public partial class App : System.Windows.Application
                     },
                     settings.AmbientMusicVolumePercent,
                     settings.KeepAmbientMusicPlayingWhenHidden,
-                    settings.PauseAmbientMusicWhenUnfocused,
+                    settings.KeepAmbientMusicPlayingWhenUnfocused,
                     volume =>
                     {
                         previewMusicVolume = volume;
@@ -239,7 +239,7 @@ public partial class App : System.Windows.Application
                     AmbientMusicEnabled = firstRun.AmbientMusicEnabled,
                     AmbientMusicVolumePercent = firstRun.AmbientMusicVolumePercent,
                     KeepAmbientMusicPlayingWhenHidden = firstRun.KeepAmbientMusicPlayingWhenHidden,
-                    PauseAmbientMusicWhenUnfocused = firstRun.PauseAmbientMusicWhenUnfocused,
+                    KeepAmbientMusicPlayingWhenUnfocused = firstRun.KeepAmbientMusicPlayingWhenUnfocused,
                 };
                 await _settingsStore.SaveAsync(settings).ConfigureAwait(true);
                 await AutostartService.SetEnabledAsync(

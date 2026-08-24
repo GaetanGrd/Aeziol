@@ -148,21 +148,21 @@ public sealed class JsonAppSettingsStore(string path)
             settings = settings with { SchemaVersion = AppSettings.CurrentSchemaVersion };
         }
 
-        if (schemaVersion < 4
+        if (schemaVersion == 3)
+        {
+            settings = settings with
+            {
+                KeepAmbientMusicPlayingWhenUnfocused = settings.KeepAmbientMusicPlayingWhenHidden,
+            };
+            requiresSave = true;
+        }
+        else if (schemaVersion <= 4
             && document.RootElement.TryGetProperty("pauseAmbientMusicWhenUnfocused", out var legacyPause)
             && legacyPause.ValueKind is JsonValueKind.True or JsonValueKind.False)
         {
             settings = settings with
             {
-                PauseAmbientMusicWhenUnfocused = legacyPause.GetBoolean(),
-            };
-            requiresSave = true;
-        }
-        else if (schemaVersion == 3)
-        {
-            settings = settings with
-            {
-                PauseAmbientMusicWhenUnfocused = !settings.KeepAmbientMusicPlayingWhenHidden,
+                KeepAmbientMusicPlayingWhenUnfocused = !legacyPause.GetBoolean(),
             };
             requiresSave = true;
         }

@@ -145,7 +145,7 @@ public partial class MainWindow : Window
             EnhancedContrastToggle.IsChecked = settings.EnhanceContrast;
             ReduceAnimationsToggle.IsChecked = settings.ReduceAnimations;
             AmbientMusicToggle.IsChecked = settings.AmbientMusicEnabled;
-            PauseAmbientMusicWhenUnfocusedToggle.IsChecked = settings.PauseAmbientMusicWhenUnfocused;
+            KeepAmbientMusicPlayingWhenUnfocusedToggle.IsChecked = settings.KeepAmbientMusicPlayingWhenUnfocused;
             KeepAmbientMusicPlayingWhenHiddenToggle.IsChecked = settings.KeepAmbientMusicPlayingWhenHidden;
             HardwareAccelerationToggle.IsChecked = settings.UseHardwareAcceleration;
             SelectByTag(UpdateChannelCombo, settings.UpdateChannel.ToString());
@@ -1091,7 +1091,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void OnPauseAmbientMusicWhenUnfocusedChanged(object sender, RoutedEventArgs eventArgs)
+    private async void OnKeepAmbientMusicPlayingWhenUnfocusedChanged(object sender, RoutedEventArgs eventArgs)
     {
         if (_initializing || _syncingControls)
         {
@@ -1100,16 +1100,17 @@ public partial class MainWindow : Window
 
         try
         {
-            var pauseWhenUnfocused = PauseAmbientMusicWhenUnfocusedToggle.IsChecked == true;
+            var keepPlayingWhenUnfocused = KeepAmbientMusicPlayingWhenUnfocusedToggle.IsChecked == true;
             await PersistSettingsAsync(settings => settings with
             {
-                PauseAmbientMusicWhenUnfocused = pauseWhenUnfocused,
+                KeepAmbientMusicPlayingWhenUnfocused = keepPlayingWhenUnfocused,
             }).ConfigureAwait(true);
         }
         catch (Exception exception)
         {
             _syncingControls = true;
-            PauseAmbientMusicWhenUnfocusedToggle.IsChecked = _runtime.Settings.PauseAmbientMusicWhenUnfocused;
+            KeepAmbientMusicPlayingWhenUnfocusedToggle.IsChecked =
+                _runtime.Settings.KeepAmbientMusicPlayingWhenUnfocused;
             _syncingControls = false;
             await ShowErrorAsync(_localization.Get("ambient-music", SelectedRegister), exception).ConfigureAwait(true);
         }
@@ -1330,9 +1331,9 @@ public partial class MainWindow : Window
             },
             "AmbientMusicEnabled" => current => current with { AmbientMusicEnabled = defaults.AmbientMusicEnabled },
             "AmbientMusicVolume" => current => current with { AmbientMusicVolumePercent = defaults.AmbientMusicVolumePercent },
-            "PauseAmbientMusicWhenUnfocused" => current => current with
+            "KeepAmbientMusicPlayingWhenUnfocused" => current => current with
             {
-                PauseAmbientMusicWhenUnfocused = defaults.PauseAmbientMusicWhenUnfocused,
+                KeepAmbientMusicPlayingWhenUnfocused = defaults.KeepAmbientMusicPlayingWhenUnfocused,
             },
             "KeepAmbientMusicPlayingWhenHidden" => current => current with
             {
@@ -2190,13 +2191,15 @@ public partial class MainWindow : Window
         AmbientMusicMaximumText.Text = _localization.Get("ambient-music-maximum", register);
         AmbientMusicVolumeWarningText.Text = _localization.Get("ambient-music-loud-warning", register);
         AmbientMusicHelpText.Text = _localization.Get("ambient-music-pending", register);
-        PauseAmbientMusicWhenUnfocusedText.Text = _localization.Get(
-            "ambient-music-pause-unfocused",
+        KeepAmbientMusicPlayingWhenUnfocusedText.Text = _localization.Get(
+            "ambient-music-keep-playing-unfocused",
             register);
         KeepAmbientMusicPlayingWhenHiddenText.Text = _localization.Get(
             "ambient-music-keep-playing-hidden",
             register);
-        AmbientMusicFocusPrecedenceText.Text = _localization.Get("ambient-music-focus-precedence", register);
+        AmbientMusicFocusHiddenCombinationText.Text = _localization.Get(
+            "ambient-music-focus-hidden-combination",
+            register);
         HardwareAccelerationText.Text = _localization.Get("hardware-acceleration", register);
         HardwareAccelerationHintText.Text = _localization.Get("hardware-acceleration-restart", register);
         UpdateChannelLabelText.Text = _localization.Get("update-channel", register);
@@ -2579,7 +2582,7 @@ public partial class MainWindow : Window
             },
             _runtime.Settings.AmbientMusicVolumePercent,
             _runtime.Settings.KeepAmbientMusicPlayingWhenHidden,
-            _runtime.Settings.PauseAmbientMusicWhenUnfocused,
+            _runtime.Settings.KeepAmbientMusicPlayingWhenUnfocused,
             volume =>
             {
                 previewMusicVolume = volume;
@@ -2620,7 +2623,7 @@ public partial class MainWindow : Window
                     AmbientMusicEnabled = onboarding.AmbientMusicEnabled,
                     AmbientMusicVolumePercent = onboarding.AmbientMusicVolumePercent,
                     KeepAmbientMusicPlayingWhenHidden = onboarding.KeepAmbientMusicPlayingWhenHidden,
-                    PauseAmbientMusicWhenUnfocused = onboarding.PauseAmbientMusicWhenUnfocused,
+                    KeepAmbientMusicPlayingWhenUnfocused = onboarding.KeepAmbientMusicPlayingWhenUnfocused,
                 },
                 updateAutostart: true).ConfigureAwait(true);
             LoadSettingsIntoControls(_runtime.Settings);

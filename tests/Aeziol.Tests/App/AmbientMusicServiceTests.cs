@@ -7,14 +7,14 @@ public sealed class AmbientMusicServiceTests
     [Theory]
     [InlineData(false, false, false, true, true, false)]
     [InlineData(true, false, false, false, true, false)]
-    [InlineData(true, false, false, true, false, true)]
-    [InlineData(true, false, true, true, false, false)]
-    [InlineData(true, true, false, false, false, true)]
-    [InlineData(true, true, true, false, false, false)]
-    public void ShouldPlay_GivesFocusPausePriorityOverHiddenPlayback(
+    [InlineData(true, false, false, true, false, false)]
+    [InlineData(true, false, true, true, false, true)]
+    [InlineData(true, true, false, false, false, false)]
+    [InlineData(true, true, true, false, false, true)]
+    public void ShouldPlay_RequiresBothPositiveOptionsWhenHiddenAndUnfocused(
         bool enabled,
         bool keepPlayingWhenHidden,
-        bool pauseWhenUnfocused,
+        bool keepPlayingWhenUnfocused,
         bool applicationVisible,
         bool applicationFocused,
         bool expected)
@@ -24,7 +24,7 @@ public sealed class AmbientMusicServiceTests
             AmbientMusicService.ShouldPlay(
                 enabled,
                 keepPlayingWhenHidden,
-                pauseWhenUnfocused,
+                keepPlayingWhenUnfocused,
                 applicationVisible,
                 applicationFocused));
     }

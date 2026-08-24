@@ -10,7 +10,7 @@ public sealed class AmbientMusicService : IDisposable
     private bool _opened;
     private bool _enabled;
     private bool _keepPlayingWhenHidden;
-    private bool _pauseWhenUnfocused;
+    private bool _keepPlayingWhenUnfocused;
     private bool _applicationVisible;
     private bool _applicationFocused;
 
@@ -29,7 +29,7 @@ public sealed class AmbientMusicService : IDisposable
         ArgumentNullException.ThrowIfNull(settings);
         _enabled = settings.AmbientMusicEnabled && IsAvailable;
         _keepPlayingWhenHidden = settings.KeepAmbientMusicPlayingWhenHidden;
-        _pauseWhenUnfocused = settings.PauseAmbientMusicWhenUnfocused;
+        _keepPlayingWhenUnfocused = settings.KeepAmbientMusicPlayingWhenUnfocused;
         _player.Volume = Math.Clamp(settings.AmbientMusicVolumePercent, 0, 100) / 100d;
         _player.IsMuted = false;
         UpdatePlayback();
@@ -62,7 +62,7 @@ public sealed class AmbientMusicService : IDisposable
         if (!ShouldPlay(
                 _enabled,
                 _keepPlayingWhenHidden,
-                _pauseWhenUnfocused,
+                _keepPlayingWhenUnfocused,
                 _applicationVisible,
                 _applicationFocused))
         {
@@ -93,7 +93,7 @@ public sealed class AmbientMusicService : IDisposable
         if (!ShouldPlay(
                 _enabled,
                 _keepPlayingWhenHidden,
-                _pauseWhenUnfocused,
+                _keepPlayingWhenUnfocused,
                 _applicationVisible,
                 _applicationFocused))
         {
@@ -113,10 +113,10 @@ public sealed class AmbientMusicService : IDisposable
     internal static bool ShouldPlay(
         bool enabled,
         bool keepPlayingWhenHidden,
-        bool pauseWhenUnfocused,
+        bool keepPlayingWhenUnfocused,
         bool applicationVisible,
         bool applicationFocused) =>
         enabled
-        && (!pauseWhenUnfocused || applicationFocused)
+        && (applicationFocused || keepPlayingWhenUnfocused)
         && (applicationVisible || keepPlayingWhenHidden);
 }

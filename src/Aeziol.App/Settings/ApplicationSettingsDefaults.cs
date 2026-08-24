@@ -14,7 +14,7 @@ internal static class ApplicationSettingsDefaults
             ReduceAnimations = defaults.ReduceAnimations,
             AmbientMusicEnabled = defaults.AmbientMusicEnabled,
             AmbientMusicVolumePercent = defaults.AmbientMusicVolumePercent,
-            PauseAmbientMusicWhenUnfocused = defaults.PauseAmbientMusicWhenUnfocused,
+            KeepAmbientMusicPlayingWhenUnfocused = defaults.KeepAmbientMusicPlayingWhenUnfocused,
             KeepAmbientMusicPlayingWhenHidden = defaults.KeepAmbientMusicPlayingWhenHidden,
             UseHardwareAcceleration = defaults.UseHardwareAcceleration,
             UpdateChannel = defaults.UpdateChannel,

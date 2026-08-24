@@ -10,14 +10,16 @@ public sealed class MusicPreferenceUiTests
     public void SettingsMusicEditor_ContainsIndependentFocusAndHiddenPreferences()
     {
         var document = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "Fixtures", "MainWindow.xaml"));
-        var pauseToggle = FindNamedElement(document, "PauseAmbientMusicWhenUnfocusedToggle");
+        var keepUnfocusedToggle = FindNamedElement(document, "KeepAmbientMusicPlayingWhenUnfocusedToggle");
         var keepHiddenToggle = FindNamedElement(document, "KeepAmbientMusicPlayingWhenHiddenToggle");
-        var precedenceText = FindNamedElement(document, "AmbientMusicFocusPrecedenceText");
+        var combinationText = FindNamedElement(document, "AmbientMusicFocusHiddenCombinationText");
 
-        Assert.Equal("OnPauseAmbientMusicWhenUnfocusedChanged", pauseToggle.Attribute("Click")?.Value);
+        Assert.Equal(
+            "OnKeepAmbientMusicPlayingWhenUnfocusedChanged",
+            keepUnfocusedToggle.Attribute("Click")?.Value);
         Assert.Equal("OnKeepAmbientMusicPlayingWhenHiddenChanged", keepHiddenToggle.Attribute("Click")?.Value);
-        Assert.True(XNode.DocumentOrderComparer.Compare(pauseToggle, keepHiddenToggle) < 0);
-        Assert.True(XNode.DocumentOrderComparer.Compare(keepHiddenToggle, precedenceText) < 0);
+        Assert.True(XNode.DocumentOrderComparer.Compare(keepUnfocusedToggle, keepHiddenToggle) < 0);
+        Assert.True(XNode.DocumentOrderComparer.Compare(keepHiddenToggle, combinationText) < 0);
     }
 
     private static XElement FindNamedElement(XDocument document, string name) =>
