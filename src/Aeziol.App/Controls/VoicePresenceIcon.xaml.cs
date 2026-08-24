@@ -10,8 +10,10 @@ namespace Aeziol.App.Controls;
 public partial class VoicePresenceIcon : System.Windows.Controls.UserControl
 {
     internal const int TransitionDurationMilliseconds = 220;
-    internal const int StateRotationMotionMilliseconds = 950;
-    internal const int StateRotationHoldMilliseconds = 450;
+    internal const int StateRotationAnticipationMilliseconds = 80;
+    internal const int StateRotationOvershootMilliseconds = 590;
+    internal const int StateRotationSettleMilliseconds = 720;
+    internal const int StateRotationCycleMilliseconds = 1000;
 
     private VoicePresenceState? _requestedState;
     private VoicePresenceState? _renderedState;
@@ -204,13 +206,20 @@ public partial class VoicePresenceIcon : System.Windows.Controls.UserControl
             {
                 new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)),
                 new EasingDoubleKeyFrame(
+                    -10,
+                    KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(StateRotationAnticipationMilliseconds)),
+                    new CubicEase { EasingMode = EasingMode.EaseOut }),
+                new EasingDoubleKeyFrame(
+                    385,
+                    KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(StateRotationOvershootMilliseconds)),
+                    new CubicEase { EasingMode = EasingMode.EaseInOut }),
+                new EasingDoubleKeyFrame(
                     360,
-                    KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(StateRotationMotionMilliseconds)),
-                    new SineEase { EasingMode = EasingMode.EaseInOut }),
+                    KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(StateRotationSettleMilliseconds)),
+                    new SineEase { EasingMode = EasingMode.EaseOut }),
                 new DiscreteDoubleKeyFrame(
                     360,
-                    KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(
-                        StateRotationMotionMilliseconds + StateRotationHoldMilliseconds))),
+                    KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(StateRotationCycleMilliseconds))),
             },
         };
         CurrentRotation.BeginAnimation(RotateTransform.AngleProperty, _stateRotationAnimation);

@@ -93,14 +93,35 @@ public sealed class VoicePresenceIconTests
         var absent = VoicePresenceVisual.For(VoicePresenceState.DiscordAbsent);
         Assert.Equal(brandPath, absent.PrimaryPathData);
         Assert.Equal(VoicePresenceVisual.DiscordCracksPathData, absent.CutoutPathData);
-        Assert.True(GeometryFigureCount(absent.CutoutPathData) >= 3);
+        var logoGeometry = System.Windows.Media.Geometry.Parse(absent.PrimaryPathData);
+        var crackGeometry = System.Windows.Media.Geometry.Parse(absent.CutoutPathData);
+        var crackBounds = crackGeometry.Bounds;
+        Assert.True(GeometryFigureCount(absent.CutoutPathData) >= 12);
+        Assert.True(crackGeometry.GetArea() / logoGeometry.GetArea() < 0.06);
+        Assert.InRange(crackBounds.Left, 9, 56);
+        Assert.InRange(crackBounds.Right, 9, 56);
+        Assert.InRange(crackBounds.Top, 2, 42);
+        Assert.InRange(crackBounds.Bottom, 2, 42);
+        Assert.Equal(0, IntersectionArea(crackGeometry, new System.Windows.Rect(16.09, 20.04, 11.41, 12.67)), 5);
+        Assert.Equal(0, IntersectionArea(crackGeometry, new System.Windows.Rect(37.14, 20.04, 11.4, 12.67)), 5);
+        var absentDocument = XDocument.Load(Path.Combine(assetDirectory, absent.AssetFileName));
+        var crackPath = Assert.Single(absentDocument.Descendants(), element =>
+            element.Attribute("data-role")?.Value == "cutout");
+        Assert.Equal("hairline-branched", crackPath.Attribute("data-style")?.Value);
+        Assert.Equal("3", crackPath.Attribute("data-crack-groups")?.Value);
+        Assert.Equal("AeziolDim", absent.FillBrushKey);
+        Assert.Equal("#74747C", Assert.Single(absentDocument.Descendants(), element =>
+            element.Attribute("data-role")?.Value == "primary").Attribute("fill")?.Value);
 
         var connected = VoicePresenceVisual.For(VoicePresenceState.Connected);
         Assert.Equal(VoicePresenceVisual.SpeakerPathData, connected.PrimaryPathData);
+        Assert.Equal("AeziolSuccess", connected.FillBrushKey);
         Assert.True(GeometryFigureCount(connected.PrimaryPathData) >= 3);
         var connectedDocument = XDocument.Load(Path.Combine(assetDirectory, connected.AssetFileName));
-        Assert.Equal("speaker", Assert.Single(connectedDocument.Descendants(), element =>
-            element.Attribute("data-role")?.Value == "primary").Attribute("data-shape")?.Value);
+        var speakerPath = Assert.Single(connectedDocument.Descendants(), element =>
+            element.Attribute("data-role")?.Value == "primary");
+        Assert.Equal("speaker", speakerPath.Attribute("data-shape")?.Value);
+        Assert.Equal("#86C7A5", speakerPath.Attribute("fill")?.Value);
 
         var unavailable = VoicePresenceVisual.For(VoicePresenceState.Unavailable);
         Assert.Equal(VoicePresenceVisual.QuestionMarkPathData, unavailable.PrimaryPathData);
@@ -140,7 +161,7 @@ public sealed class VoicePresenceIconTests
     }
 
     [Fact]
-    public void OnlyTransientStatesUseAnEasedTurnAndVisibleHoldCycle()
+    public void OnlyTransientStatesUseAnAnticipatedOvershootSettleAndHoldCycle()
     {
         var expectedRotatingStates = new[]
         {
@@ -169,12 +190,30 @@ public sealed class VoicePresenceIconTests
                     Assert.Equal(0, first.Value);
                     Assert.Equal(TimeSpan.Zero, first.KeyTime.TimeSpan);
                 },
-                turn =>
+                anticipation =>
                 {
-                    var eased = Assert.IsType<EasingDoubleKeyFrame>(turn);
+                    var eased = Assert.IsType<EasingDoubleKeyFrame>(anticipation);
+                    Assert.Equal(-10, eased.Value);
+                    Assert.Equal(
+                        TimeSpan.FromMilliseconds(VoicePresenceIcon.StateRotationAnticipationMilliseconds),
+                        eased.KeyTime.TimeSpan);
+                    Assert.IsType<CubicEase>(eased.EasingFunction);
+                },
+                overshoot =>
+                {
+                    var eased = Assert.IsType<EasingDoubleKeyFrame>(overshoot);
+                    Assert.InRange(eased.Value, 382, 388);
+                    Assert.Equal(
+                        TimeSpan.FromMilliseconds(VoicePresenceIcon.StateRotationOvershootMilliseconds),
+                        eased.KeyTime.TimeSpan);
+                    Assert.IsType<CubicEase>(eased.EasingFunction);
+                },
+                settle =>
+                {
+                    var eased = Assert.IsType<EasingDoubleKeyFrame>(settle);
                     Assert.Equal(360, eased.Value);
                     Assert.Equal(
-                        TimeSpan.FromMilliseconds(VoicePresenceIcon.StateRotationMotionMilliseconds),
+                        TimeSpan.FromMilliseconds(VoicePresenceIcon.StateRotationSettleMilliseconds),
                         eased.KeyTime.TimeSpan);
                     Assert.IsType<SineEase>(eased.EasingFunction);
                 },
@@ -183,13 +222,17 @@ public sealed class VoicePresenceIconTests
                     Assert.IsType<DiscreteDoubleKeyFrame>(hold);
                     Assert.Equal(360, hold.Value);
                     Assert.Equal(
-                        TimeSpan.FromMilliseconds(
-                            VoicePresenceIcon.StateRotationMotionMilliseconds
-                            + VoicePresenceIcon.StateRotationHoldMilliseconds),
+                        TimeSpan.FromMilliseconds(VoicePresenceIcon.StateRotationCycleMilliseconds),
                         hold.KeyTime.TimeSpan);
                 });
-            Assert.InRange(VoicePresenceIcon.StateRotationMotionMilliseconds, 850, 1000);
-            Assert.InRange(VoicePresenceIcon.StateRotationHoldMilliseconds, 350, 550);
+            Assert.InRange(VoicePresenceIcon.StateRotationAnticipationMilliseconds, 70, 90);
+            Assert.InRange(VoicePresenceIcon.StateRotationOvershootMilliseconds, 560, 620);
+            Assert.InRange(VoicePresenceIcon.StateRotationSettleMilliseconds, 690, 740);
+            Assert.InRange(VoicePresenceIcon.StateRotationCycleMilliseconds, 950, 1050);
+            Assert.InRange(
+                VoicePresenceIcon.StateRotationCycleMilliseconds - VoicePresenceIcon.StateRotationSettleMilliseconds,
+                230,
+                330);
         });
     }
 
@@ -246,6 +289,13 @@ public sealed class VoicePresenceIconTests
 
     private static int GeometryFigureCount(string? pathData) =>
         pathData is null ? 0 : System.Windows.Media.Geometry.Parse(pathData).GetFlattenedPathGeometry().Figures.Count;
+
+    private static double IntersectionArea(System.Windows.Media.Geometry geometry, System.Windows.Rect bounds) =>
+        System.Windows.Media.Geometry.Combine(
+            geometry,
+            new System.Windows.Media.RectangleGeometry(bounds),
+            System.Windows.Media.GeometryCombineMode.Intersect,
+            null).GetArea();
 
     private static void PumpDispatcher(TimeSpan duration)
     {
