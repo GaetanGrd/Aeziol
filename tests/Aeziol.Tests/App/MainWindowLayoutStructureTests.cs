@@ -159,6 +159,115 @@ public sealed class MainWindowLayoutStructureTests
     }
 
     [Fact]
+    public void VoicePresenceIntegratesWithRuntimeAsItsSinglePresentationSource()
+    {
+        var document = XDocument.Load(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml"));
+        var source = File.ReadAllText(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml.cs"));
+        var sourcePanel = FindNamedElement(document, "PassageSourcePanel");
+        var sourceStateText = FindNamedElement(document, "DiscordSourceStateText");
+        var presenceIcon = FindNamedElement(document, "DiscordPresenceIcon");
+        var discordNavigation = FindNamedElement(document, "DiscordNav");
+        var runtimeUpdateStart = source.IndexOf("private void UpdateRuntimeVoiceState(", StringComparison.Ordinal);
+        var runtimeUpdateEnd = source.IndexOf(
+            "private void UpdatePassageAuthorizationBreak(",
+            runtimeUpdateStart,
+            StringComparison.Ordinal);
+        var runtimeUpdate = source[runtimeUpdateStart..runtimeUpdateEnd];
+
+        Assert.DoesNotContain(document.Descendants(), element =>
+            element.Attribute(Xaml + "Name")?.Value is "VoicePill" or "VoicePillDot" or "VoicePillText");
+        Assert.Contains(sourceStateText, sourcePanel.Descendants());
+        Assert.Equal("VoicePresenceIcon", presenceIcon.Name.LocalName);
+        Assert.Equal("39", presenceIcon.Attribute("Width")?.Value);
+        Assert.Equal("29", presenceIcon.Attribute("Height")?.Value);
+        Assert.Contains(discordNavigation.Descendants(), element =>
+            element.Name.LocalName == "Path"
+            && element.Attribute("Data")?.Value == "{StaticResource DiscordSymbolGeometry}");
+        Assert.Contains("_latestRuntimeVoicePresenceState = state;", runtimeUpdate, StringComparison.Ordinal);
+        Assert.Contains("UpdateVoiceState(state);", runtimeUpdate, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AuthorizationPresenceAnimatesOnlyTheLeadingTraceHalf()
+    {
+        var document = XDocument.Load(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml"));
+        var journeyDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "Controls", "JourneyTrace.xaml"));
+        var source = File.ReadAllText(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml.cs"));
+        var journeyTrace = FindNamedElement(document, "PassageJourneyTrace");
+        var ruptureDust = FindNamedElement(journeyDocument, "LeadingBreakDustLayer");
+        var referenceDust = FindNamedElement(document, "DiscordRuptureGlints");
+        var particles = ruptureDust.Descendants()
+            .Where(element => element.Name.LocalName == "Ellipse")
+            .ToArray();
+        var referenceParticles = referenceDust.Descendants()
+            .Where(element => element.Name.LocalName == "Ellipse")
+            .ToArray();
+        var glow = Assert.Single(ruptureDust.Descendants(), element => element.Name.LocalName == "DropShadowEffect");
+        var referenceGlow = Assert.Single(referenceDust.Descendants(), element => element.Name.LocalName == "DropShadowEffect");
+
+        Assert.Equal("JourneyTrace", journeyTrace.Name.LocalName);
+        Assert.NotEmpty(particles);
+        Assert.All(particles, element =>
+        {
+            Assert.True(double.Parse(
+                element.Attribute("Canvas.Left")?.Value ?? "101",
+                System.Globalization.CultureInfo.InvariantCulture) < 100);
+            Assert.True(element.Attribute("Fill")?.Value is
+                "{DynamicResource AeziolPrimary}" or "{DynamicResource AeziolSecondary}");
+            Assert.Contains(referenceParticles, reference =>
+                reference.Attribute("Width")?.Value == element.Attribute("Width")?.Value
+                && reference.Attribute("Height")?.Value == element.Attribute("Height")?.Value
+                && reference.Attribute("Fill")?.Value == element.Attribute("Fill")?.Value
+                && reference.Attribute("Opacity")?.Value == element.Attribute("Opacity")?.Value);
+        });
+        Assert.DoesNotContain(ruptureDust.Descendants(), element => element.Name.LocalName == "Path");
+        Assert.Equal(referenceGlow.Attribute("BlurRadius")?.Value, glow.Attribute("BlurRadius")?.Value);
+        Assert.Equal(referenceGlow.Attribute("ShadowDepth")?.Value, glow.Attribute("ShadowDepth")?.Value);
+        Assert.Equal(referenceGlow.Attribute("Color")?.Value, glow.Attribute("Color")?.Value);
+        Assert.Equal(referenceGlow.Attribute("Opacity")?.Value, glow.Attribute("Opacity")?.Value);
+        Assert.Contains("state == VoicePresenceState.AuthorizationRequired", source, StringComparison.Ordinal);
+        Assert.Contains("JourneyTrace.LeadingBreakProgressProperty", source, StringComparison.Ordinal);
+        Assert.Contains("DiscordAuthorizationBreakTransitionDurationMilliseconds", source, StringComparison.Ordinal);
+        Assert.Contains("new DoubleAnimation(currentBreak, target, duration)", source, StringComparison.Ordinal);
+        Assert.Equal("0", ruptureDust.Attribute("Opacity")?.Value);
+        Assert.DoesNotContain("PassageAuthorizationRuptureGlints", source, StringComparison.Ordinal);
+        Assert.Contains("MotionAssist.GetIsReduced(this)", source, StringComparison.Ordinal);
+        Assert.Contains("DiscordPresenceIcon.State = state;", source, StringComparison.Ordinal);
+        Assert.Contains("AutomationProperties.SetName(DiscordPresenceIcon", source, StringComparison.Ordinal);
+        Assert.Contains("AutomationProperties.SetHelpText(DiscordPresenceIcon", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AuthorizationPresentationSuppressesOnlyTheDiscordSourceHoverAndRestoresItAfterward()
+    {
+        var source = File.ReadAllText(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml.cs"));
+        var sourceEnterStart = source.IndexOf("private void OnPassageJourneySourceEnter(", StringComparison.Ordinal);
+        var targetEnterStart = source.IndexOf("private void OnPassageJourneyTargetEnter(", sourceEnterStart, StringComparison.Ordinal);
+        var leaveStart = source.IndexOf("private void OnPassageJourneyLeave(", targetEnterStart, StringComparison.Ordinal);
+        var sourceEnter = source[sourceEnterStart..targetEnterStart];
+        var availabilityStart = source.IndexOf(
+            "private void UpdatePassageSourceHighlightAvailability(",
+            StringComparison.Ordinal);
+        var highlightStart = source.IndexOf(
+            "private void ShowPassageJourneyHighlight(",
+            availabilityStart,
+            StringComparison.Ordinal);
+        var availability = source[availabilityStart..highlightStart];
+
+        Assert.Contains("_presentedVoicePresenceState = state;", source, StringComparison.Ordinal);
+        Assert.Contains(
+            "_presentedVoicePresenceState == VoicePresenceState.AuthorizationRequired",
+            source,
+            StringComparison.Ordinal);
+        Assert.Contains("if (IsPassageSourceHighlightSuppressed)", sourceEnter, StringComparison.Ordinal);
+        Assert.Contains("PassageJourneyTrace.HideHighlight(sender", sourceEnter, StringComparison.Ordinal);
+        Assert.DoesNotContain("IsPassageSourceHighlightSuppressed", source[targetEnterStart..leaveStart], StringComparison.Ordinal);
+        Assert.Contains("PassageJourneyTrace.HideHighlight(PassageSourcePanel", availability, StringComparison.Ordinal);
+        Assert.Contains("wasAuthorizationRequired && PassageSourcePanel.IsMouseOver", availability, StringComparison.Ordinal);
+        Assert.Contains("ShowPassageJourneyHighlight(PassageSourcePanel, 0, 112);", availability, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AutomationTransitionsCancelCleanlyAndRespectReducedMotion()
     {
         var source = File.ReadAllText(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml.cs"));

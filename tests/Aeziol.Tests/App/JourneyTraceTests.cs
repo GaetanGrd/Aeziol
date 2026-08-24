@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Xml.Linq;
+using Aeziol.App.Appearance;
 using Aeziol.App.Controls;
 using WpfSize = System.Windows.Size;
 
@@ -179,6 +181,81 @@ public sealed class JourneyTraceTests
         });
 
         Assert.Null(failure);
+    }
+
+    [Fact]
+    public void ReusableTrace_LeadingBreaksDissipateOnlyTheFirstHalf()
+    {
+        Exception? failure = null;
+        WpfTestHost.Run(() =>
+        {
+            try
+            {
+                var trace = new JourneyTrace
+                {
+                    Width = 200,
+                    Height = 62,
+                    Orientation = JourneyTraceOrientation.Horizontal,
+                    TraceA = Geometry.Parse("M 0,35 C 50,0 120,62 200,31"),
+                    TraceB = Geometry.Parse("M 0,31 C 55,8 125,55 200,35"),
+                };
+                trace.Measure(new WpfSize(200, 62));
+                trace.Arrange(new Rect(0, 0, 200, 62));
+
+                trace.LeadingBreakProgress = 1;
+
+                Assert.True(trace.UsesLeadingBreakMasks);
+                Assert.Equal(
+                    DiscordBrokenTrailPattern.PrimaryStops.Where(stop => stop.IsTransparent).Select(stop => stop.Offset * 0.5),
+                    trace.RenderedPrimaryBreakTransparentOffsets);
+                Assert.Equal(
+                    DiscordBrokenTrailPattern.SecondaryStops.Where(stop => stop.IsTransparent).Select(stop => stop.Offset * 0.5),
+                    trace.RenderedSecondaryBreakTransparentOffsets);
+                Assert.True(trace.LeadingBreakRightHalfIntact);
+                Assert.Equal(0.76, trace.RenderedLeadingBreakDustOpacity);
+
+                trace.LeadingBreakProgress = 0;
+                Assert.False(trace.UsesLeadingBreakMasks);
+                Assert.Empty(trace.RenderedPrimaryBreakTransparentOffsets);
+                Assert.Empty(trace.RenderedSecondaryBreakTransparentOffsets);
+                Assert.Equal(0, trace.RenderedLeadingBreakDustOpacity);
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        });
+
+        Assert.Null(failure);
+    }
+
+    [Fact]
+    public void ReusableTrace_BrokenPatternMatchesTheDiscordSettingsVocabulary()
+    {
+        var xaml = XDocument.Load(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml"));
+        var xamlNamespace = XNamespace.Get("http://schemas.microsoft.com/winfx/2006/xaml");
+        var canvas = Assert.Single(xaml.Descendants(), element =>
+            element.Attribute(xamlNamespace + "Name")?.Value == "DiscordBrokenTrailCanvas");
+
+        AssertPattern("DiscordBrokenPrimaryStroke", DiscordBrokenTrailPattern.PrimaryStops);
+        AssertPattern("DiscordBrokenSecondaryStroke", DiscordBrokenTrailPattern.SecondaryStops);
+        return;
+
+        void AssertPattern(string resourceKey, IReadOnlyList<DiscordBrokenTrailStop> expected)
+        {
+            var brush = Assert.Single(canvas.Descendants(), element =>
+                element.Attribute(xamlNamespace + "Key")?.Value == resourceKey);
+            var actual = brush.Elements()
+                .Where(element => element.Name.LocalName == "GradientStop")
+                .Select(element => new DiscordBrokenTrailStop(
+                    double.Parse(
+                        element.Attribute("Offset")?.Value ?? string.Empty,
+                        System.Globalization.CultureInfo.InvariantCulture),
+                    element.Attribute("Color")?.Value == "Transparent"))
+                .ToArray();
+
+            Assert.Equal(expected, actual);
+        }
     }
 
     [Fact]
@@ -419,5 +496,20 @@ public sealed class JourneyTraceTests
         timer.Start();
         Dispatcher.PushFrame(frame);
         Assert.True(condition(), $"The WPF animation did not finish within {timeout.TotalMilliseconds:0} ms.");
+    }
+
+    private static string FindSourceFile(params string[] relativeSegments)
+    {
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
+        {
+            var candidate = Path.Combine([directory.FullName, .. relativeSegments]);
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        throw new FileNotFoundException(
+            $"Could not locate {Path.Combine(relativeSegments)} from the test output directory.");
     }
 }

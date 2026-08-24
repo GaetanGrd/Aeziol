@@ -35,6 +35,7 @@ public partial class MainWindow : Window
     private const double AutomationCicadaReturnX = -14;
     private const double AutomationCicadaReturnY = 12;
     private const double AutomationCicadaReturnAngle = 7;
+    private const int DiscordAuthorizationBreakTransitionDurationMilliseconds = 240;
     private static readonly HttpClient UpdateHttpClient = new() { Timeout = TimeSpan.FromMinutes(10) };
     private readonly AeziolRuntime _runtime;
     private readonly JsonAppSettingsStore _settingsStore;
@@ -63,6 +64,8 @@ public partial class MainWindow : Window
     private bool _updateCheckInProgress;
     private bool _updateDownloadInProgress;
     private int _automationVisualGeneration;
+    private VoicePresenceState _latestRuntimeVoicePresenceState = VoicePresenceState.DiscordAbsent;
+    private VoicePresenceState _presentedVoicePresenceState = VoicePresenceState.DiscordAbsent;
     private double _updateDownloadProgress;
     private AppUpdateRelease? _availableUpdate;
     private readonly ScaleTransform _closeActionsMenuScale = new(1, 1);
@@ -111,7 +114,7 @@ public partial class MainWindow : Window
             await _runtimeInitialization.ConfigureAwait(true);
             await RefreshEndpointsAsync(debounce: false).ConfigureAwait(true);
             _initializing = false;
-            UpdateVoiceState(_runtime.VoiceState);
+            UpdateRuntimeVoiceState(_runtime.VoiceState);
             UpdateAuthorizationState(_runtime.IsDiscordAuthorized);
             var recovery = await _runtime.InspectRecoveryAsync().ConfigureAwait(true);
             if (recovery is not null)
@@ -369,7 +372,7 @@ public partial class MainWindow : Window
         try
         {
             await PersistSettingsAsync(settings => settings with { AutomationEnabled = enabled }).ConfigureAwait(true);
-            UpdateVoiceState(_runtime.VoiceState);
+            UpdateRuntimeVoiceState(_runtime.VoiceState);
             await RefreshEndpointsAsync(debounce: false).ConfigureAwait(true);
         }
         catch (Exception exception)
@@ -981,6 +984,9 @@ public partial class MainWindow : Window
         var reduced = ReduceAnimationsToggle.IsChecked == true;
         MotionAssist.SetIsReduced(this, reduced);
         UpdateAutomationControlVisual(_runtime.Settings.AutomationEnabled, animate: false);
+        UpdatePassageAuthorizationBreak(
+            _latestRuntimeVoicePresenceState == VoicePresenceState.AuthorizationRequired,
+            animate: false);
         UpdateMusicCovers();
         try
         {
@@ -1909,7 +1915,7 @@ public partial class MainWindow : Window
     private void OnModalCancel(object sender, RoutedEventArgs eventArgs) => CompleteModal(ModalDecision.Cancel);
 
     private void OnVoiceStateChanged(object? sender, VoiceStateChangedEventArgs eventArgs) =>
-        Dispatcher.BeginInvoke(() => UpdateVoiceState(eventArgs.State));
+        Dispatcher.BeginInvoke(() => UpdateRuntimeVoiceState(eventArgs.State));
 
     private void OnRoutingStateChanged(object? sender, RoutingStateChangedEventArgs eventArgs) =>
         Dispatcher.BeginInvoke(async () =>
@@ -1926,20 +1932,20 @@ public partial class MainWindow : Window
 
     private void UpdateVoiceState(VoicePresenceState state)
     {
-        var key = state switch
-        {
-            VoicePresenceState.DiscordAbsent => "status-discord-absent",
-            VoicePresenceState.OutOfVoice => "status-out-of-voice",
-            VoicePresenceState.Connecting or VoicePresenceState.ChangingChannel or VoicePresenceState.Reconnecting =>
-                "status-connecting",
-            VoicePresenceState.Connected => "status-connected",
-            VoicePresenceState.AuthorizationRequired => "status-authorization-required",
-            VoicePresenceState.Unavailable => "status-unavailable",
-            _ => "status-disconnected",
-        };
-        var text = _localization.Get(key, SelectedRegister);
-        VoicePillText.Text = text;
+        var wasAuthorizationRequired = IsPassageSourceHighlightSuppressed;
+        _presentedVoicePresenceState = state;
+        var text = _localization.Get(VoicePresenceVisual.LocalizationKeyFor(state), SelectedRegister);
         DiscordSourceStateText.Text = text;
+        DiscordPresenceIcon.State = state;
+        DiscordPresenceIconSurface.ToolTip = text;
+        System.Windows.Automation.AutomationProperties.SetName(DiscordPresenceIcon, text);
+        System.Windows.Automation.AutomationProperties.SetHelpText(DiscordPresenceIcon, text);
+        System.Windows.Automation.AutomationProperties.SetName(DiscordPresenceIconSurface, text);
+        System.Windows.Automation.AutomationProperties.SetHelpText(DiscordPresenceIconSurface, text);
+        UpdatePassageAuthorizationBreak(
+            state == VoicePresenceState.AuthorizationRequired,
+            animate: true);
+        UpdatePassageSourceHighlightAvailability(wasAuthorizationRequired);
 
         var active = state == VoicePresenceState.Connected;
         var waiting = state is VoicePresenceState.Connecting
@@ -1950,11 +1956,43 @@ public partial class MainWindow : Window
             : waiting
                 ? "AeziolGold"
                 : "AeziolDim");
-        VoicePillDot.Fill = brush;
         RailStatusDot.Fill = brush;
         RailStatusText.Text = _runtime.Settings.AutomationEnabled
             ? _localization.Get(active ? "active" : "watching", SelectedRegister)
             : _localization.Get("paused", SelectedRegister);
+    }
+
+    private void UpdateRuntimeVoiceState(VoicePresenceState state)
+    {
+        _latestRuntimeVoicePresenceState = state;
+        UpdateVoiceState(state);
+    }
+
+    private void UpdatePassageAuthorizationBreak(bool isBroken, bool animate)
+    {
+        var target = isBroken ? 1d : 0d;
+        var currentBreak = PassageJourneyTrace.LeadingBreakProgress;
+        PassageJourneyTrace.BeginAnimation(
+            Aeziol.App.Controls.JourneyTrace.LeadingBreakProgressProperty,
+            null);
+        PassageJourneyTrace.LeadingBreakProgress = target;
+
+        if (!animate
+            || MotionAssist.GetIsReduced(this)
+            || Math.Abs(currentBreak - target) < 0.001)
+        {
+            return;
+        }
+
+        var duration = TimeSpan.FromMilliseconds(DiscordAuthorizationBreakTransitionDurationMilliseconds);
+        var easing = new QuadraticEase { EasingMode = EasingMode.EaseInOut };
+        PassageJourneyTrace.BeginAnimation(
+            Aeziol.App.Controls.JourneyTrace.LeadingBreakProgressProperty,
+            new DoubleAnimation(currentBreak, target, duration)
+            {
+                EasingFunction = easing,
+                FillBehavior = FillBehavior.Stop,
+            });
     }
 
     private void UpdateRoutingState(RoutingResult result)
@@ -2280,7 +2318,7 @@ public partial class MainWindow : Window
         UpdateCloseBehaviorPreview();
         UpdateDiscordExecutableControls();
         UpdateAmbientMusicControls();
-        UpdateVoiceState(_runtime.VoiceState);
+        UpdateVoiceState(_latestRuntimeVoicePresenceState);
         UpdateRouteSummary();
         UpdateNavigationContext();
         UpdateSettingsSummaries();
@@ -2353,7 +2391,16 @@ public partial class MainWindow : Window
 
     private void OnPassageJourneySourceEnter(
         object sender,
-        System.Windows.Input.MouseEventArgs eventArgs) => ShowPassageJourneyHighlight(sender, 0, 112);
+        System.Windows.Input.MouseEventArgs eventArgs)
+    {
+        if (IsPassageSourceHighlightSuppressed)
+        {
+            PassageJourneyTrace.HideHighlight(sender, MotionAssist.GetIsReduced(this));
+            return;
+        }
+
+        ShowPassageJourneyHighlight(sender, 0, 112);
+    }
 
     private void OnPassageJourneyTargetEnter(
         object sender,
@@ -2363,6 +2410,21 @@ public partial class MainWindow : Window
         object sender,
         System.Windows.Input.MouseEventArgs eventArgs) =>
         PassageJourneyTrace.HideHighlight(sender, MotionAssist.GetIsReduced(this));
+
+    private bool IsPassageSourceHighlightSuppressed =>
+        _presentedVoicePresenceState == VoicePresenceState.AuthorizationRequired;
+
+    private void UpdatePassageSourceHighlightAvailability(bool wasAuthorizationRequired)
+    {
+        if (IsPassageSourceHighlightSuppressed)
+        {
+            PassageJourneyTrace.HideHighlight(PassageSourcePanel, MotionAssist.GetIsReduced(this));
+        }
+        else if (wasAuthorizationRequired && PassageSourcePanel.IsMouseOver)
+        {
+            ShowPassageJourneyHighlight(PassageSourcePanel, 0, 112);
+        }
+    }
 
     private void ShowPassageJourneyHighlight(object owner, double left, double width)
     {

@@ -1,0 +1,27 @@
+<UserControl x:Class="Aeziol.App.Controls.VoicePresenceIcon"
+             x:Name="PresenceIcon"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Focusable="False" IsHitTestVisible="False"
+             SnapsToDevicePixels="False">
+    <Grid x:Name="IconRoot">
+        <Viewbox x:Name="PreviousLayer" Stretch="Uniform" Opacity="0" RenderTransformOrigin="0.5,0.5">
+            <Viewbox.RenderTransform>
+                <RotateTransform x:Name="PreviousRotation" Angle="0" />
+            </Viewbox.RenderTransform>
+            <Grid Width="65" Height="48">
+                <Path x:Name="PreviousPrimaryPath" Fill="{DynamicResource DiscordBlurple}" />
+                <Path x:Name="PreviousOverlayPath" Fill="{DynamicResource DiscordBlurple}" />
+            </Grid>
+        </Viewbox>
+        <Viewbox x:Name="CurrentLayer" Stretch="Uniform" Opacity="1" RenderTransformOrigin="0.5,0.5">
+            <Viewbox.RenderTransform>
+                <RotateTransform x:Name="CurrentRotation" Angle="0" />
+            </Viewbox.RenderTransform>
+            <Grid Width="65" Height="48">
+                <Path x:Name="CurrentPrimaryPath" Fill="{DynamicResource DiscordBlurple}" />
+                <Path x:Name="CurrentOverlayPath" Fill="{DynamicResource DiscordBlurple}" />
+            </Grid>
+        </Viewbox>
+    </Grid>
+</UserControl>
