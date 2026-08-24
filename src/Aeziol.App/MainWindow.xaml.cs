@@ -66,7 +66,6 @@ public partial class MainWindow : Window
     private int _automationVisualGeneration;
     private VoicePresenceState _latestRuntimeVoicePresenceState = VoicePresenceState.DiscordAbsent;
     private VoicePresenceState _presentedVoicePresenceState = VoicePresenceState.DiscordAbsent;
-    private VoicePresenceState? _temporaryVoicePresencePreviewState;
     private double _updateDownloadProgress;
     private AppUpdateRelease? _availableUpdate;
     private readonly ScaleTransform _closeActionsMenuScale = new(1, 1);
@@ -986,8 +985,7 @@ public partial class MainWindow : Window
         MotionAssist.SetIsReduced(this, reduced);
         UpdateAutomationControlVisual(_runtime.Settings.AutomationEnabled, animate: false);
         UpdatePassageAuthorizationBreak(
-            (_temporaryVoicePresencePreviewState ?? _latestRuntimeVoicePresenceState)
-                == VoicePresenceState.AuthorizationRequired,
+            _latestRuntimeVoicePresenceState == VoicePresenceState.AuthorizationRequired,
             animate: false);
         UpdateMusicCovers();
         try
@@ -1967,10 +1965,7 @@ public partial class MainWindow : Window
     private void UpdateRuntimeVoiceState(VoicePresenceState state)
     {
         _latestRuntimeVoicePresenceState = state;
-        if (_temporaryVoicePresencePreviewState is null)
-        {
-            UpdateVoiceState(state);
-        }
+        UpdateVoiceState(state);
     }
 
     private void UpdatePassageAuthorizationBreak(bool isBroken, bool animate)
@@ -1998,66 +1993,6 @@ public partial class MainWindow : Window
                 EasingFunction = easing,
                 FillBehavior = FillBehavior.Stop,
             });
-    }
-
-    // Temporary Preview handlers. They only replace the rendered state and never mutate runtime settings.
-    private void OnTemporaryVoicePresencePreviewState(object sender, RoutedEventArgs eventArgs)
-    {
-        if (sender is not System.Windows.Controls.Button { Tag: string stateName }
-            || !Enum.TryParse(stateName, ignoreCase: false, out VoicePresenceState state))
-        {
-            return;
-        }
-
-        _temporaryVoicePresencePreviewState = state;
-        UpdateVoiceState(state);
-    }
-
-    private void OnTemporaryVoicePresencePreviewRuntime(object sender, RoutedEventArgs eventArgs)
-    {
-        _temporaryVoicePresencePreviewState = null;
-        UpdateVoiceState(_latestRuntimeVoicePresenceState);
-    }
-
-    private void ApplyTemporaryVoicePresencePreviewLocalization()
-    {
-        var previewTitle = _localization.Get("voice-preview-title", SelectedRegister);
-        TemporaryVoicePresencePreviewTitle.Text = previewTitle;
-        System.Windows.Automation.AutomationProperties.SetName(
-            TemporaryVoicePresencePreviewPanel,
-            previewTitle);
-
-        var buttons = new (System.Windows.Controls.Button Button, VoicePresenceState State, string LabelKey)[]
-        {
-            (TemporaryVoicePreviewDiscordAbsent, VoicePresenceState.DiscordAbsent, "voice-preview-discord-absent"),
-            (TemporaryVoicePreviewOutOfVoice, VoicePresenceState.OutOfVoice, "voice-preview-out-of-voice"),
-            (TemporaryVoicePreviewConnecting, VoicePresenceState.Connecting, "voice-preview-connecting"),
-            (TemporaryVoicePreviewConnected, VoicePresenceState.Connected, "voice-preview-connected"),
-            (TemporaryVoicePreviewChangingChannel, VoicePresenceState.ChangingChannel, "voice-preview-changing-channel"),
-            (TemporaryVoicePreviewReconnecting, VoicePresenceState.Reconnecting, "voice-preview-reconnecting"),
-            (TemporaryVoicePreviewDisconnected, VoicePresenceState.Disconnected, "voice-preview-disconnected"),
-            (TemporaryVoicePreviewAuthorizationRequired, VoicePresenceState.AuthorizationRequired, "voice-preview-authorization-required"),
-            (TemporaryVoicePreviewUnavailable, VoicePresenceState.Unavailable, "voice-preview-unavailable"),
-        };
-        foreach (var (button, state, labelKey) in buttons)
-        {
-            var stateText = _localization.Get(VoicePresenceVisual.LocalizationKeyFor(state), SelectedRegister);
-            button.Content = _localization.Get(labelKey, SelectedRegister);
-            button.ToolTip = stateText;
-            System.Windows.Automation.AutomationProperties.SetName(button, $"{previewTitle}: {stateText}");
-            System.Windows.Automation.AutomationProperties.SetHelpText(button, stateText);
-        }
-
-        var runtimeText = _localization.Get("voice-preview-runtime", SelectedRegister);
-        var runtimeHelp = _localization.Get("voice-preview-runtime-help", SelectedRegister);
-        TemporaryVoicePreviewRuntime.Content = runtimeText;
-        TemporaryVoicePreviewRuntime.ToolTip = runtimeHelp;
-        System.Windows.Automation.AutomationProperties.SetName(
-            TemporaryVoicePreviewRuntime,
-            $"{previewTitle}: {runtimeText}");
-        System.Windows.Automation.AutomationProperties.SetHelpText(
-            TemporaryVoicePreviewRuntime,
-            runtimeHelp);
     }
 
     private void UpdateRoutingState(RoutingResult result)
@@ -2383,8 +2318,7 @@ public partial class MainWindow : Window
         UpdateCloseBehaviorPreview();
         UpdateDiscordExecutableControls();
         UpdateAmbientMusicControls();
-        ApplyTemporaryVoicePresencePreviewLocalization();
-        UpdateVoiceState(_temporaryVoicePresencePreviewState ?? _latestRuntimeVoicePresenceState);
+        UpdateVoiceState(_latestRuntimeVoicePresenceState);
         UpdateRouteSummary();
         UpdateNavigationContext();
         UpdateSettingsSummaries();

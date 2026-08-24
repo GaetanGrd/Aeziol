@@ -1,5 +1,4 @@
 using System.Xml.Linq;
-using Aeziol.Core.Models;
 
 namespace Aeziol.Tests.App;
 
@@ -160,7 +159,7 @@ public sealed class MainWindowLayoutStructureTests
     }
 
     [Fact]
-    public void VoicePresencePreviewIntegratesAllStatesWithoutReplacingRuntimeState()
+    public void VoicePresenceIntegratesWithRuntimeAsItsSinglePresentationSource()
     {
         var document = XDocument.Load(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml"));
         var source = File.ReadAllText(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml.cs"));
@@ -168,12 +167,12 @@ public sealed class MainWindowLayoutStructureTests
         var sourceStateText = FindNamedElement(document, "DiscordSourceStateText");
         var presenceIcon = FindNamedElement(document, "DiscordPresenceIcon");
         var discordNavigation = FindNamedElement(document, "DiscordNav");
-        var previewPanel = FindNamedElement(document, "TemporaryVoicePresencePreviewPanel");
-        var previewButtons = previewPanel.Descendants()
-            .Where(element => element.Name.LocalName == "Button"
-                              && element.Attribute("Click")?.Value == "OnTemporaryVoicePresencePreviewState")
-            .ToArray();
-        var runtimeButton = FindNamedElement(document, "TemporaryVoicePreviewRuntime");
+        var runtimeUpdateStart = source.IndexOf("private void UpdateRuntimeVoiceState(", StringComparison.Ordinal);
+        var runtimeUpdateEnd = source.IndexOf(
+            "private void UpdatePassageAuthorizationBreak(",
+            runtimeUpdateStart,
+            StringComparison.Ordinal);
+        var runtimeUpdate = source[runtimeUpdateStart..runtimeUpdateEnd];
 
         Assert.DoesNotContain(document.Descendants(), element =>
             element.Attribute(Xaml + "Name")?.Value is "VoicePill" or "VoicePillDot" or "VoicePillText");
@@ -184,37 +183,8 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Contains(discordNavigation.Descendants(), element =>
             element.Name.LocalName == "Path"
             && element.Attribute("Data")?.Value == "{StaticResource DiscordSymbolGeometry}");
-
-        Assert.Equal(Enum.GetValues<VoicePresenceState>().Length, previewButtons.Length);
-        Assert.Equal(
-            Enum.GetNames<VoicePresenceState>().Order(StringComparer.Ordinal),
-            previewButtons.Select(button => button.Attribute("Tag")?.Value).Order(StringComparer.Ordinal));
-        Assert.All(previewButtons, button =>
-        {
-            Assert.Equal("True", button.Attribute("Focusable")?.Value);
-            Assert.Equal("True", button.Attribute("IsTabStop")?.Value);
-        });
-        Assert.Equal("OnTemporaryVoicePresencePreviewRuntime", runtimeButton.Attribute("Click")?.Value);
-        Assert.Equal("True", runtimeButton.Attribute("Focusable")?.Value);
-        Assert.Equal("True", runtimeButton.Attribute("IsTabStop")?.Value);
-        Assert.DoesNotContain(previewPanel.Descendants(), element => element.Name.LocalName == "Separator");
-
-        var previewHandlersStart = source.IndexOf(
-            "// Temporary Preview handlers.",
-            StringComparison.Ordinal);
-        var previewHandlersEnd = source.IndexOf(
-            "private void ApplyTemporaryVoicePresencePreviewLocalization()",
-            previewHandlersStart,
-            StringComparison.Ordinal);
-        var previewHandlers = source[previewHandlersStart..previewHandlersEnd];
-        Assert.Contains("_temporaryVoicePresencePreviewState = state;", previewHandlers, StringComparison.Ordinal);
-        Assert.Contains("_temporaryVoicePresencePreviewState = null;", previewHandlers, StringComparison.Ordinal);
-        Assert.Contains("UpdateVoiceState(_latestRuntimeVoicePresenceState);", previewHandlers, StringComparison.Ordinal);
-        Assert.DoesNotContain("PersistSettings", previewHandlers, StringComparison.Ordinal);
-        Assert.Contains("_latestRuntimeVoicePresenceState = state;", source, StringComparison.Ordinal);
-        Assert.Contains("if (_temporaryVoicePresencePreviewState is null)", source, StringComparison.Ordinal);
-        Assert.Contains("AutomationProperties.SetName(button", source, StringComparison.Ordinal);
-        Assert.Contains("AutomationProperties.SetHelpText(button", source, StringComparison.Ordinal);
+        Assert.Contains("_latestRuntimeVoicePresenceState = state;", runtimeUpdate, StringComparison.Ordinal);
+        Assert.Contains("UpdateVoiceState(state);", runtimeUpdate, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -295,8 +265,6 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Contains("PassageJourneyTrace.HideHighlight(PassageSourcePanel", availability, StringComparison.Ordinal);
         Assert.Contains("wasAuthorizationRequired && PassageSourcePanel.IsMouseOver", availability, StringComparison.Ordinal);
         Assert.Contains("ShowPassageJourneyHighlight(PassageSourcePanel, 0, 112);", availability, StringComparison.Ordinal);
-        Assert.Contains("_temporaryVoicePresencePreviewState = state;", source, StringComparison.Ordinal);
-        Assert.Contains("UpdateVoiceState(state);", source, StringComparison.Ordinal);
     }
 
     [Fact]

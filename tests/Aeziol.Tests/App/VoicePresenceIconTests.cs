@@ -132,6 +132,43 @@ public sealed class VoicePresenceIconTests
     }
 
     [Fact]
+    public void EveryVisibleGeometryIsCenteredInTheFixedSixtyFiveByFortyEightFrame()
+    {
+        foreach (var visual in VoicePresenceVisual.All)
+        {
+            var visible = visual.OverlayGeometry is null
+                ? visual.PrimaryGeometry
+                : System.Windows.Media.Geometry.Combine(
+                    visual.PrimaryGeometry,
+                    visual.OverlayGeometry,
+                    System.Windows.Media.GeometryCombineMode.Union,
+                    null);
+            var bounds = visible.Bounds;
+            var centerX = bounds.Left + (bounds.Width / 2);
+            var centerY = bounds.Top + (bounds.Height / 2);
+
+            Assert.True(
+                Math.Abs(centerX - 32.5) <= 0.2,
+                $"{visual.State} horizontal center was {centerX:0.###} for bounds {bounds}.");
+            Assert.True(
+                Math.Abs(centerY - 24) <= 0.2,
+                $"{visual.State} vertical center was {centerY:0.###} for bounds {bounds}.");
+        }
+
+        var opticallyCenteredStates = new[]
+        {
+            VoicePresenceState.Connected,
+            VoicePresenceState.Unavailable,
+        };
+        foreach (var state in opticallyCenteredStates)
+        {
+            var bounds = VoicePresenceVisual.For(state).PrimaryGeometry.Bounds;
+            Assert.Equal(32.5, bounds.Left + (bounds.Width / 2), 5);
+            Assert.Equal(24, bounds.Top + (bounds.Height / 2), 5);
+        }
+    }
+
+    [Fact]
     public void ControlCrossfadesEveryRuntimeStateAndNormalizesDisconnected()
     {
         WpfTestHost.Run(() =>
@@ -151,7 +188,18 @@ public sealed class VoicePresenceIconTests
         });
 
         var document = XDocument.Load(FindSourceFile("src", "Aeziol.App", "Controls", "VoicePresenceIcon.xaml"));
-        Assert.Equal(2, document.Descendants().Count(element => element.Name.LocalName == "Viewbox"));
+        var viewboxes = document.Descendants().Where(element => element.Name.LocalName == "Viewbox").ToArray();
+        Assert.Equal(2, viewboxes.Length);
+        Assert.All(viewboxes, viewbox =>
+        {
+            Assert.Equal("Uniform", viewbox.Attribute("Stretch")?.Value);
+            Assert.Equal("0.5,0.5", viewbox.Attribute("RenderTransformOrigin")?.Value);
+        });
+        Assert.Equal(2, document.Descendants().Count(element =>
+            element.Name.LocalName == "Grid"
+            && element.Attribute("Width")?.Value == "65"
+            && element.Attribute("Height")?.Value == "48"));
+        Assert.Equal(2, document.Descendants().Count(element => element.Name.LocalName == "RotateTransform"));
         Assert.Equal(4, document.Descendants().Count(element => element.Name.LocalName == "Path"));
         Assert.All(document.Descendants().Where(element => element.Name.LocalName == "Path"), path =>
         {

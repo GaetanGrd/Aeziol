@@ -344,77 +344,11 @@
                             </Border.Background>
                             <Grid Margin="24,20">
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <!-- Temporary Preview controls for validating voice presentation states. -->
-                                <Border x:Name="TemporaryVoicePresencePreviewPanel"
-                                        Padding="8,7" CornerRadius="12"
-                                        Background="{DynamicResource AeziolRaised}"
-                                        BorderBrush="{DynamicResource AeziolBorder}" BorderThickness="1">
-                                    <StackPanel>
-                                        <TextBlock x:Name="TemporaryVoicePresencePreviewTitle"
-                                                   FontSize="10" FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource AeziolMuted}" />
-                                        <UniformGrid x:Name="TemporaryVoicePresencePreviewButtons"
-                                                     Rows="2" Columns="5" Margin="-2,5,-2,-2">
-                                            <Button x:Name="TemporaryVoicePreviewDiscordAbsent" Tag="DiscordAbsent"
-                                                    Margin="2" MinHeight="27" Padding="6,3"
-                                                    Focusable="True" IsTabStop="True"
-                                                    Style="{StaticResource ActionButton}"
-                                                    Click="OnTemporaryVoicePresencePreviewState" />
-                                            <Button x:Name="TemporaryVoicePreviewOutOfVoice" Tag="OutOfVoice"
-                                                    Margin="2" MinHeight="27" Padding="6,3"
-                                                    Focusable="True" IsTabStop="True"
-                                                    Style="{StaticResource ActionButton}"
-                                                    Click="OnTemporaryVoicePresencePreviewState" />
-                                            <Button x:Name="TemporaryVoicePreviewConnecting" Tag="Connecting"
-                                                    Margin="2" MinHeight="27" Padding="6,3"
-                                                    Focusable="True" IsTabStop="True"
-                                                    Style="{StaticResource ActionButton}"
-                                                    Click="OnTemporaryVoicePresencePreviewState" />
-                                            <Button x:Name="TemporaryVoicePreviewConnected" Tag="Connected"
-                                                    Margin="2" MinHeight="27" Padding="6,3"
-                                                    Focusable="True" IsTabStop="True"
-                                                    Style="{StaticResource ActionButton}"
-                                                    Click="OnTemporaryVoicePresencePreviewState" />
-                                            <Button x:Name="TemporaryVoicePreviewChangingChannel" Tag="ChangingChannel"
-                                                    Margin="2" MinHeight="27" Padding="6,3"
-                                                    Focusable="True" IsTabStop="True"
-                                                    Style="{StaticResource ActionButton}"
-                                                    Click="OnTemporaryVoicePresencePreviewState" />
-                                            <Button x:Name="TemporaryVoicePreviewReconnecting" Tag="Reconnecting"
-                                                    Margin="2" MinHeight="27" Padding="6,3"
-                                                    Focusable="True" IsTabStop="True"
-                                                    Style="{StaticResource ActionButton}"
-                                                    Click="OnTemporaryVoicePresencePreviewState" />
-                                            <Button x:Name="TemporaryVoicePreviewDisconnected" Tag="Disconnected"
-                                                    Margin="2" MinHeight="27" Padding="6,3"
-                                                    Focusable="True" IsTabStop="True"
-                                                    Style="{StaticResource ActionButton}"
-                                                    Click="OnTemporaryVoicePresencePreviewState" />
-                                            <Button x:Name="TemporaryVoicePreviewAuthorizationRequired" Tag="AuthorizationRequired"
-                                                    Margin="2" MinHeight="27" Padding="6,3"
-                                                    Focusable="True" IsTabStop="True"
-                                                    Style="{StaticResource ActionButton}"
-                                                    Click="OnTemporaryVoicePresencePreviewState" />
-                                            <Button x:Name="TemporaryVoicePreviewUnavailable" Tag="Unavailable"
-                                                    Margin="2" MinHeight="27" Padding="6,3"
-                                                    Focusable="True" IsTabStop="True"
-                                                    Style="{StaticResource ActionButton}"
-                                                    Click="OnTemporaryVoicePresencePreviewState" />
-                                            <Button x:Name="TemporaryVoicePreviewRuntime"
-                                                    Margin="2" MinHeight="27" Padding="6,3"
-                                                    Focusable="True" IsTabStop="True"
-                                                    Style="{StaticResource ActionButton}"
-                                                    Click="OnTemporaryVoicePresencePreviewRuntime" />
-                                        </UniformGrid>
-                                    </StackPanel>
-                                </Border>
-
-                                <Grid Grid.Row="1" Margin="4,12,4,14">
+                                <Grid Margin="4,12,4,14">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="165" />
                                         <ColumnDefinition Width="*" />
@@ -600,7 +534,7 @@
                                     </StackPanel>
                                 </Grid>
 
-                                <Border x:Name="PassageOutputPanel" Grid.Row="2" Padding="14,11" CornerRadius="12"
+                                <Border x:Name="PassageOutputPanel" Grid.Row="1" Padding="14,11" CornerRadius="12"
                                         Background="{DynamicResource AeziolSurface}" BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="1">
                                     <StackPanel>
                                         <TextBlock x:Name="CurrentOutputLabelText" Style="{StaticResource SectionLabel}" />
