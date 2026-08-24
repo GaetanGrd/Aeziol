@@ -1,5 +1,6 @@
-using System.Xml.Linq;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using System.Xml.Linq;
 using Aeziol.App.Appearance;
 using Aeziol.App.Controls;
 using Aeziol.Core.Models;
@@ -10,40 +11,46 @@ namespace Aeziol.Tests.App;
 public sealed class VoicePresenceIconTests
 {
     [Fact]
-    public void CatalogMapsEveryVoiceStateToAUniqueVersionedSvg()
+    public void CatalogMapsNineRuntimeStatesToFiveVersionedVisualAssets()
     {
-        var expectedStates = Enum.GetValues<VoicePresenceState>();
-        var visuals = VoicePresenceVisual.All;
+        var expectedAssets = new[]
+        {
+            "discord-absent.svg",
+            "discord-authorization-required.svg",
+            "discord-connected.svg",
+            "discord-out-of-voice.svg",
+            "discord-unavailable.svg",
+        };
 
-        Assert.Equal(expectedStates.Length, visuals.Count);
-        Assert.Equal(expectedStates.Order(), visuals.Select(visual => visual.State).Order());
-        Assert.Equal(visuals.Count, visuals.Select(visual => visual.AssetFileName).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(5, VoicePresenceVisual.All.Count);
         Assert.Equal(
-            visuals.Count,
-            visuals.Select(visual => (visual.CutoutPathData, visual.OverlayPathData)).Distinct().Count());
+            expectedAssets,
+            VoicePresenceVisual.All.Select(visual => visual.AssetFileName).Order(StringComparer.Ordinal));
+        Assert.All(Enum.GetValues<VoicePresenceState>(), state => Assert.NotNull(VoicePresenceVisual.For(state)));
+
+        var outOfVoice = VoicePresenceVisual.For(VoicePresenceState.OutOfVoice);
+        Assert.Same(outOfVoice, VoicePresenceVisual.For(VoicePresenceState.Connecting));
+        Assert.Same(outOfVoice, VoicePresenceVisual.For(VoicePresenceState.ChangingChannel));
+        Assert.Same(outOfVoice, VoicePresenceVisual.For(VoicePresenceState.Reconnecting));
+        Assert.Same(outOfVoice, VoicePresenceVisual.For(VoicePresenceState.Disconnected));
+        Assert.Equal("status-out-of-voice", VoicePresenceVisual.LocalizationKeyFor(VoicePresenceState.Disconnected));
 
         var assetDirectory = FindSourceDirectory("src", "Aeziol.App", "Assets", "VoicePresence");
-        var svgFiles = Directory.GetFiles(assetDirectory, "*.svg", SearchOption.TopDirectoryOnly);
-        Assert.Equal(expectedStates.Length, svgFiles.Length);
         Assert.Equal(
-            visuals.Select(visual => visual.AssetFileName).Order(StringComparer.Ordinal),
-            svgFiles.Select(Path.GetFileName).Order(StringComparer.Ordinal));
+            expectedAssets,
+            Directory.GetFiles(assetDirectory, "*.svg").Select(Path.GetFileName).Order(StringComparer.Ordinal));
     }
 
     [Fact]
-    public void SvgSourcesMatchTheWpfGeometryCatalog()
+    public void SvgSourcesMatchTheFiveWpfFillGeometries()
     {
         var assetDirectory = FindSourceDirectory("src", "Aeziol.App", "Assets", "VoicePresence");
-        var brandDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "Assets", "Brand", "discord-symbol.svg"));
-        var brandPathData = Assert.Single(brandDocument.Descendants(), element => element.Name.LocalName == "path")
-            .Attribute("d")?.Value;
-        Assert.Equal(VoicePresenceVisual.DiscordLogoPathData, brandPathData);
 
         foreach (var visual in VoicePresenceVisual.All)
         {
             var document = XDocument.Load(Path.Combine(assetDirectory, visual.AssetFileName));
             var root = Assert.Single(document.Elements());
-            var logo = Assert.Single(document.Descendants(), element => element.Attribute("data-role")?.Value == "logo");
+            var primary = Assert.Single(document.Descendants(), element => element.Attribute("data-role")?.Value == "primary");
             var cutouts = document.Descendants()
                 .Where(element => element.Attribute("data-role")?.Value == "cutout")
                 .ToArray();
@@ -51,184 +58,199 @@ public sealed class VoicePresenceIconTests
                 .Where(element => element.Attribute("data-role")?.Value == "overlay")
                 .ToArray();
 
-            Assert.Equal("svg", root.Name.LocalName);
             Assert.Equal("65", root.Attribute("width")?.Value);
             Assert.Equal("48", root.Attribute("height")?.Value);
             Assert.Equal("0 0 65 48", root.Attribute("viewBox")?.Value);
-            Assert.Equal("none", root.Attribute("fill")?.Value);
-            Assert.Equal(brandPathData, logo.Attribute("d")?.Value);
-            Assert.Equal(visual.CutoutPathData is null ? 0 : 1, cutouts.Length);
-            Assert.Equal(visual.OverlayPathData is null ? 0 : 1, overlays.Length);
+            Assert.Equal(visual.PrimaryPathData, primary.Attribute("d")?.Value);
             Assert.Equal(visual.CutoutPathData, cutouts.SingleOrDefault()?.Attribute("d")?.Value);
             Assert.Equal(visual.OverlayPathData, overlays.SingleOrDefault()?.Attribute("d")?.Value);
-            Assert.NotEmpty(visual.LogoGeometry.GetFlattenedPathGeometry().Figures);
-            if (visual.OverlayGeometry is not null)
-            {
-                Assert.NotEmpty(visual.OverlayGeometry.GetFlattenedPathGeometry().Figures);
-            }
-
-            Assert.DoesNotContain(document.Descendants(), element =>
-                element.Name.LocalName is "image" or "canvas");
+            Assert.NotEmpty(visual.PrimaryGeometry.GetFlattenedPathGeometry().Figures);
+            Assert.DoesNotContain(document.Descendants(), element => element.Name.LocalName is "image" or "canvas");
             Assert.DoesNotContain(document.Descendants().Attributes(), attribute =>
                 attribute.Name.LocalName.StartsWith("stroke", StringComparison.OrdinalIgnoreCase));
         }
     }
 
     [Fact]
-    public void OutOfVoiceIsTheOriginalFilledDiscordLogoAndAuthorizationUsesMutedFill()
+    public void StateShapesFollowTheAuthoritativeMapping()
     {
+        var brandDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "Assets", "Brand", "discord-symbol.svg"));
+        var brandPath = Assert.Single(brandDocument.Descendants(), element => element.Name.LocalName == "path")
+            .Attribute("d")?.Value;
         var assetDirectory = FindSourceDirectory("src", "Aeziol.App", "Assets", "VoicePresence");
-        var outOfVoice = VoicePresenceVisual.For(VoicePresenceState.OutOfVoice);
-        var outDocument = XDocument.Load(Path.Combine(assetDirectory, outOfVoice.AssetFileName));
-        var outLogo = Assert.Single(outDocument.Descendants(), element => element.Attribute("data-role")?.Value == "logo");
 
+        var outOfVoice = VoicePresenceVisual.For(VoicePresenceState.OutOfVoice);
+        Assert.Equal(brandPath, outOfVoice.PrimaryPathData);
         Assert.Null(outOfVoice.CutoutPathData);
         Assert.Null(outOfVoice.OverlayPathData);
-        Assert.Equal("#5865F2", outLogo.Attribute("fill")?.Value);
-        Assert.DoesNotContain(outDocument.Descendants(), element => element.Name.LocalName == "mask");
 
         var authorization = VoicePresenceVisual.For(VoicePresenceState.AuthorizationRequired);
-        var authorizationDocument = XDocument.Load(Path.Combine(assetDirectory, authorization.AssetFileName));
+        Assert.Equal(brandPath, authorization.PrimaryPathData);
+        Assert.Null(authorization.CutoutPathData);
+        Assert.Null(authorization.OverlayPathData);
         Assert.Equal("AeziolMuted", authorization.FillBrushKey);
-        Assert.All(
-            authorizationDocument.Descendants().Where(element => element.Attribute("data-role")?.Value is "logo" or "overlay"),
-            element => Assert.NotEqual("#5865F2", element.Attribute("fill")?.Value));
+
+        var absent = VoicePresenceVisual.For(VoicePresenceState.DiscordAbsent);
+        Assert.Equal(brandPath, absent.PrimaryPathData);
+        Assert.Equal(VoicePresenceVisual.DiscordCracksPathData, absent.CutoutPathData);
+        Assert.True(GeometryFigureCount(absent.CutoutPathData) >= 3);
+
+        var connected = VoicePresenceVisual.For(VoicePresenceState.Connected);
+        Assert.Equal(VoicePresenceVisual.SpeakerPathData, connected.PrimaryPathData);
+        Assert.True(GeometryFigureCount(connected.PrimaryPathData) >= 3);
+        var connectedDocument = XDocument.Load(Path.Combine(assetDirectory, connected.AssetFileName));
+        Assert.Equal("speaker", Assert.Single(connectedDocument.Descendants(), element =>
+            element.Attribute("data-role")?.Value == "primary").Attribute("data-shape")?.Value);
+
+        var unavailable = VoicePresenceVisual.For(VoicePresenceState.Unavailable);
+        Assert.Equal(VoicePresenceVisual.QuestionMarkPathData, unavailable.PrimaryPathData);
+        Assert.True(GeometryFigureCount(unavailable.PrimaryPathData) >= 2);
+        var unavailableDocument = XDocument.Load(Path.Combine(assetDirectory, unavailable.AssetFileName));
+        Assert.Equal("question-mark", Assert.Single(unavailableDocument.Descendants(), element =>
+            element.Attribute("data-role")?.Value == "primary").Attribute("data-shape")?.Value);
     }
 
     [Fact]
-    public void ControlUsesTwoVectorLayersAndAnimatesEveryStateChange()
+    public void ControlCrossfadesEveryRuntimeStateAndNormalizesDisconnected()
     {
         WpfTestHost.Run(() =>
         {
             var icon = new VoicePresenceIcon();
-
             Assert.Equal(VoicePresenceState.DiscordAbsent, icon.RenderedState);
-            Assert.Equal("discord-absent.svg", icon.RenderedAssetFileName);
-            Assert.Equal(0, icon.AnimatedTransitionCount);
 
             foreach (var state in Enum.GetValues<VoicePresenceState>().Skip(1))
             {
                 icon.State = state;
-                Assert.Equal(state, icon.RenderedState);
+                Assert.Equal(VoicePresenceVisual.For(state).State, icon.RenderedState);
                 Assert.Equal(VoicePresenceVisual.For(state).AssetFileName, icon.RenderedAssetFileName);
             }
 
             Assert.Equal(Enum.GetValues<VoicePresenceState>().Length - 1, icon.AnimatedTransitionCount);
-            Assert.True(icon.HasActiveTransition);
+            Assert.Equal(VoicePresenceState.Unavailable, icon.RenderedState);
         });
 
         var document = XDocument.Load(FindSourceFile("src", "Aeziol.App", "Controls", "VoicePresenceIcon.xaml"));
-        var layers = document.Descendants()
-            .Where(element => element.Name.LocalName == "Viewbox")
-            .ToArray();
-        var paths = document.Descendants()
-            .Where(element => element.Name.LocalName == "Path")
-            .ToArray();
-
-        Assert.Equal(2, layers.Length);
-        Assert.Equal(4, paths.Length);
-        Assert.All(paths, path =>
+        Assert.Equal(2, document.Descendants().Count(element => element.Name.LocalName == "Viewbox"));
+        Assert.Equal(4, document.Descendants().Count(element => element.Name.LocalName == "Path"));
+        Assert.All(document.Descendants().Where(element => element.Name.LocalName == "Path"), path =>
         {
             Assert.NotNull(path.Attribute("Fill"));
             Assert.Null(path.Attribute("Stroke"));
-            Assert.Null(path.Attribute("StrokeThickness"));
         });
-        Assert.Equal(2, document.Descendants().Count(element =>
-            element.Name.LocalName == "Grid"
-            && element.Attribute("Width")?.Value == "65"
-            && element.Attribute("Height")?.Value == "48"));
-        Assert.DoesNotContain(document.Descendants(), element =>
-            element.Name.LocalName is "Image" or "Canvas");
     }
 
     [Fact]
-    public void ReducedMotionMakesStateChangesInstantAndStopsAnActiveTransition()
+    public void OnlyTransientStatesUseAnEasedTurnAndVisibleHoldCycle()
+    {
+        var expectedRotatingStates = new[]
+        {
+            VoicePresenceState.Connecting,
+            VoicePresenceState.ChangingChannel,
+            VoicePresenceState.Reconnecting,
+        };
+        Assert.Equal(
+            expectedRotatingStates,
+            Enum.GetValues<VoicePresenceState>().Where(VoicePresenceVisual.Rotates));
+
+        WpfTestHost.Run(() =>
+        {
+            var icon = new VoicePresenceIcon { State = VoicePresenceState.Connecting };
+            PumpDispatcher(TimeSpan.FromMilliseconds(VoicePresenceIcon.TransitionDurationMilliseconds + 80));
+
+            Assert.False(icon.HasActiveTransition);
+            Assert.True(icon.HasActiveStateRotation);
+            var animation = Assert.IsType<DoubleAnimationUsingKeyFrames>(icon.ActiveStateRotationAnimation);
+            Assert.Equal(RepeatBehavior.Forever, animation.RepeatBehavior);
+            Assert.Collection(
+                animation.KeyFrames.Cast<DoubleKeyFrame>().ToArray(),
+                first =>
+                {
+                    Assert.IsType<LinearDoubleKeyFrame>(first);
+                    Assert.Equal(0, first.Value);
+                    Assert.Equal(TimeSpan.Zero, first.KeyTime.TimeSpan);
+                },
+                turn =>
+                {
+                    var eased = Assert.IsType<EasingDoubleKeyFrame>(turn);
+                    Assert.Equal(360, eased.Value);
+                    Assert.Equal(
+                        TimeSpan.FromMilliseconds(VoicePresenceIcon.StateRotationMotionMilliseconds),
+                        eased.KeyTime.TimeSpan);
+                    Assert.IsType<SineEase>(eased.EasingFunction);
+                },
+                hold =>
+                {
+                    Assert.IsType<DiscreteDoubleKeyFrame>(hold);
+                    Assert.Equal(360, hold.Value);
+                    Assert.Equal(
+                        TimeSpan.FromMilliseconds(
+                            VoicePresenceIcon.StateRotationMotionMilliseconds
+                            + VoicePresenceIcon.StateRotationHoldMilliseconds),
+                        hold.KeyTime.TimeSpan);
+                });
+            Assert.InRange(VoicePresenceIcon.StateRotationMotionMilliseconds, 850, 1000);
+            Assert.InRange(VoicePresenceIcon.StateRotationHoldMilliseconds, 350, 550);
+        });
+    }
+
+    [Fact]
+    public void RotationStopsImmediatelyOnStableStateRapidChangeAndReducedMotion()
     {
         WpfTestHost.Run(() =>
         {
-            var icon = new VoicePresenceIcon();
-            MotionAssist.SetIsReduced(icon, true);
+            var icon = new VoicePresenceIcon { State = VoicePresenceState.Connecting };
+            PumpDispatcher(TimeSpan.FromMilliseconds(VoicePresenceIcon.TransitionDurationMilliseconds + 80));
+            Assert.True(icon.HasActiveStateRotation);
 
             icon.State = VoicePresenceState.Connected;
+            Assert.False(icon.HasActiveStateRotation);
+            Assert.Null(icon.ActiveStateRotationAnimation);
 
-            Assert.Equal(VoicePresenceState.Connected, icon.RenderedState);
-            Assert.Equal(0, icon.AnimatedTransitionCount);
-            Assert.False(icon.HasActiveTransition);
-
-            MotionAssist.SetIsReduced(icon, false);
             icon.State = VoicePresenceState.Reconnecting;
-            Assert.Equal(1, icon.AnimatedTransitionCount);
-            Assert.True(icon.HasActiveTransition);
-
             MotionAssist.SetIsReduced(icon, true);
             Assert.False(icon.HasActiveTransition);
-        });
-    }
-
-    [Fact]
-    public void TransientStatesUseDistinctVectorEntryMotions()
-    {
-        WpfTestHost.Run(() =>
-        {
-            var icon = new VoicePresenceIcon();
-
-            icon.State = VoicePresenceState.OutOfVoice;
-            var settle = icon.LastEntryPose;
-            Assert.Equal(VoicePresenceEntryMotion.Settle, icon.LastEntryMotion);
-            Assert.Equal(0.88, settle.ScaleX);
-            Assert.Equal(2.5, settle.Y);
-
-            icon.State = VoicePresenceState.Connecting;
-            var converge = icon.LastEntryPose;
-            Assert.Equal(VoicePresenceEntryMotion.Converge, icon.LastEntryMotion);
-            Assert.Equal(0.68, converge.ScaleX);
-            Assert.Equal(0, converge.X);
+            Assert.False(icon.HasActiveStateRotation);
+            Assert.False(icon.HasAnimatedClocks);
 
             icon.State = VoicePresenceState.ChangingChannel;
-            var slide = icon.LastEntryPose;
-            Assert.Equal(VoicePresenceEntryMotion.Slide, icon.LastEntryMotion);
-            Assert.Equal(1, slide.ScaleX);
-            Assert.Equal(-6, slide.X);
+            Assert.Equal(VoicePresenceState.OutOfVoice, icon.RenderedState);
+            Assert.False(icon.HasActiveStateRotation);
+            Assert.False(icon.HasAnimatedClocks);
 
-            icon.State = VoicePresenceState.Reconnecting;
-            var returning = icon.LastEntryPose;
-            Assert.Equal(VoicePresenceEntryMotion.Return, icon.LastEntryMotion);
-            Assert.Equal(-2, returning.X);
-            Assert.Equal(-9, returning.Angle);
-
-            Assert.Equal(4, new[] { settle, converge, slide, returning }.Distinct().Count());
+            MotionAssist.SetIsReduced(icon, false);
+            Assert.True(icon.HasActiveStateRotation);
+            MotionAssist.SetIsReduced(icon, true);
+            Assert.False(icon.HasActiveStateRotation);
+            Assert.False(icon.HasAnimatedClocks);
         });
     }
 
     [Fact]
-    public void CompletedTransitionCleansAnimationClocksAfterRapidChanges()
+    public void CompletedStableTransitionCleansAllAnimationClocksAfterRapidChanges()
     {
         WpfTestHost.Run(() =>
         {
             var icon = new VoicePresenceIcon();
             icon.State = VoicePresenceState.Connecting;
-            Assert.True(icon.HasActiveTransition);
-
-            icon.State = VoicePresenceState.ChangingChannel;
-            Assert.Equal(VoicePresenceState.ChangingChannel, icon.RenderedState);
-            Assert.True(icon.HasActiveTransition);
+            icon.State = VoicePresenceState.Connected;
+            icon.State = VoicePresenceState.Unavailable;
 
             PumpDispatcher(TimeSpan.FromMilliseconds(VoicePresenceIcon.TransitionDurationMilliseconds + 80));
 
-            Assert.Equal(VoicePresenceState.ChangingChannel, icon.RenderedState);
+            Assert.Equal(VoicePresenceState.Unavailable, icon.RenderedState);
             Assert.False(icon.HasActiveTransition);
+            Assert.False(icon.HasActiveStateRotation);
             Assert.False(icon.HasAnimatedClocks);
-            Assert.Equal(2, icon.AnimatedTransitionCount);
         });
     }
+
+    private static int GeometryFigureCount(string? pathData) =>
+        pathData is null ? 0 : System.Windows.Media.Geometry.Parse(pathData).GetFlattenedPathGeometry().Figures.Count;
 
     private static void PumpDispatcher(TimeSpan duration)
     {
         var frame = new DispatcherFrame();
-        var timer = new DispatcherTimer(DispatcherPriority.Background)
-        {
-            Interval = duration,
-        };
+        var timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = duration };
         timer.Tick += (_, _) =>
         {
             timer.Stop();

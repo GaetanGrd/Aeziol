@@ -65,6 +65,7 @@ public partial class MainWindow : Window
     private bool _updateDownloadInProgress;
     private int _automationVisualGeneration;
     private VoicePresenceState _latestRuntimeVoicePresenceState = VoicePresenceState.DiscordAbsent;
+    private VoicePresenceState _presentedVoicePresenceState = VoicePresenceState.DiscordAbsent;
     private VoicePresenceState? _temporaryVoicePresencePreviewState;
     private double _updateDownloadProgress;
     private AppUpdateRelease? _availableUpdate;
@@ -1933,8 +1934,9 @@ public partial class MainWindow : Window
 
     private void UpdateVoiceState(VoicePresenceState state)
     {
-        var visual = VoicePresenceVisual.For(state);
-        var text = _localization.Get(visual.LocalizationKey, SelectedRegister);
+        var wasAuthorizationRequired = IsPassageSourceHighlightSuppressed;
+        _presentedVoicePresenceState = state;
+        var text = _localization.Get(VoicePresenceVisual.LocalizationKeyFor(state), SelectedRegister);
         DiscordSourceStateText.Text = text;
         DiscordPresenceIcon.State = state;
         DiscordPresenceIconSurface.ToolTip = text;
@@ -1945,6 +1947,7 @@ public partial class MainWindow : Window
         UpdatePassageAuthorizationBreak(
             state == VoicePresenceState.AuthorizationRequired,
             animate: true);
+        UpdatePassageSourceHighlightAvailability(wasAuthorizationRequired);
 
         var active = state == VoicePresenceState.Connected;
         var waiting = state is VoicePresenceState.Connecting
@@ -2038,7 +2041,7 @@ public partial class MainWindow : Window
         };
         foreach (var (button, state, labelKey) in buttons)
         {
-            var stateText = _localization.Get(VoicePresenceVisual.For(state).LocalizationKey, SelectedRegister);
+            var stateText = _localization.Get(VoicePresenceVisual.LocalizationKeyFor(state), SelectedRegister);
             button.Content = _localization.Get(labelKey, SelectedRegister);
             button.ToolTip = stateText;
             System.Windows.Automation.AutomationProperties.SetName(button, $"{previewTitle}: {stateText}");
@@ -2454,7 +2457,16 @@ public partial class MainWindow : Window
 
     private void OnPassageJourneySourceEnter(
         object sender,
-        System.Windows.Input.MouseEventArgs eventArgs) => ShowPassageJourneyHighlight(sender, 0, 112);
+        System.Windows.Input.MouseEventArgs eventArgs)
+    {
+        if (IsPassageSourceHighlightSuppressed)
+        {
+            PassageJourneyTrace.HideHighlight(sender, MotionAssist.GetIsReduced(this));
+            return;
+        }
+
+        ShowPassageJourneyHighlight(sender, 0, 112);
+    }
 
     private void OnPassageJourneyTargetEnter(
         object sender,
@@ -2464,6 +2476,21 @@ public partial class MainWindow : Window
         object sender,
         System.Windows.Input.MouseEventArgs eventArgs) =>
         PassageJourneyTrace.HideHighlight(sender, MotionAssist.GetIsReduced(this));
+
+    private bool IsPassageSourceHighlightSuppressed =>
+        _presentedVoicePresenceState == VoicePresenceState.AuthorizationRequired;
+
+    private void UpdatePassageSourceHighlightAvailability(bool wasAuthorizationRequired)
+    {
+        if (IsPassageSourceHighlightSuppressed)
+        {
+            PassageJourneyTrace.HideHighlight(PassageSourcePanel, MotionAssist.GetIsReduced(this));
+        }
+        else if (wasAuthorizationRequired && PassageSourcePanel.IsMouseOver)
+        {
+            ShowPassageJourneyHighlight(PassageSourcePanel, 0, 112);
+        }
+    }
 
     private void ShowPassageJourneyHighlight(object owner, double left, double width)
     {

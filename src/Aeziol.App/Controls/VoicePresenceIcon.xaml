@@ -7,23 +7,19 @@
     <Grid x:Name="IconRoot">
         <Viewbox x:Name="PreviousLayer" Stretch="Uniform" Opacity="0" RenderTransformOrigin="0.5,0.5">
             <Viewbox.RenderTransform>
-                <ScaleTransform x:Name="PreviousScale" ScaleX="1" ScaleY="1" />
+                <RotateTransform x:Name="PreviousRotation" Angle="0" />
             </Viewbox.RenderTransform>
             <Grid Width="65" Height="48">
-                <Path x:Name="PreviousLogoPath" Fill="{DynamicResource DiscordBlurple}" />
+                <Path x:Name="PreviousPrimaryPath" Fill="{DynamicResource DiscordBlurple}" />
                 <Path x:Name="PreviousOverlayPath" Fill="{DynamicResource DiscordBlurple}" />
             </Grid>
         </Viewbox>
         <Viewbox x:Name="CurrentLayer" Stretch="Uniform" Opacity="1" RenderTransformOrigin="0.5,0.5">
             <Viewbox.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform x:Name="CurrentScale" ScaleX="1" ScaleY="1" />
-                    <RotateTransform x:Name="CurrentRotation" Angle="0" />
-                    <TranslateTransform x:Name="CurrentTranslation" X="0" Y="0" />
-                </TransformGroup>
+                <RotateTransform x:Name="CurrentRotation" Angle="0" />
             </Viewbox.RenderTransform>
             <Grid Width="65" Height="48">
-                <Path x:Name="CurrentLogoPath" Fill="{DynamicResource DiscordBlurple}" />
+                <Path x:Name="CurrentPrimaryPath" Fill="{DynamicResource DiscordBlurple}" />
                 <Path x:Name="CurrentOverlayPath" Fill="{DynamicResource DiscordBlurple}" />
             </Grid>
         </Viewbox>

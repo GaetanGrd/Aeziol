@@ -268,6 +268,38 @@ public sealed class MainWindowLayoutStructureTests
     }
 
     [Fact]
+    public void AuthorizationPresentationSuppressesOnlyTheDiscordSourceHoverAndRestoresItAfterward()
+    {
+        var source = File.ReadAllText(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml.cs"));
+        var sourceEnterStart = source.IndexOf("private void OnPassageJourneySourceEnter(", StringComparison.Ordinal);
+        var targetEnterStart = source.IndexOf("private void OnPassageJourneyTargetEnter(", sourceEnterStart, StringComparison.Ordinal);
+        var leaveStart = source.IndexOf("private void OnPassageJourneyLeave(", targetEnterStart, StringComparison.Ordinal);
+        var sourceEnter = source[sourceEnterStart..targetEnterStart];
+        var availabilityStart = source.IndexOf(
+            "private void UpdatePassageSourceHighlightAvailability(",
+            StringComparison.Ordinal);
+        var highlightStart = source.IndexOf(
+            "private void ShowPassageJourneyHighlight(",
+            availabilityStart,
+            StringComparison.Ordinal);
+        var availability = source[availabilityStart..highlightStart];
+
+        Assert.Contains("_presentedVoicePresenceState = state;", source, StringComparison.Ordinal);
+        Assert.Contains(
+            "_presentedVoicePresenceState == VoicePresenceState.AuthorizationRequired",
+            source,
+            StringComparison.Ordinal);
+        Assert.Contains("if (IsPassageSourceHighlightSuppressed)", sourceEnter, StringComparison.Ordinal);
+        Assert.Contains("PassageJourneyTrace.HideHighlight(sender", sourceEnter, StringComparison.Ordinal);
+        Assert.DoesNotContain("IsPassageSourceHighlightSuppressed", source[targetEnterStart..leaveStart], StringComparison.Ordinal);
+        Assert.Contains("PassageJourneyTrace.HideHighlight(PassageSourcePanel", availability, StringComparison.Ordinal);
+        Assert.Contains("wasAuthorizationRequired && PassageSourcePanel.IsMouseOver", availability, StringComparison.Ordinal);
+        Assert.Contains("ShowPassageJourneyHighlight(PassageSourcePanel, 0, 112);", availability, StringComparison.Ordinal);
+        Assert.Contains("_temporaryVoicePresencePreviewState = state;", source, StringComparison.Ordinal);
+        Assert.Contains("UpdateVoiceState(state);", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AutomationTransitionsCancelCleanlyAndRespectReducedMotion()
     {
         var source = File.ReadAllText(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml.cs"));
