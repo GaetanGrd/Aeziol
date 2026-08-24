@@ -349,13 +349,68 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <Border x:Name="VoicePill" HorizontalAlignment="Left" Padding="10,6" CornerRadius="12"
-                                        Background="{DynamicResource AeziolRaised}" BorderBrush="{DynamicResource AeziolBorder}"
-                                        BorderThickness="1">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Ellipse x:Name="VoicePillDot" Width="7" Height="7" Margin="0,0,8,0"
-                                                 Fill="{DynamicResource AeziolDim}" VerticalAlignment="Center" />
-                                        <TextBlock x:Name="VoicePillText" FontSize="11" FontWeight="SemiBold" />
+                                <!-- Temporary Preview controls for validating voice presentation states. -->
+                                <Border x:Name="TemporaryVoicePresencePreviewPanel"
+                                        Padding="8,7" CornerRadius="12"
+                                        Background="{DynamicResource AeziolRaised}"
+                                        BorderBrush="{DynamicResource AeziolBorder}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock x:Name="TemporaryVoicePresencePreviewTitle"
+                                                   FontSize="10" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource AeziolMuted}" />
+                                        <UniformGrid x:Name="TemporaryVoicePresencePreviewButtons"
+                                                     Rows="2" Columns="5" Margin="-2,5,-2,-2">
+                                            <Button x:Name="TemporaryVoicePreviewDiscordAbsent" Tag="DiscordAbsent"
+                                                    Margin="2" MinHeight="27" Padding="6,3"
+                                                    Focusable="True" IsTabStop="True"
+                                                    Style="{StaticResource ActionButton}"
+                                                    Click="OnTemporaryVoicePresencePreviewState" />
+                                            <Button x:Name="TemporaryVoicePreviewOutOfVoice" Tag="OutOfVoice"
+                                                    Margin="2" MinHeight="27" Padding="6,3"
+                                                    Focusable="True" IsTabStop="True"
+                                                    Style="{StaticResource ActionButton}"
+                                                    Click="OnTemporaryVoicePresencePreviewState" />
+                                            <Button x:Name="TemporaryVoicePreviewConnecting" Tag="Connecting"
+                                                    Margin="2" MinHeight="27" Padding="6,3"
+                                                    Focusable="True" IsTabStop="True"
+                                                    Style="{StaticResource ActionButton}"
+                                                    Click="OnTemporaryVoicePresencePreviewState" />
+                                            <Button x:Name="TemporaryVoicePreviewConnected" Tag="Connected"
+                                                    Margin="2" MinHeight="27" Padding="6,3"
+                                                    Focusable="True" IsTabStop="True"
+                                                    Style="{StaticResource ActionButton}"
+                                                    Click="OnTemporaryVoicePresencePreviewState" />
+                                            <Button x:Name="TemporaryVoicePreviewChangingChannel" Tag="ChangingChannel"
+                                                    Margin="2" MinHeight="27" Padding="6,3"
+                                                    Focusable="True" IsTabStop="True"
+                                                    Style="{StaticResource ActionButton}"
+                                                    Click="OnTemporaryVoicePresencePreviewState" />
+                                            <Button x:Name="TemporaryVoicePreviewReconnecting" Tag="Reconnecting"
+                                                    Margin="2" MinHeight="27" Padding="6,3"
+                                                    Focusable="True" IsTabStop="True"
+                                                    Style="{StaticResource ActionButton}"
+                                                    Click="OnTemporaryVoicePresencePreviewState" />
+                                            <Button x:Name="TemporaryVoicePreviewDisconnected" Tag="Disconnected"
+                                                    Margin="2" MinHeight="27" Padding="6,3"
+                                                    Focusable="True" IsTabStop="True"
+                                                    Style="{StaticResource ActionButton}"
+                                                    Click="OnTemporaryVoicePresencePreviewState" />
+                                            <Button x:Name="TemporaryVoicePreviewAuthorizationRequired" Tag="AuthorizationRequired"
+                                                    Margin="2" MinHeight="27" Padding="6,3"
+                                                    Focusable="True" IsTabStop="True"
+                                                    Style="{StaticResource ActionButton}"
+                                                    Click="OnTemporaryVoicePresencePreviewState" />
+                                            <Button x:Name="TemporaryVoicePreviewUnavailable" Tag="Unavailable"
+                                                    Margin="2" MinHeight="27" Padding="6,3"
+                                                    Focusable="True" IsTabStop="True"
+                                                    Style="{StaticResource ActionButton}"
+                                                    Click="OnTemporaryVoicePresencePreviewState" />
+                                            <Button x:Name="TemporaryVoicePreviewRuntime"
+                                                    Margin="2" MinHeight="27" Padding="6,3"
+                                                    Focusable="True" IsTabStop="True"
+                                                    Style="{StaticResource ActionButton}"
+                                                    Click="OnTemporaryVoicePresencePreviewRuntime" />
+                                        </UniformGrid>
                                     </StackPanel>
                                 </Border>
 
@@ -370,14 +425,15 @@
                                                 MouseEnter="OnPassageJourneySourceEnter"
                                                 MouseLeave="OnPassageJourneyLeave">
                                         <TextBlock x:Name="SourceLabelText" Style="{StaticResource SectionLabel}" HorizontalAlignment="Center" />
-                                        <Border Width="86" Height="86" Margin="0,10,0,0" CornerRadius="43"
+                                        <Border x:Name="DiscordPresenceIconSurface"
+                                                Width="86" Height="86" Margin="0,10,0,0" CornerRadius="43"
                                                 Background="{DynamicResource AeziolRaised}"
                                                 BorderBrush="{DynamicResource AeziolBorder}" BorderThickness="1"
                                                 HorizontalAlignment="Center">
                                             <Grid>
-                                                <Path Width="39" Height="29" Stretch="Uniform"
-                                                      Data="{StaticResource DiscordSymbolGeometry}"
-                                                      Fill="#5865F2" />
+                                                <controls:VoicePresenceIcon x:Name="DiscordPresenceIcon"
+                                                                            Width="39" Height="29"
+                                                                            State="DiscordAbsent" />
                                             </Grid>
                                         </Border>
                                         <TextBlock Text="Discord" Margin="0,9,0,0" FontSize="13" FontWeight="SemiBold"
@@ -394,7 +450,8 @@
                                     <Grid x:Name="AutomationRouteControlHost" Grid.Column="1" Margin="10,0">
                                         <Viewbox x:Name="PassageJourneyTraceView" Height="62" Stretch="Fill" VerticalAlignment="Center"
                                                  IsHitTestVisible="False">
-                                            <controls:JourneyTrace x:Name="PassageJourneyTrace"
+                                            <Grid Width="200" Height="62">
+                                                <controls:JourneyTrace x:Name="PassageJourneyTrace"
                                                                    Width="200" Height="62"
                                                                    Orientation="Horizontal"
                                                                    ProgressMode="SymmetricFromCenter"
@@ -404,7 +461,7 @@
                                                                    HighlightStroke="1.7" GlowStroke="5"
                                                                    TraceA="M 0,35 C 22,8 48,7 75,26 C 88,35 94,39 103,38 C 130,59 166,58 200,31"
                                                                    TraceB="M 0,31 C 23,12 49,11 76,28 C 88,36 96,36 104,35 C 131,55 165,54 200,35">
-                                                <controls:JourneyTrace.Particles>
+                                                    <controls:JourneyTrace.Particles>
                                                     <controls:JourneyParticle X="41" Y="13" Size="2.5" Opacity="0.48"
                                                                               HighlightSize="3.5" HighlightOpacity="0.94" Tone="Primary" />
                                                     <controls:JourneyParticle X="78" Y="28" Size="1.7" Opacity="0.42"
@@ -413,8 +470,21 @@
                                                                               HighlightSize="3" HighlightOpacity="0.9" Tone="Primary" />
                                                     <controls:JourneyParticle X="166" Y="48" Size="1.5" Opacity="0.4"
                                                                               HighlightSize="2.5" HighlightOpacity="0.88" Tone="Secondary" />
-                                                </controls:JourneyTrace.Particles>
-                                            </controls:JourneyTrace>
+                                                    </controls:JourneyTrace.Particles>
+                                                </controls:JourneyTrace>
+                                                <Canvas x:Name="PassageAuthorizationRuptureGlints"
+                                                        Width="200" Height="62" Opacity="0"
+                                                        IsHitTestVisible="False">
+                                                    <Path Data="M 29,22 L 33,26 M 31,20 L 35,24"
+                                                          Stroke="{DynamicResource AeziolPrimary}"
+                                                          StrokeThickness="1.2" StrokeStartLineCap="Round" />
+                                                    <Path Data="M 60,39 L 64,35 M 62,41 L 66,37"
+                                                          Stroke="{DynamicResource AeziolSecondary}"
+                                                          StrokeThickness="1" StrokeStartLineCap="Round" />
+                                                    <Ellipse Width="2.4" Height="2.4" Canvas.Left="88" Canvas.Top="27"
+                                                             Fill="{DynamicResource AeziolPrimary}" />
+                                                </Canvas>
+                                            </Grid>
                                         </Viewbox>
                                         <Button x:Name="AutomationActionButton" Width="82" Height="82"
                                                 HorizontalAlignment="Center" VerticalAlignment="Center"

@@ -182,6 +182,43 @@ public sealed class JourneyTraceTests
     }
 
     [Fact]
+    public void ReusableTrace_LeadingBreaksDissipateOnlyTheFirstHalf()
+    {
+        Exception? failure = null;
+        WpfTestHost.Run(() =>
+        {
+            try
+            {
+                var trace = new JourneyTrace
+                {
+                    Width = 200,
+                    Height = 62,
+                    Orientation = JourneyTraceOrientation.Horizontal,
+                    TraceA = Geometry.Parse("M 0,35 C 50,0 120,62 200,31"),
+                    TraceB = Geometry.Parse("M 0,31 C 55,8 125,55 200,35"),
+                };
+                trace.Measure(new WpfSize(200, 62));
+                trace.Arrange(new Rect(0, 0, 200, 62));
+
+                trace.LeadingBreakProgress = 1;
+
+                Assert.Equal(6, trace.RenderedInteriorTransparentOffsets.Count);
+                Assert.All(trace.RenderedInteriorTransparentOffsets, offset => Assert.InRange(offset, 0.1, 0.5));
+                Assert.DoesNotContain(trace.RenderedInteriorTransparentOffsets, offset => offset > 0.5);
+
+                trace.LeadingBreakProgress = 0;
+                Assert.Empty(trace.RenderedInteriorTransparentOffsets);
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        });
+
+        Assert.Null(failure);
+    }
+
+    [Fact]
     public void ReusableTrace_ReusesTwoVectorLayersDuringRepeatedAlternation()
     {
         Exception? failure = null;

@@ -72,6 +72,14 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
         nameof(ProgressMode), typeof(JourneyTraceProgressMode), typeof(JourneyTrace),
         new FrameworkPropertyMetadata(JourneyTraceProgressMode.Directional, OnProgressChanged));
 
+    public static readonly DependencyProperty LeadingBreakProgressProperty = DependencyProperty.Register(
+        nameof(LeadingBreakProgress), typeof(double), typeof(JourneyTrace),
+        new FrameworkPropertyMetadata(
+            0d,
+            FrameworkPropertyMetadataOptions.AffectsRender,
+            OnLeadingBreakProgressChanged,
+            static (_, baseValue) => CoerceProgress((double)baseValue)));
+
     public static readonly DependencyProperty EdgeFadeProperty = DependencyProperty.Register(
         nameof(EdgeFade), typeof(double), typeof(JourneyTrace),
         new FrameworkPropertyMetadata(0.08d, OnAppearanceChanged));
@@ -162,6 +170,12 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
         set => SetValue(ProgressModeProperty, value);
     }
 
+    public double LeadingBreakProgress
+    {
+        get => (double)GetValue(LeadingBreakProgressProperty);
+        set => SetValue(LeadingBreakProgressProperty, value);
+    }
+
     public double EdgeFade
     {
         get => (double)GetValue(EdgeFadeProperty);
@@ -246,6 +260,14 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
 
     internal double RenderedProgressOpacity => ProgressLayer.Opacity;
 
+    internal IReadOnlyList<double> RenderedInteriorTransparentOffsets =>
+        TraceRoot.OpacityMask is LinearGradientBrush mask
+            ? mask.GradientStops
+                .Where(stop => stop.Color.A == 0 && stop.Offset > 0 && stop.Offset < 1)
+                .Select(stop => stop.Offset)
+                .ToArray()
+            : [];
+
     internal int HighlightLayerCount => _highlights.Count;
 
     internal int OutgoingHighlightCount =>
@@ -321,6 +343,9 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
 
     private static void OnProgressChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
         => ((JourneyTrace)dependencyObject).ConfigureProgressMask();
+
+    private static void OnLeadingBreakProgressChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
+        => ((JourneyTrace)dependencyObject).ConfigureEdgeMask();
 
     private static double CoerceDisplayScale(double scale)
     {
@@ -475,6 +500,11 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
 
     private void ConfigureEdgeMask()
     {
+        if (!IsInitialized)
+        {
+            return;
+        }
+
         var fade = Math.Clamp(EdgeFade, 0, 0.49);
         var isCorrupted = TryFindResource("AeziolCorruptedVisuals") is true;
         var corruptionSeed = TryFindResource("AeziolCorruptionSeed") is int seed ? seed : 17;
@@ -492,6 +522,7 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
         };
         edgeFadeBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0));
         edgeFadeBrush.GradientStops.Add(new GradientStop(Colors.White, fade));
+        AddLeadingBreakStops(edgeFadeBrush, LeadingBreakProgress, fade);
         edgeFadeBrush.GradientStops.Add(new GradientStop(Colors.White, 1 - fade));
         edgeFadeBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1));
         TraceRoot.OpacityMask = corruption is null
@@ -500,6 +531,35 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
                 corruption,
                 erosionCount: corruption.Next(3, 7),
                 edgeFadeBrush);
+    }
+
+    private static void AddLeadingBreakStops(LinearGradientBrush mask, double progress, double edgeFade)
+    {
+        if (progress <= 0)
+        {
+            return;
+        }
+
+        var gaps = new (double Start, double End)[]
+        {
+            (0.135, 0.185),
+            (0.275, 0.345),
+            (0.415, 0.49),
+        };
+        const double softness = 0.008;
+        foreach (var (fullStart, fullEnd) in gaps)
+        {
+            var center = (fullStart + fullEnd) / 2;
+            var halfWidth = ((fullEnd - fullStart) / 2) * progress;
+            var start = Math.Max(edgeFade, center - halfWidth);
+            var end = Math.Min(0.5, center + halfWidth);
+            mask.GradientStops.Add(new GradientStop(Colors.White, Math.Max(edgeFade, start - softness)));
+            mask.GradientStops.Add(new GradientStop(Colors.Transparent, start));
+            mask.GradientStops.Add(new GradientStop(Colors.Transparent, end));
+            mask.GradientStops.Add(new GradientStop(Colors.White, Math.Min(0.5, end + softness)));
+        }
+
+        mask.GradientStops.Add(new GradientStop(Colors.White, 0.5));
     }
 
     private void ConfigureProgressMask()
