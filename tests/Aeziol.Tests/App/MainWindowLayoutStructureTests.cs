@@ -221,18 +221,46 @@ public sealed class MainWindowLayoutStructureTests
     public void AuthorizationPresenceAnimatesOnlyTheLeadingTraceHalf()
     {
         var document = XDocument.Load(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml"));
+        var journeyDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "Controls", "JourneyTrace.xaml"));
         var source = File.ReadAllText(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml.cs"));
         var journeyTrace = FindNamedElement(document, "PassageJourneyTrace");
-        var ruptureGlints = FindNamedElement(document, "PassageAuthorizationRuptureGlints");
+        var ruptureDust = FindNamedElement(journeyDocument, "LeadingBreakDustLayer");
+        var referenceDust = FindNamedElement(document, "DiscordRuptureGlints");
+        var particles = ruptureDust.Descendants()
+            .Where(element => element.Name.LocalName == "Ellipse")
+            .ToArray();
+        var referenceParticles = referenceDust.Descendants()
+            .Where(element => element.Name.LocalName == "Ellipse")
+            .ToArray();
+        var glow = Assert.Single(ruptureDust.Descendants(), element => element.Name.LocalName == "DropShadowEffect");
+        var referenceGlow = Assert.Single(referenceDust.Descendants(), element => element.Name.LocalName == "DropShadowEffect");
 
         Assert.Equal("JourneyTrace", journeyTrace.Name.LocalName);
-        Assert.Contains(ruptureGlints.Descendants(), element =>
-            element.Name.LocalName == "Ellipse"
-            && double.Parse(element.Attribute("Canvas.Left")?.Value ?? "101", System.Globalization.CultureInfo.InvariantCulture) < 100);
+        Assert.NotEmpty(particles);
+        Assert.All(particles, element =>
+        {
+            Assert.True(double.Parse(
+                element.Attribute("Canvas.Left")?.Value ?? "101",
+                System.Globalization.CultureInfo.InvariantCulture) < 100);
+            Assert.True(element.Attribute("Fill")?.Value is
+                "{DynamicResource AeziolPrimary}" or "{DynamicResource AeziolSecondary}");
+            Assert.Contains(referenceParticles, reference =>
+                reference.Attribute("Width")?.Value == element.Attribute("Width")?.Value
+                && reference.Attribute("Height")?.Value == element.Attribute("Height")?.Value
+                && reference.Attribute("Fill")?.Value == element.Attribute("Fill")?.Value
+                && reference.Attribute("Opacity")?.Value == element.Attribute("Opacity")?.Value);
+        });
+        Assert.DoesNotContain(ruptureDust.Descendants(), element => element.Name.LocalName == "Path");
+        Assert.Equal(referenceGlow.Attribute("BlurRadius")?.Value, glow.Attribute("BlurRadius")?.Value);
+        Assert.Equal(referenceGlow.Attribute("ShadowDepth")?.Value, glow.Attribute("ShadowDepth")?.Value);
+        Assert.Equal(referenceGlow.Attribute("Color")?.Value, glow.Attribute("Color")?.Value);
+        Assert.Equal(referenceGlow.Attribute("Opacity")?.Value, glow.Attribute("Opacity")?.Value);
         Assert.Contains("state == VoicePresenceState.AuthorizationRequired", source, StringComparison.Ordinal);
         Assert.Contains("JourneyTrace.LeadingBreakProgressProperty", source, StringComparison.Ordinal);
         Assert.Contains("DiscordAuthorizationBreakTransitionDurationMilliseconds", source, StringComparison.Ordinal);
         Assert.Contains("new DoubleAnimation(currentBreak, target, duration)", source, StringComparison.Ordinal);
+        Assert.Equal("0", ruptureDust.Attribute("Opacity")?.Value);
+        Assert.DoesNotContain("PassageAuthorizationRuptureGlints", source, StringComparison.Ordinal);
         Assert.Contains("MotionAssist.GetIsReduced(this)", source, StringComparison.Ordinal);
         Assert.Contains("DiscordPresenceIcon.State = state;", source, StringComparison.Ordinal);
         Assert.Contains("AutomationProperties.SetName(DiscordPresenceIcon", source, StringComparison.Ordinal);

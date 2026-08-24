@@ -77,12 +77,10 @@ public partial class VoicePresenceIcon : System.Windows.Controls.UserControl
         if (previousState is not null)
         {
             var previous = VoicePresenceVisual.For(previousState.Value);
-            PreviousPath.Data = previous.Geometry;
-            PreviousPath.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, previous.StrokeBrushKey);
+            ApplyVisual(PreviousLogoPath, PreviousOverlayPath, previous);
         }
 
-        CurrentPath.Data = next.Geometry;
-        CurrentPath.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, next.StrokeBrushKey);
+        ApplyVisual(CurrentLogoPath, CurrentOverlayPath, next);
         _renderedState = state;
 
         PreviousLayer.Opacity = 0;
@@ -124,6 +122,17 @@ public partial class VoicePresenceIcon : System.Windows.Controls.UserControl
         BeginTransition(CurrentTranslation, TranslateTransform.XProperty, LastEntryPose.X, 0, duration, easing);
         BeginTransition(CurrentTranslation, TranslateTransform.YProperty, LastEntryPose.Y, 0, duration, easing);
         ScheduleTransitionCleanup(generation, duration);
+    }
+
+    private static void ApplyVisual(
+        System.Windows.Shapes.Path logoPath,
+        System.Windows.Shapes.Path overlayPath,
+        VoicePresenceVisual visual)
+    {
+        logoPath.Data = visual.LogoGeometry;
+        overlayPath.Data = visual.OverlayGeometry;
+        logoPath.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, visual.FillBrushKey);
+        overlayPath.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, visual.FillBrushKey);
     }
 
     private static void BeginTransition(

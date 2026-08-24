@@ -5,22 +5,16 @@
              Focusable="False" IsHitTestVisible="False"
              SnapsToDevicePixels="False">
     <Grid x:Name="IconRoot">
-        <Viewbox x:Name="PreviousLayer"
-                 Stretch="Uniform" Opacity="0"
-                 RenderTransformOrigin="0.5,0.5">
+        <Viewbox x:Name="PreviousLayer" Stretch="Uniform" Opacity="0" RenderTransformOrigin="0.5,0.5">
             <Viewbox.RenderTransform>
                 <ScaleTransform x:Name="PreviousScale" ScaleX="1" ScaleY="1" />
             </Viewbox.RenderTransform>
-            <Grid Width="72" Height="56">
-                <Path x:Name="PreviousPath"
-                      Fill="Transparent" Stroke="{DynamicResource DiscordBlurple}"
-                      StrokeThickness="2.6" StrokeStartLineCap="Round"
-                      StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+            <Grid Width="65" Height="48">
+                <Path x:Name="PreviousLogoPath" Fill="{DynamicResource DiscordBlurple}" />
+                <Path x:Name="PreviousOverlayPath" Fill="{DynamicResource DiscordBlurple}" />
             </Grid>
         </Viewbox>
-        <Viewbox x:Name="CurrentLayer"
-                 Stretch="Uniform" Opacity="1"
-                 RenderTransformOrigin="0.5,0.5">
+        <Viewbox x:Name="CurrentLayer" Stretch="Uniform" Opacity="1" RenderTransformOrigin="0.5,0.5">
             <Viewbox.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform x:Name="CurrentScale" ScaleX="1" ScaleY="1" />
@@ -28,11 +22,9 @@
                     <TranslateTransform x:Name="CurrentTranslation" X="0" Y="0" />
                 </TransformGroup>
             </Viewbox.RenderTransform>
-            <Grid Width="72" Height="56">
-                <Path x:Name="CurrentPath"
-                      Fill="Transparent" Stroke="{DynamicResource DiscordBlurple}"
-                      StrokeThickness="2.6" StrokeStartLineCap="Round"
-                      StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+            <Grid Width="65" Height="48">
+                <Path x:Name="CurrentLogoPath" Fill="{DynamicResource DiscordBlurple}" />
+                <Path x:Name="CurrentOverlayPath" Fill="{DynamicResource DiscordBlurple}" />
             </Grid>
         </Viewbox>
     </Grid>

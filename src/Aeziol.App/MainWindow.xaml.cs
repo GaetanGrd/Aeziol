@@ -1974,17 +1974,14 @@ public partial class MainWindow : Window
     {
         var target = isBroken ? 1d : 0d;
         var currentBreak = PassageJourneyTrace.LeadingBreakProgress;
-        var currentGlint = PassageAuthorizationRuptureGlints.Opacity;
         PassageJourneyTrace.BeginAnimation(
             Aeziol.App.Controls.JourneyTrace.LeadingBreakProgressProperty,
             null);
-        PassageAuthorizationRuptureGlints.BeginAnimation(OpacityProperty, null);
         PassageJourneyTrace.LeadingBreakProgress = target;
-        PassageAuthorizationRuptureGlints.Opacity = target * 0.76;
 
         if (!animate
             || MotionAssist.GetIsReduced(this)
-            || (Math.Abs(currentBreak - target) < 0.001 && Math.Abs(currentGlint - (target * 0.76)) < 0.001))
+            || Math.Abs(currentBreak - target) < 0.001)
         {
             return;
         }
@@ -1994,13 +1991,6 @@ public partial class MainWindow : Window
         PassageJourneyTrace.BeginAnimation(
             Aeziol.App.Controls.JourneyTrace.LeadingBreakProgressProperty,
             new DoubleAnimation(currentBreak, target, duration)
-            {
-                EasingFunction = easing,
-                FillBehavior = FillBehavior.Stop,
-            });
-        PassageAuthorizationRuptureGlints.BeginAnimation(
-            OpacityProperty,
-            new DoubleAnimation(currentGlint, target * 0.76, duration)
             {
                 EasingFunction = easing,
                 FillBehavior = FillBehavior.Stop,

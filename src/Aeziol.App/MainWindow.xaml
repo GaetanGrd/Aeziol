@@ -472,18 +472,6 @@
                                                                               HighlightSize="2.5" HighlightOpacity="0.88" Tone="Secondary" />
                                                     </controls:JourneyTrace.Particles>
                                                 </controls:JourneyTrace>
-                                                <Canvas x:Name="PassageAuthorizationRuptureGlints"
-                                                        Width="200" Height="62" Opacity="0"
-                                                        IsHitTestVisible="False">
-                                                    <Path Data="M 29,22 L 33,26 M 31,20 L 35,24"
-                                                          Stroke="{DynamicResource AeziolPrimary}"
-                                                          StrokeThickness="1.2" StrokeStartLineCap="Round" />
-                                                    <Path Data="M 60,39 L 64,35 M 62,41 L 66,37"
-                                                          Stroke="{DynamicResource AeziolSecondary}"
-                                                          StrokeThickness="1" StrokeStartLineCap="Round" />
-                                                    <Ellipse Width="2.4" Height="2.4" Canvas.Left="88" Canvas.Top="27"
-                                                             Fill="{DynamicResource AeziolPrimary}" />
-                                                </Canvas>
                                             </Grid>
                                         </Viewbox>
                                         <Button x:Name="AutomationActionButton" Width="82" Height="82"

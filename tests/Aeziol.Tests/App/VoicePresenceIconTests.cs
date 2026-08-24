@@ -18,7 +18,9 @@ public sealed class VoicePresenceIconTests
         Assert.Equal(expectedStates.Length, visuals.Count);
         Assert.Equal(expectedStates.Order(), visuals.Select(visual => visual.State).Order());
         Assert.Equal(visuals.Count, visuals.Select(visual => visual.AssetFileName).Distinct(StringComparer.Ordinal).Count());
-        Assert.Equal(visuals.Count, visuals.Select(visual => visual.PathData).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(
+            visuals.Count,
+            visuals.Select(visual => (visual.CutoutPathData, visual.OverlayPathData)).Distinct().Count());
 
         var assetDirectory = FindSourceDirectory("src", "Aeziol.App", "Assets", "VoicePresence");
         var svgFiles = Directory.GetFiles(assetDirectory, "*.svg", SearchOption.TopDirectoryOnly);
@@ -32,27 +34,65 @@ public sealed class VoicePresenceIconTests
     public void SvgSourcesMatchTheWpfGeometryCatalog()
     {
         var assetDirectory = FindSourceDirectory("src", "Aeziol.App", "Assets", "VoicePresence");
+        var brandDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "Assets", "Brand", "discord-symbol.svg"));
+        var brandPathData = Assert.Single(brandDocument.Descendants(), element => element.Name.LocalName == "path")
+            .Attribute("d")?.Value;
+        Assert.Equal(VoicePresenceVisual.DiscordLogoPathData, brandPathData);
 
         foreach (var visual in VoicePresenceVisual.All)
         {
             var document = XDocument.Load(Path.Combine(assetDirectory, visual.AssetFileName));
             var root = Assert.Single(document.Elements());
-            var path = Assert.Single(root.Elements(), element => element.Name.LocalName == "path");
+            var logo = Assert.Single(document.Descendants(), element => element.Attribute("data-role")?.Value == "logo");
+            var cutouts = document.Descendants()
+                .Where(element => element.Attribute("data-role")?.Value == "cutout")
+                .ToArray();
+            var overlays = document.Descendants()
+                .Where(element => element.Attribute("data-role")?.Value == "overlay")
+                .ToArray();
 
             Assert.Equal("svg", root.Name.LocalName);
-            Assert.Equal("72", root.Attribute("width")?.Value);
-            Assert.Equal("56", root.Attribute("height")?.Value);
-            Assert.Equal("0 0 72 56", root.Attribute("viewBox")?.Value);
+            Assert.Equal("65", root.Attribute("width")?.Value);
+            Assert.Equal("48", root.Attribute("height")?.Value);
+            Assert.Equal("0 0 65 48", root.Attribute("viewBox")?.Value);
             Assert.Equal("none", root.Attribute("fill")?.Value);
-            Assert.Equal(visual.PathData, path.Attribute("d")?.Value);
-            Assert.Equal("#5865F2", path.Attribute("stroke")?.Value);
-            Assert.Equal("2.6", path.Attribute("stroke-width")?.Value);
-            Assert.Equal("round", path.Attribute("stroke-linecap")?.Value);
-            Assert.Equal("round", path.Attribute("stroke-linejoin")?.Value);
-            Assert.NotEmpty(visual.Geometry.GetFlattenedPathGeometry().Figures);
+            Assert.Equal(brandPathData, logo.Attribute("d")?.Value);
+            Assert.Equal(visual.CutoutPathData is null ? 0 : 1, cutouts.Length);
+            Assert.Equal(visual.OverlayPathData is null ? 0 : 1, overlays.Length);
+            Assert.Equal(visual.CutoutPathData, cutouts.SingleOrDefault()?.Attribute("d")?.Value);
+            Assert.Equal(visual.OverlayPathData, overlays.SingleOrDefault()?.Attribute("d")?.Value);
+            Assert.NotEmpty(visual.LogoGeometry.GetFlattenedPathGeometry().Figures);
+            if (visual.OverlayGeometry is not null)
+            {
+                Assert.NotEmpty(visual.OverlayGeometry.GetFlattenedPathGeometry().Figures);
+            }
+
             Assert.DoesNotContain(document.Descendants(), element =>
                 element.Name.LocalName is "image" or "canvas");
+            Assert.DoesNotContain(document.Descendants().Attributes(), attribute =>
+                attribute.Name.LocalName.StartsWith("stroke", StringComparison.OrdinalIgnoreCase));
         }
+    }
+
+    [Fact]
+    public void OutOfVoiceIsTheOriginalFilledDiscordLogoAndAuthorizationUsesMutedFill()
+    {
+        var assetDirectory = FindSourceDirectory("src", "Aeziol.App", "Assets", "VoicePresence");
+        var outOfVoice = VoicePresenceVisual.For(VoicePresenceState.OutOfVoice);
+        var outDocument = XDocument.Load(Path.Combine(assetDirectory, outOfVoice.AssetFileName));
+        var outLogo = Assert.Single(outDocument.Descendants(), element => element.Attribute("data-role")?.Value == "logo");
+
+        Assert.Null(outOfVoice.CutoutPathData);
+        Assert.Null(outOfVoice.OverlayPathData);
+        Assert.Equal("#5865F2", outLogo.Attribute("fill")?.Value);
+        Assert.DoesNotContain(outDocument.Descendants(), element => element.Name.LocalName == "mask");
+
+        var authorization = VoicePresenceVisual.For(VoicePresenceState.AuthorizationRequired);
+        var authorizationDocument = XDocument.Load(Path.Combine(assetDirectory, authorization.AssetFileName));
+        Assert.Equal("AeziolMuted", authorization.FillBrushKey);
+        Assert.All(
+            authorizationDocument.Descendants().Where(element => element.Attribute("data-role")?.Value is "logo" or "overlay"),
+            element => Assert.NotEqual("#5865F2", element.Attribute("fill")?.Value));
     }
 
     [Fact]
@@ -86,8 +126,17 @@ public sealed class VoicePresenceIconTests
             .ToArray();
 
         Assert.Equal(2, layers.Length);
-        Assert.Equal(2, paths.Length);
-        Assert.All(paths, path => Assert.Equal("2.6", path.Attribute("StrokeThickness")?.Value));
+        Assert.Equal(4, paths.Length);
+        Assert.All(paths, path =>
+        {
+            Assert.NotNull(path.Attribute("Fill"));
+            Assert.Null(path.Attribute("Stroke"));
+            Assert.Null(path.Attribute("StrokeThickness"));
+        });
+        Assert.Equal(2, document.Descendants().Count(element =>
+            element.Name.LocalName == "Grid"
+            && element.Attribute("Width")?.Value == "65"
+            && element.Attribute("Height")?.Value == "48"));
         Assert.DoesNotContain(document.Descendants(), element =>
             element.Name.LocalName is "Image" or "Canvas");
     }

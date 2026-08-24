@@ -18,6 +18,37 @@
 
             <Grid x:Name="HighlightHost"
                   IsHitTestVisible="False" />
+
+            <Canvas x:Name="LeadingBreakDustLayer"
+                    Opacity="0" IsHitTestVisible="False">
+                <Canvas.Effect>
+                    <DropShadowEffect BlurRadius="4" ShadowDepth="0"
+                                      Color="{DynamicResource AeziolPrimaryColor}"
+                                      Opacity="0.46" />
+                </Canvas.Effect>
+
+                <!-- La moitié gauche se défait en poussière irrégulière, sans éclats géométriques. -->
+                <Ellipse Width="1.9" Height="1.9" Canvas.Left="25" Canvas.Top="26" Fill="{DynamicResource AeziolPrimary}" Opacity="0.82" />
+                <Ellipse Width="1.1" Height="1.1" Canvas.Left="29" Canvas.Top="21" Fill="{DynamicResource AeziolSecondary}" Opacity="0.52" />
+                <Ellipse Width="1.5" Height="1.5" Canvas.Left="33" Canvas.Top="30" Fill="{DynamicResource AeziolPrimary}" Opacity="0.68" />
+                <Ellipse Width="0.8" Height="0.8" Canvas.Left="37" Canvas.Top="24" Fill="{DynamicResource AeziolSecondary}" Opacity="0.38" />
+                <Ellipse Width="0.8" Height="0.8" Canvas.Left="27" Canvas.Top="15" Fill="{DynamicResource AeziolPrimary}" Opacity="0.3" />
+                <Ellipse Width="0.6" Height="0.6" Canvas.Left="39" Canvas.Top="39" Fill="{DynamicResource AeziolSecondary}" Opacity="0.24" />
+
+                <Ellipse Width="1.8" Height="1.8" Canvas.Left="54" Canvas.Top="36" Fill="{DynamicResource AeziolPrimary}" Opacity="0.76" />
+                <Ellipse Width="1.1" Height="1.1" Canvas.Left="59" Canvas.Top="31" Fill="{DynamicResource AeziolSecondary}" Opacity="0.5" />
+                <Ellipse Width="1.5" Height="1.5" Canvas.Left="64" Canvas.Top="39" Fill="{DynamicResource AeziolPrimary}" Opacity="0.64" />
+                <Ellipse Width="0.8" Height="0.8" Canvas.Left="68" Canvas.Top="33" Fill="{DynamicResource AeziolSecondary}" Opacity="0.36" />
+                <Ellipse Width="0.6" Height="0.6" Canvas.Left="57" Canvas.Top="24" Fill="{DynamicResource AeziolSecondary}" Opacity="0.22" />
+                <Ellipse Width="0.9" Height="0.9" Canvas.Left="66" Canvas.Top="47" Fill="{DynamicResource AeziolPrimary}" Opacity="0.3" />
+
+                <Ellipse Width="1.7" Height="1.7" Canvas.Left="76" Canvas.Top="28" Fill="{DynamicResource AeziolPrimary}" Opacity="0.72" />
+                <Ellipse Width="1.1" Height="1.1" Canvas.Left="81" Canvas.Top="34" Fill="{DynamicResource AeziolSecondary}" Opacity="0.48" />
+                <Ellipse Width="1.4" Height="1.4" Canvas.Left="86" Canvas.Top="30" Fill="{DynamicResource AeziolPrimary}" Opacity="0.6" />
+                <Ellipse Width="0.7" Height="0.7" Canvas.Left="91" Canvas.Top="37" Fill="{DynamicResource AeziolSecondary}" Opacity="0.32" />
+                <Ellipse Width="0.7" Height="0.7" Canvas.Left="79" Canvas.Top="20" Fill="{DynamicResource AeziolPrimary}" Opacity="0.26" />
+                <Ellipse Width="0.5" Height="0.5" Canvas.Left="89" Canvas.Top="43" Fill="{DynamicResource AeziolSecondary}" Opacity="0.2" />
+            </Canvas>
         </Grid>
     </Grid>
 </UserControl>

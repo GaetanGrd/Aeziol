@@ -45,6 +45,8 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
     private readonly GradientStop _symmetricLeftVisibleEdge = new(Colors.White, 0);
     private readonly GradientStop _symmetricRightVisibleEdge = new(Colors.White, 1);
     private readonly GradientStop _symmetricRightHiddenEdge = new(Colors.Transparent, 1);
+    private LinearGradientBrush? _leadingPrimaryMask;
+    private LinearGradientBrush? _leadingSecondaryMask;
     private object? _highlightOwner;
     private int _nextZIndex;
 
@@ -260,13 +262,25 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
 
     internal double RenderedProgressOpacity => ProgressLayer.Opacity;
 
-    internal IReadOnlyList<double> RenderedInteriorTransparentOffsets =>
-        TraceRoot.OpacityMask is LinearGradientBrush mask
-            ? mask.GradientStops
-                .Where(stop => stop.Color.A == 0 && stop.Offset > 0 && stop.Offset < 1)
-                .Select(stop => stop.Offset)
-                .ToArray()
-            : [];
+    internal bool UsesLeadingBreakMasks =>
+        _leadingPrimaryMask is not null
+        && _leadingSecondaryMask is not null
+        && ReferenceEquals(BaseTraceA.OpacityMask, _leadingPrimaryMask)
+        && ReferenceEquals(BaseTraceB.OpacityMask, _leadingSecondaryMask)
+        && ReferenceEquals(BaseParticleLayer.OpacityMask, _leadingPrimaryMask)
+        && ReferenceEquals(HighlightHost.OpacityMask, _leadingPrimaryMask);
+
+    internal IReadOnlyList<double> RenderedPrimaryBreakTransparentOffsets =>
+        GetTransparentOffsets(_leadingPrimaryMask);
+
+    internal IReadOnlyList<double> RenderedSecondaryBreakTransparentOffsets =>
+        GetTransparentOffsets(_leadingSecondaryMask);
+
+    internal bool LeadingBreakRightHalfIntact =>
+        _leadingPrimaryMask?.GradientStops.Where(stop => stop.Offset >= 0.5).All(stop => stop.Color.A == 255) == true
+        && _leadingSecondaryMask?.GradientStops.Where(stop => stop.Offset >= 0.5).All(stop => stop.Color.A == 255) == true;
+
+    internal double RenderedLeadingBreakDustOpacity => LeadingBreakDustLayer.Opacity;
 
     internal int HighlightLayerCount => _highlights.Count;
 
@@ -345,7 +359,7 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
         => ((JourneyTrace)dependencyObject).ConfigureProgressMask();
 
     private static void OnLeadingBreakProgressChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
-        => ((JourneyTrace)dependencyObject).ConfigureEdgeMask();
+        => ((JourneyTrace)dependencyObject).ConfigureLeadingBreakMasks();
 
     private static double CoerceDisplayScale(double scale)
     {
@@ -456,6 +470,7 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
         BaseTraceB.StrokeThickness = BaseStrokeB;
         BaseTraceB.Opacity = BaseOpacityB;
         ConfigureEdgeMask();
+        ConfigureLeadingBreakMasks();
         ConfigureProgressMask();
         RebuildParticles();
         foreach (var state in _highlights.Values)
@@ -522,7 +537,6 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
         };
         edgeFadeBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 0));
         edgeFadeBrush.GradientStops.Add(new GradientStop(Colors.White, fade));
-        AddLeadingBreakStops(edgeFadeBrush, LeadingBreakProgress, fade);
         edgeFadeBrush.GradientStops.Add(new GradientStop(Colors.White, 1 - fade));
         edgeFadeBrush.GradientStops.Add(new GradientStop(Colors.Transparent, 1));
         TraceRoot.OpacityMask = corruption is null
@@ -533,34 +547,68 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
                 edgeFadeBrush);
     }
 
-    private static void AddLeadingBreakStops(LinearGradientBrush mask, double progress, double edgeFade)
+    private void ConfigureLeadingBreakMasks()
     {
-        if (progress <= 0)
+        if (!IsInitialized)
         {
             return;
         }
 
-        var gaps = new (double Start, double End)[]
+        var progress = LeadingBreakProgress;
+        if (progress <= 0)
         {
-            (0.135, 0.185),
-            (0.275, 0.345),
-            (0.415, 0.49),
+            _leadingPrimaryMask = null;
+            _leadingSecondaryMask = null;
+            BaseTraceA.OpacityMask = null;
+            BaseTraceB.OpacityMask = null;
+            BaseParticleLayer.OpacityMask = null;
+            HighlightHost.OpacityMask = null;
+            LeadingBreakDustLayer.Opacity = 0;
+            return;
+        }
+
+        _leadingPrimaryMask = CreateLeadingBreakMask(DiscordBrokenTrailPattern.PrimaryStops, progress);
+        _leadingSecondaryMask = CreateLeadingBreakMask(DiscordBrokenTrailPattern.SecondaryStops, progress);
+        BaseTraceA.OpacityMask = _leadingPrimaryMask;
+        BaseTraceB.OpacityMask = _leadingSecondaryMask;
+        BaseParticleLayer.OpacityMask = _leadingPrimaryMask;
+        HighlightHost.OpacityMask = _leadingPrimaryMask;
+        LeadingBreakDustLayer.Opacity = Orientation == JourneyTraceOrientation.Horizontal
+            ? progress * 0.76
+            : 0;
+    }
+
+    private LinearGradientBrush CreateLeadingBreakMask(
+        IReadOnlyList<DiscordBrokenTrailStop> pattern,
+        double progress)
+    {
+        var horizontal = Orientation == JourneyTraceOrientation.Horizontal;
+        var mask = new LinearGradientBrush
+        {
+            MappingMode = BrushMappingMode.RelativeToBoundingBox,
+            StartPoint = horizontal ? new System.Windows.Point(0, 0.5) : new System.Windows.Point(0.5, 0),
+            EndPoint = horizontal ? new System.Windows.Point(1, 0.5) : new System.Windows.Point(0.5, 1),
         };
-        const double softness = 0.008;
-        foreach (var (fullStart, fullEnd) in gaps)
+        var transparentAlpha = (byte)Math.Round(255 * (1 - progress));
+        foreach (var stop in pattern)
         {
-            var center = (fullStart + fullEnd) / 2;
-            var halfWidth = ((fullEnd - fullStart) / 2) * progress;
-            var start = Math.Max(edgeFade, center - halfWidth);
-            var end = Math.Min(0.5, center + halfWidth);
-            mask.GradientStops.Add(new GradientStop(Colors.White, Math.Max(edgeFade, start - softness)));
-            mask.GradientStops.Add(new GradientStop(Colors.Transparent, start));
-            mask.GradientStops.Add(new GradientStop(Colors.Transparent, end));
-            mask.GradientStops.Add(new GradientStop(Colors.White, Math.Min(0.5, end + softness)));
+            var color = stop.IsTransparent
+                ? System.Windows.Media.Color.FromArgb(transparentAlpha, 255, 255, 255)
+                : Colors.White;
+            mask.GradientStops.Add(new GradientStop(color, stop.Offset * 0.5));
         }
 
         mask.GradientStops.Add(new GradientStop(Colors.White, 0.5));
+        mask.GradientStops.Add(new GradientStop(Colors.White, 1));
+        return mask;
     }
+
+    private static double[] GetTransparentOffsets(LinearGradientBrush? mask) =>
+        mask?.GradientStops
+            .Where(stop => stop.Color.A == 0 && stop.Offset < 0.5)
+            .Select(stop => stop.Offset)
+            .ToArray()
+        ?? [];
 
     private void ConfigureProgressMask()
     {

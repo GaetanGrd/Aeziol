@@ -14,84 +14,73 @@ internal enum VoicePresenceEntryMotion
 internal sealed record VoicePresenceVisual(
     VoicePresenceState State,
     string AssetFileName,
-    string PathData,
+    string? CutoutPathData,
+    string? OverlayPathData,
     string LocalizationKey,
-    string StrokeBrushKey,
+    string FillBrushKey,
     VoicePresenceEntryMotion EntryMotion)
 {
-    private Geometry? _geometry;
+    internal const string DiscordLogoPathData = "M41.2351 0C40.6164 1.09866 40.0607 2.2352 39.5556 3.397C34.7569 2.67719 29.8697 2.67719 25.0584 3.397C24.5658 2.2352 23.9976 1.09866 23.3788 0C18.8705 0.770324 14.4759 2.12155 10.3085 4.02841C2.04967 16.2652 -0.185531 28.1863 0.925755 39.9432C5.76238 43.517 11.1799 46.2447 16.951 47.9874C18.2517 46.2447 19.4009 44.3883 20.3859 42.4562C18.5169 41.7616 16.7111 40.8903 14.981 39.88C15.4356 39.5517 15.8776 39.2107 16.307 38.8824C26.4475 43.6559 38.1917 43.6559 48.3449 38.8824C48.7742 39.236 49.2162 39.577 49.6708 39.88C47.9408 40.9029 46.1349 41.7616 44.2533 42.4688C45.2383 44.4009 46.3875 46.2573 47.6882 48C53.4593 46.2573 58.8768 43.5422 63.7134 39.9684C65.0268 26.3299 61.4656 14.5099 54.3054 4.04104C50.1507 2.13418 45.7561 0.782952 41.2478 0.0252565L41.2351 0ZM21.8003 32.7072C18.6811 32.7072 16.0923 29.8785 16.0923 26.3804C16.0923 22.8824 18.5801 20.041 21.7876 20.041C24.9952 20.041 27.5461 22.895 27.4956 26.3804C27.4451 29.8658 24.9826 32.7072 21.8003 32.7072ZM42.8389 32.7072C39.7071 32.7072 37.1436 29.8785 37.1436 26.3804C37.1436 22.8824 39.6314 20.041 42.8389 20.041C46.0465 20.041 48.5848 22.895 48.5343 26.3804C48.4838 29.8658 46.0213 32.7072 42.8389 32.7072Z";
 
-    public Geometry Geometry => _geometry ??= CreateGeometry(PathData);
+    private Geometry? _logoGeometry;
+    private Geometry? _overlayGeometry;
+
+    public Geometry LogoGeometry => _logoGeometry ??= CreateLogoGeometry(CutoutPathData);
+
+    public Geometry? OverlayGeometry => OverlayPathData is null
+        ? null
+        : _overlayGeometry ??= CreateGeometry(OverlayPathData);
 
     public static IReadOnlyList<VoicePresenceVisual> All { get; } =
     [
-        new(
-            VoicePresenceState.DiscordAbsent,
-            "discord-absent.svg",
-            "M 20,14 C 25,11 32,10 36,11 M 42,11 C 46,11 49,12 52,14 C 55,18 57,23 58,28 M 58,35 C 58,38 58,41 57,43 C 53,46 49,48 45,49 L 42,44 M 30,44 L 27,49 C 23,48 19,46 15,43 C 13,39 12,35 13,31 M 14,24 C 15,20 17,17 20,14 M 27,30 A 3,3 0 1 0 27,36 A 3,3 0 1 0 27,30 M 45,30 A 3,3 0 1 0 45,36 A 3,3 0 1 0 45,30",
-            "status-discord-absent",
-            "AeziolDim",
-            VoicePresenceEntryMotion.Settle),
-        new(
-            VoicePresenceState.OutOfVoice,
-            "discord-out-of-voice.svg",
-            "M 20,14 C 25,11 47,11 52,14 C 58,22 61,35 57,43 C 53,46 49,48 45,49 L 42,44 C 38,46 34,46 30,44 L 27,49 C 23,48 19,46 15,43 C 11,35 14,22 20,14 Z M 27,30 A 3,3 0 1 0 27,36 A 3,3 0 1 0 27,30 M 45,30 A 3,3 0 1 0 45,36 A 3,3 0 1 0 45,30",
-            "status-out-of-voice",
-            "DiscordBlurple",
-            VoicePresenceEntryMotion.Settle),
-        new(
-            VoicePresenceState.Connecting,
-            "discord-connecting.svg",
-            "M 34,12 C 28,11 23,12 20,14 C 15,21 13,31 15,40 C 19,44 23,47 27,48 L 30,43 C 31,44 33,45 34,45 M 38,12 C 44,11 49,12 52,14 C 57,21 59,31 57,40 C 53,44 49,47 45,48 L 42,43 C 41,44 39,45 38,45 M 30,25 L 34,29 L 30,33 M 42,25 L 38,29 L 42,33",
-            "status-connecting",
-            "DiscordBlurple",
-            VoicePresenceEntryMotion.Converge),
-        new(
-            VoicePresenceState.Connected,
-            "discord-connected.svg",
-            "M 20,14 C 25,11 47,11 52,14 C 58,22 61,35 57,43 C 53,46 49,48 45,49 L 42,44 C 38,46 34,46 30,44 L 27,49 C 23,48 19,46 15,43 C 11,35 14,22 20,14 Z M 27,30 A 3,3 0 1 0 27,36 A 3,3 0 1 0 27,30 M 45,30 A 3,3 0 1 0 45,36 A 3,3 0 1 0 45,30 M 10,24 C 6,28 6,36 10,40 M 62,24 C 66,28 66,36 62,40",
-            "status-connected",
-            "DiscordBlurple",
-            VoicePresenceEntryMotion.Settle),
-        new(
-            VoicePresenceState.ChangingChannel,
-            "discord-changing-channel.svg",
-            "M 20,14 C 25,11 47,11 52,14 C 58,22 61,35 57,43 C 53,46 49,48 45,49 L 42,44 C 38,46 34,46 30,44 L 27,49 C 23,48 19,46 15,43 C 11,35 14,22 20,14 Z M 27,30 A 3,3 0 1 0 27,36 A 3,3 0 1 0 27,30 M 45,30 A 3,3 0 1 0 45,36 A 3,3 0 1 0 45,30 M 8,27 L 4,32 L 8,37 M 64,27 L 68,32 L 64,37",
-            "status-changing-channel",
-            "DiscordBlurple",
-            VoicePresenceEntryMotion.Slide),
-        new(
-            VoicePresenceState.Reconnecting,
-            "discord-reconnecting.svg",
-            "M 22,14 C 28,11 44,11 50,14 M 55,20 C 59,28 60,36 57,42 C 53,46 49,48 45,49 L 42,44 C 38,46 34,46 30,44 L 27,49 C 23,48 19,46 15,42 C 12,36 13,28 17,20 M 27,30 A 3,3 0 1 0 27,36 A 3,3 0 1 0 27,30 M 45,30 A 3,3 0 1 0 45,36 A 3,3 0 1 0 45,30 M 9,37 A 28,25 0 0 1 12,20 L 8,22 M 63,19 A 28,25 0 0 1 64,38 L 68,35",
-            "status-reconnecting",
-            "DiscordBlurple",
-            VoicePresenceEntryMotion.Return),
-        new(
-            VoicePresenceState.Disconnected,
-            "discord-disconnected.svg",
-            "M 31,12 C 26,11 22,12 19,15 C 14,22 12,34 15,42 C 19,45 23,48 27,49 L 30,44 M 25,30 A 3,3 0 1 0 25,36 A 3,3 0 1 0 25,30 M 41,12 C 46,11 50,12 53,15 C 58,22 60,34 57,42 C 53,45 49,48 45,49 L 42,44 M 47,30 A 3,3 0 1 0 47,36 A 3,3 0 1 0 47,30 M 35,19 L 31,27 L 36,32 L 32,41 M 41,19 L 37,27 L 42,32 L 38,41",
-            "status-disconnected",
-            "DiscordBlurple",
-            VoicePresenceEntryMotion.Settle),
-        new(
-            VoicePresenceState.AuthorizationRequired,
-            "discord-authorization-required.svg",
-            "M 20,14 C 25,11 47,11 52,14 C 58,22 61,35 57,43 C 53,46 49,48 45,49 L 42,44 C 38,46 34,46 30,44 L 27,49 C 23,48 19,46 15,43 C 11,35 14,22 20,14 Z M 30,31 V 27 A 6,6 0 0 1 42,27 V 31 M 28,31 H 44 V 43 H 28 Z M 36,35 V 39",
-            "status-authorization-required",
-            "AeziolMuted",
-            VoicePresenceEntryMotion.Settle),
-        new(
-            VoicePresenceState.Unavailable,
-            "discord-unavailable.svg",
-            "M 20,14 C 25,11 31,11 35,11 M 43,11 C 47,11 50,12 52,14 C 55,18 57,23 58,27 M 58,36 C 58,39 58,41 57,43 C 53,46 49,48 45,49 M 38,46 C 35,46 32,46 30,44 L 27,49 C 23,48 19,46 15,43 M 13,36 C 12,31 13,26 15,22 M 28,28 L 44,40 M 44,28 L 28,40",
-            "status-unavailable",
-            "AeziolDim",
-            VoicePresenceEntryMotion.Settle),
+        new(VoicePresenceState.DiscordAbsent, "discord-absent.svg",
+            "M0 12L7 9L10 13L3 17ZM55 5L62 8L59 13L52 10ZM1 34L9 36L8 41L0 39Z", null,
+            "status-discord-absent", "AeziolDim", VoicePresenceEntryMotion.Settle),
+        new(VoicePresenceState.OutOfVoice, "discord-out-of-voice.svg", null, null,
+            "status-out-of-voice", "DiscordBlurple", VoicePresenceEntryMotion.Settle),
+        new(VoicePresenceState.Connecting, "discord-connecting.svg",
+            "M31.2 1H33.8L33.2 16L34.2 25L32.7 47H30.8L31.7 25L30.7 16Z",
+            "M25 21L30 24.5L25 28ZM40 21L35 24.5L40 28Z",
+            "status-connecting", "DiscordBlurple", VoicePresenceEntryMotion.Converge),
+        new(VoicePresenceState.Connected, "discord-connected.svg", null,
+            "M3 17C0 21-0.2 27 3 32L5.5 29C3.7 26 3.7 22.5 5.5 20ZM62 17C65 21 65.2 27 62 32L59.5 29C61.3 26 61.3 22.5 59.5 20Z",
+            "status-connected", "DiscordBlurple", VoicePresenceEntryMotion.Settle),
+        new(VoicePresenceState.ChangingChannel, "discord-changing-channel.svg", null,
+            "M0 18L5.5 24L0 30H4L9.5 24L4 18ZM65 18L59.5 24L65 30H61L55.5 24L61 18Z",
+            "status-changing-channel", "DiscordBlurple", VoicePresenceEntryMotion.Slide),
+        new(VoicePresenceState.Reconnecting, "discord-reconnecting.svg",
+            "M5 8L12 9L9 15L3 13ZM53 35L62 34L61 41L54 41Z",
+            "M2 33C-0.5 25 1 17 7 11L10 14C5.5 19 4.5 25.5 6 31ZM63 15C65.5 23 64 31 58 37L55 34C59.5 29 60.5 22.5 59 17Z",
+            "status-reconnecting", "DiscordBlurple", VoicePresenceEntryMotion.Return),
+        new(VoicePresenceState.Disconnected, "discord-disconnected.svg",
+            "M29-1H36L32.2 13L37 22L30.5 32L35 49H28L31 33L26 23L33 12Z", null,
+            "status-disconnected", "DiscordBlurple", VoicePresenceEntryMotion.Settle),
+        new(VoicePresenceState.AuthorizationRequired, "discord-authorization-required.svg",
+            "M45 27H62V48H43V31C43 28.8 43.8 27.5 45 27Z",
+            "M48 34V31C48 25.8 56 25.8 56 31V34H58V45H46V34ZM50.5 34H53.5V31C53.5 29 50.5 29 50.5 31ZM52 37.2C50.9 37.2 50.4 38.5 51.2 39.2V42H52.8V39.2C53.6 38.5 53.1 37.2 52 37.2Z",
+            "status-authorization-required", "AeziolMuted", VoicePresenceEntryMotion.Settle),
+        new(VoicePresenceState.Unavailable, "discord-unavailable.svg",
+            "M0 9L9 6L11 11L2 14ZM54 3L63 7L60 13L51 9ZM1 34L10 36L8 42L0 39ZM55 36L65 34L64 40L57 43Z",
+            "M25 19L32.5 26.5L40 19L43 22L35.5 29.5L43 37L40 40L32.5 32.5L25 40L22 37L29.5 29.5L22 22Z",
+            "status-unavailable", "AeziolDim", VoicePresenceEntryMotion.Settle),
     ];
 
     public static VoicePresenceVisual For(VoicePresenceState state) =>
         All.Single(visual => visual.State == state);
+
+    private static Geometry CreateLogoGeometry(string? cutoutPathData)
+    {
+        var logo = CreateGeometry(DiscordLogoPathData);
+        if (cutoutPathData is null)
+        {
+            return logo;
+        }
+
+        var cutout = CreateGeometry(cutoutPathData);
+        var combined = Geometry.Combine(logo, cutout, GeometryCombineMode.Exclude, null);
+        combined.Freeze();
+        return combined;
+    }
 
     private static Geometry CreateGeometry(string pathData)
     {
