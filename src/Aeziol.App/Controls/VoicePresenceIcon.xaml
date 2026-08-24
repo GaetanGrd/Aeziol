@@ -1,0 +1,39 @@
+<UserControl x:Class="Aeziol.App.Controls.VoicePresenceIcon"
+             x:Name="PresenceIcon"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Focusable="False" IsHitTestVisible="False"
+             SnapsToDevicePixels="False">
+    <Grid x:Name="IconRoot">
+        <Viewbox x:Name="PreviousLayer"
+                 Stretch="Uniform" Opacity="0"
+                 RenderTransformOrigin="0.5,0.5">
+            <Viewbox.RenderTransform>
+                <ScaleTransform x:Name="PreviousScale" ScaleX="1" ScaleY="1" />
+            </Viewbox.RenderTransform>
+            <Grid Width="72" Height="56">
+                <Path x:Name="PreviousPath"
+                      Fill="Transparent" Stroke="{DynamicResource DiscordBlurple}"
+                      StrokeThickness="2.6" StrokeStartLineCap="Round"
+                      StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+            </Grid>
+        </Viewbox>
+        <Viewbox x:Name="CurrentLayer"
+                 Stretch="Uniform" Opacity="1"
+                 RenderTransformOrigin="0.5,0.5">
+            <Viewbox.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform x:Name="CurrentScale" ScaleX="1" ScaleY="1" />
+                    <RotateTransform x:Name="CurrentRotation" Angle="0" />
+                    <TranslateTransform x:Name="CurrentTranslation" X="0" Y="0" />
+                </TransformGroup>
+            </Viewbox.RenderTransform>
+            <Grid Width="72" Height="56">
+                <Path x:Name="CurrentPath"
+                      Fill="Transparent" Stroke="{DynamicResource DiscordBlurple}"
+                      StrokeThickness="2.6" StrokeStartLineCap="Round"
+                      StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+            </Grid>
+        </Viewbox>
+    </Grid>
+</UserControl>

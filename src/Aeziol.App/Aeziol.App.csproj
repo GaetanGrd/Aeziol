@@ -34,6 +34,9 @@
     <Content Include="Assets/Brand/*.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Assets/VoicePresence/*.svg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Resource Include="Assets/Aeziol.ico" />
     <Resource Include="Assets/Brand/aeziol-app-icon-256.png" />
     <Resource Include="Assets/Brand/elgo-logo-square.png" />

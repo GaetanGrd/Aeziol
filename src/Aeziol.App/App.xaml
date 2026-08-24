@@ -41,6 +41,7 @@
         <Color x:Key="AeziolDangerWashColor">#18E08A82</Color>
         <Color x:Key="AeziolRouteMidColor">#07121419</Color>
         <Color x:Key="AeziolRouteEdgeColor">#00121419</Color>
+        <Color x:Key="DiscordBlurpleColor">#5865F2</Color>
 
         <SolidColorBrush x:Key="AeziolInk" Color="{DynamicResource AeziolInkColor}" />
         <SolidColorBrush x:Key="AeziolCanvas" Color="{DynamicResource AeziolCanvasColor}" />
@@ -72,6 +73,7 @@
         <SolidColorBrush x:Key="AeziolGoldWash" Color="{DynamicResource AeziolGoldWashColor}" />
         <SolidColorBrush x:Key="AeziolGoldLine" Color="{DynamicResource AeziolGoldLineColor}" />
         <SolidColorBrush x:Key="AeziolDangerWash" Color="{DynamicResource AeziolDangerWashColor}" />
+        <SolidColorBrush x:Key="DiscordBlurple" Color="{DynamicResource DiscordBlurpleColor}" />
         <LinearGradientBrush x:Key="AeziolTraceBorder" StartPoint="0,0" EndPoint="1,1">
             <GradientStop Offset="0" Color="Transparent" />
             <GradientStop Offset="0.1" Color="{DynamicResource AeziolPrimaryTraceColor}" />
