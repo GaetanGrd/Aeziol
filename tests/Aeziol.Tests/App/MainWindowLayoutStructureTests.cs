@@ -103,7 +103,7 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Contains(activeStopGlyph.Descendants(), element =>
             element.Name.LocalName == "Setter"
             && element.Attribute("Property")?.Value == "Opacity"
-            && element.Attribute("Value")?.Value == "0.48");
+            && element.Attribute("Value")?.Value == "0.20");
         Assert.Contains(stopGlyphTriggers, trigger =>
             trigger.Attribute("Binding")?.Value.Contains("IsMouseOver", StringComparison.Ordinal) == true
             && trigger.Descendants().Any(setter =>

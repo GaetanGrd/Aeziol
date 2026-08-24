@@ -477,7 +477,7 @@
                                                                  IsHitTestVisible="False">
                                                             <Viewbox.Style>
                                                                 <Style TargetType="Viewbox">
-                                                                    <Setter Property="Opacity" Value="0.48" />
+                                                                    <Setter Property="Opacity" Value="0.20" />
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}"
                                                                                      Value="True">
