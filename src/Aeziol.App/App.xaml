@@ -349,6 +349,31 @@
             <Setter Property="BorderBrush" Value="{DynamicResource AeziolBorder}" />
             <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
         </Style>
+        <Style x:Key="AutomationCicadaButton" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource AeziolDanger}" />
+            <Setter Property="Foreground" Value="{DynamicResource AeziolDanger}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid x:Name="Chrome" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Chrome" Property="Opacity" Value="0.42" />
+                                <Setter Property="Cursor" Value="Arrow" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
             <Setter Property="appearance:ButtonToneAssist.Tone" Value="Danger" />
             <Setter Property="Background" Value="{DynamicResource AeziolDangerWash}" />
@@ -617,7 +642,8 @@
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Cursor" Value="Arrow" />
-                                <Setter Property="Opacity" Value="0.38" />
+                                <Setter Property="Opacity" Value="0.82" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolMuted}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Selection" Property="Background" Value="{DynamicResource AeziolSecondary}" />

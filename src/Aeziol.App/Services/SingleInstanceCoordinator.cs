@@ -61,7 +61,7 @@ internal sealed class SingleInstanceCoordinator : IDisposable
                 using var activationEvent = EventWaitHandle.OpenExisting(_activationEventName);
                 return activationEvent.Set();
             }
-            catch (WaitHandleCannotBeOpenedException) when (attempt < 9)
+            catch (WaitHandleCannotBeOpenedException)
             {
                 Thread.Sleep(25);
             }
