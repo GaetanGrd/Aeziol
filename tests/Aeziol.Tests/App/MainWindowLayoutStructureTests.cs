@@ -329,6 +329,7 @@ public sealed class MainWindowLayoutStructureTests
         var source = File.ReadAllText(codePath);
 
         var rulesView = FindNamedElement(document, "RulesView");
+        var discordSettingsViewport = FindNamedElement(document, "DiscordSettingsViewport");
         var settingsHost = FindNamedElement(document, "DiscordSettingsHost");
         var automationAction = FindNamedElement(document, "AutomationActionButton");
         var discordView = FindNamedElement(document, "DiscordView");
@@ -336,6 +337,11 @@ public sealed class MainWindowLayoutStructureTests
         var discordSettingsToggle = FindNamedElement(document, "DiscordSettingsToggleButton");
 
         Assert.Contains(settingsHost, rulesView.Descendants());
+        Assert.Equal("Grid", discordSettingsViewport.Name.LocalName);
+        Assert.Contains(settingsHost, discordSettingsViewport.Descendants());
+        Assert.DoesNotContain(settingsHost.Ancestors().TakeWhile(element => element != rulesView),
+            element => element.Name.LocalName == "ScrollViewer");
+        Assert.Equal("Stretch", settingsHost.Attribute("VerticalContentAlignment")?.Value);
         Assert.Equal(
             ["70", "*"],
             discordView.Elements().Single(element => element.Name.LocalName == "Grid.RowDefinitions")

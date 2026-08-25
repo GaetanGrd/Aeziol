@@ -604,9 +604,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
-                            <StackPanel Margin="0,0,8,2">
+                        <Grid x:Name="DiscordSettingsViewport" Margin="0,0,0,2">
                                 <Grid x:Name="LegacyDiscordRulesLayout" Height="390" Visibility="Collapsed">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="1*" />
@@ -731,10 +729,10 @@
                                 </Border>
                             </Grid>
                                 </Grid>
-                                <ContentControl x:Name="DiscordSettingsHost" Margin="0"
-                                                HorizontalContentAlignment="Stretch" />
-                            </StackPanel>
-                        </ScrollViewer>
+                            <ContentControl x:Name="DiscordSettingsHost" Margin="0"
+                                            HorizontalContentAlignment="Stretch"
+                                            VerticalContentAlignment="Stretch" />
+                        </Grid>
                     </Grid>
                         </Grid>
                     </Grid>
