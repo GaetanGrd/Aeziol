@@ -73,9 +73,14 @@ public sealed class DiscordSettingsV4Concept2StructureTests
             "Forcer la restauration",
             "Connexion Discord",
         };
+        var visibleCopy = document.Descendants()
+            .SelectMany(element => new[] { element.Attribute("Text")?.Value, element.Attribute("Content")?.Value })
+            .Where(value => value is not null)
+            .Cast<string>()
+            .ToArray();
         foreach (var copy in forbiddenCopy)
         {
-            Assert.DoesNotContain(copy, source, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(visibleCopy, value => value.Contains(copy, StringComparison.OrdinalIgnoreCase));
         }
 
         Assert.DoesNotContain(document.Descendants(), element => element.Name.LocalName == "Image");
@@ -94,6 +99,18 @@ public sealed class DiscordSettingsV4Concept2StructureTests
     public void ConceptUsesThreeCompactLaunchersAndModalSections()
     {
         var document = LoadConcept();
+        var launcherStyle = document.Descendants().Single(element =>
+            element.Name.LocalName == "Style"
+            && element.Attribute(Xaml + "Key")?.Value == "ConceptLauncherButton");
+        var launcherSurface = launcherStyle.Descendants().Single(element =>
+            element.Attribute(Xaml + "Name")?.Value == "LauncherSurface");
+
+        Assert.Null(launcherStyle.Attribute("BasedOn"));
+        Assert.Contains(launcherStyle.Elements(), element =>
+            element.Name.LocalName == "Setter"
+            && element.Attribute("Property")?.Value == "MinHeight"
+            && element.Attribute("Value")?.Value == "168");
+        Assert.Equal("16", launcherSurface.Attribute("CornerRadius")?.Value);
         Assert.Equal("0", FindNamedElement(document, "OpenGlobalSettingsButton").Attribute("Grid.Column")?.Value);
         Assert.Equal("2", FindNamedElement(document, "OpenOutputDevicesButton").Attribute("Grid.Column")?.Value);
         Assert.Equal("4", FindNamedElement(document, "OpenFallbackSettingsButton").Attribute("Grid.Column")?.Value);

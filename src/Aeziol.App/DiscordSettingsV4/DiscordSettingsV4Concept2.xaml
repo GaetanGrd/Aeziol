@@ -44,13 +44,68 @@
             <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
         </Style>
 
-        <Style x:Key="ConceptLauncherButton"
-               TargetType="Button"
-               BasedOn="{StaticResource SettingsCommandRow}">
-            <Setter Property="MinHeight" Value="132" />
-            <Setter Property="Padding" Value="18,16" />
+        <Style x:Key="ConceptLauncherButton" TargetType="Button">
+            <Setter Property="MinHeight" Value="168" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
+            <Setter Property="Background" Value="{DynamicResource AeziolSurface}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AeziolTraceBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="LauncherSurface"
+                                Padding="18,16"
+                                CornerRadius="16"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="1" ScaleY="1" />
+                            </Border.RenderTransform>
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsEnabled" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="LauncherSurface" Property="Background"
+                                        Value="{DynamicResource AeziolRaised}" />
+                                <Setter TargetName="LauncherSurface" Property="BorderBrush"
+                                        Value="{DynamicResource AeziolTraceBorderHover}" />
+                            </MultiTrigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="LauncherSurface" Property="Background"
+                                        Value="{DynamicResource AeziolGoldWash}" />
+                                <Setter TargetName="LauncherSurface" Property="BorderBrush"
+                                        Value="{DynamicResource AeziolGoldLine}" />
+                                <Setter TargetName="LauncherSurface" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.985" ScaleY="0.985" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="LauncherSurface" Property="BorderBrush"
+                                        Value="{DynamicResource AeziolGold}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="LauncherSurface" Property="Opacity" Value="0.38" />
+                                <Setter Property="Cursor" Value="Arrow" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
 
@@ -80,12 +135,19 @@
                         Style="{StaticResource ConceptLauncherButton}"
                         Click="OnOpenSettingsModal">
                     <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="44" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="12" />
-                        </Grid.ColumnDefinitions>
-                        <Border Width="40" Height="40" CornerRadius="12"
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Path Grid.RowSpan="3" Width="92" Height="48"
+                              HorizontalAlignment="Right" VerticalAlignment="Top"
+                              Data="M 2,38 C 27,5 58,43 90,9"
+                              Stretch="Fill" Stroke="{DynamicResource AeziolGoldLine}"
+                              StrokeThickness="1.1" StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round" IsHitTestVisible="False" />
+                        <Border Width="42" Height="42" CornerRadius="13"
+                                HorizontalAlignment="Left"
                                 Background="{DynamicResource AeziolGoldWash}">
                             <Path Width="20" Height="20"
                                   Data="M 3,8 L 3,13 L 7,13 L 12,17 L 12,3 L 7,7 L 3,7 Z M 15,7 C 17,9 17,11 15,13"
@@ -93,16 +155,23 @@
                                   StrokeThickness="1.5" StrokeStartLineCap="Round"
                                   StrokeEndLineCap="Round" StrokeLineJoin="Round" />
                         </Border>
-                        <StackPanel Grid.Column="1" Margin="14,0,8,0" VerticalAlignment="Center">
-                            <TextBlock Style="{StaticResource ConceptSettingTitle}" FontSize="13"
+                        <StackPanel Grid.Row="1" Margin="0,14,0,12" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource ConceptSettingTitle}" FontSize="15"
                                        Text="Réglages Discord globaux" />
-                            <TextBlock Style="{StaticResource ConceptSettingHelp}"
+                            <TextBlock Style="{StaticResource ConceptSettingHelp}" Margin="0,6,0,0"
                                        Text="Délai et notifications" />
                         </StackPanel>
-                        <Path Grid.Column="2" Width="6" Height="10"
-                              Data="M 1,1 L 5,5 L 1,9"
-                              Stroke="{DynamicResource AeziolDim}" StrokeThickness="1.3"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                        <Border Grid.Row="2" BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                BorderThickness="0,1,0,0">
+                            <Grid Margin="0,10,0,0">
+                                <TextBlock Text="Configurer" FontSize="10"
+                                           Foreground="{DynamicResource AeziolGoldBright}" />
+                                <Path Width="6" Height="10" HorizontalAlignment="Right"
+                                      Data="M 1,1 L 5,5 L 1,9"
+                                      Stroke="{DynamicResource AeziolGold}" StrokeThickness="1.3"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                            </Grid>
+                        </Border>
                     </Grid>
                 </Button>
 
@@ -112,12 +181,19 @@
                         Style="{StaticResource ConceptLauncherButton}"
                         Click="OnOpenSettingsModal">
                     <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="44" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="12" />
-                        </Grid.ColumnDefinitions>
-                        <Border Width="40" Height="40" CornerRadius="12"
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Path Grid.RowSpan="3" Width="92" Height="48"
+                              HorizontalAlignment="Right" VerticalAlignment="Top"
+                              Data="M 2,38 C 27,5 58,43 90,9"
+                              Stretch="Fill" Stroke="{DynamicResource AeziolGoldLine}"
+                              StrokeThickness="1.1" StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round" IsHitTestVisible="False" />
+                        <Border Width="42" Height="42" CornerRadius="13"
+                                HorizontalAlignment="Left"
                                 Background="{DynamicResource AeziolGoldWash}">
                             <Path Width="20" Height="20"
                                   Data="M 3,5 L 3,15 L 17,15 L 17,5 Z M 6,5 L 7,2 L 13,2 L 14,5 M 6,9 L 14,9"
@@ -125,16 +201,23 @@
                                   StrokeThickness="1.5" StrokeStartLineCap="Round"
                                   StrokeEndLineCap="Round" StrokeLineJoin="Round" />
                         </Border>
-                        <StackPanel Grid.Column="1" Margin="14,0,8,0" VerticalAlignment="Center">
-                            <TextBlock Style="{StaticResource ConceptSettingTitle}" FontSize="13"
+                        <StackPanel Grid.Row="1" Margin="0,14,0,12" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource ConceptSettingTitle}" FontSize="15"
                                        Text="Périphériques de sortie" />
-                            <TextBlock Style="{StaticResource ConceptSettingHelp}"
+                            <TextBlock Style="{StaticResource ConceptSettingHelp}" Margin="0,6,0,0"
                                        Text="Sorties à ne jamais modifier" />
                         </StackPanel>
-                        <Path Grid.Column="2" Width="6" Height="10"
-                              Data="M 1,1 L 5,5 L 1,9"
-                              Stroke="{DynamicResource AeziolDim}" StrokeThickness="1.3"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                        <Border Grid.Row="2" BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                BorderThickness="0,1,0,0">
+                            <Grid Margin="0,10,0,0">
+                                <TextBlock Text="Configurer" FontSize="10"
+                                           Foreground="{DynamicResource AeziolGoldBright}" />
+                                <Path Width="6" Height="10" HorizontalAlignment="Right"
+                                      Data="M 1,1 L 5,5 L 1,9"
+                                      Stroke="{DynamicResource AeziolGold}" StrokeThickness="1.3"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                            </Grid>
+                        </Border>
                     </Grid>
                 </Button>
 
@@ -144,12 +227,19 @@
                         Style="{StaticResource ConceptLauncherButton}"
                         Click="OnOpenSettingsModal">
                     <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="44" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="12" />
-                        </Grid.ColumnDefinitions>
-                        <Border Width="40" Height="40" CornerRadius="12"
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Path Grid.RowSpan="3" Width="92" Height="48"
+                              HorizontalAlignment="Right" VerticalAlignment="Top"
+                              Data="M 2,38 C 27,5 58,43 90,9"
+                              Stretch="Fill" Stroke="{DynamicResource AeziolGoldLine}"
+                              StrokeThickness="1.1" StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round" IsHitTestVisible="False" />
+                        <Border Width="42" Height="42" CornerRadius="13"
+                                HorizontalAlignment="Left"
                                 Background="{DynamicResource AeziolGoldWash}">
                             <Path Width="20" Height="20"
                                   Data="M 3,4 L 17,4 L 17,16 L 3,16 Z M 6,8 L 14,8 M 6,12 L 11,12"
@@ -157,16 +247,23 @@
                                   StrokeThickness="1.5" StrokeStartLineCap="Round"
                                   StrokeEndLineCap="Round" StrokeLineJoin="Round" />
                         </Border>
-                        <StackPanel Grid.Column="1" Margin="14,0,8,0" VerticalAlignment="Center">
-                            <TextBlock Style="{StaticResource ConceptSettingTitle}" FontSize="13"
+                        <StackPanel Grid.Row="1" Margin="0,14,0,12" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource ConceptSettingTitle}" FontSize="15"
                                        Text="Dépannage Discord" />
-                            <TextBlock Style="{StaticResource ConceptSettingHelp}"
+                            <TextBlock Style="{StaticResource ConceptSettingHelp}" Margin="0,6,0,0"
                                        Text="Détection et chemin manuel" />
                         </StackPanel>
-                        <Path Grid.Column="2" Width="6" Height="10"
-                              Data="M 1,1 L 5,5 L 1,9"
-                              Stroke="{DynamicResource AeziolDim}" StrokeThickness="1.3"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                        <Border Grid.Row="2" BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                BorderThickness="0,1,0,0">
+                            <Grid Margin="0,10,0,0">
+                                <TextBlock Text="Configurer" FontSize="10"
+                                           Foreground="{DynamicResource AeziolGoldBright}" />
+                                <Path Width="6" Height="10" HorizontalAlignment="Right"
+                                      Data="M 1,1 L 5,5 L 1,9"
+                                      Stroke="{DynamicResource AeziolGold}" StrokeThickness="1.3"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                            </Grid>
+                        </Border>
                     </Grid>
                 </Button>
             </Grid>
