@@ -4,10 +4,11 @@
              xmlns:controls="clr-namespace:Aeziol.App.Controls"
              xmlns:automation="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              Background="Transparent"
-             Foreground="{DynamicResource AeziolText}">
+             Foreground="{DynamicResource AeziolText}"
+             PreviewKeyDown="OnPreviewKeyDown">
     <UserControl.Resources>
         <Style x:Key="ConceptColumnCard" TargetType="Border">
-            <Setter Property="Padding" Value="16,14,16,16" />
+            <Setter Property="Padding" Value="12" />
             <Setter Property="CornerRadius" Value="13" />
             <Setter Property="Background" Value="{DynamicResource AeziolSurface}" />
             <Setter Property="BorderBrush" Value="{DynamicResource AeziolTraceBorder}" />
@@ -15,7 +16,7 @@
         </Style>
 
         <Style x:Key="ConceptSettingRow" TargetType="Border">
-            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="Padding" Value="10,8" />
             <Setter Property="CornerRadius" Value="10" />
             <Setter Property="Background" Value="{DynamicResource AeziolRaised}" />
             <Setter Property="BorderBrush" Value="{DynamicResource AeziolBorderSoft}" />
@@ -38,218 +39,261 @@
         </Style>
 
         <Style x:Key="ConceptSectionHeading" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontSize" Value="14" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
         </Style>
+
+        <Style x:Key="ConceptLauncherButton"
+               TargetType="Button"
+               BasedOn="{StaticResource SettingsCommandRow}">
+            <Setter Property="MinHeight" Value="74" />
+            <Setter Property="Padding" Value="14,11" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
     </UserControl.Resources>
 
-    <StackPanel x:Name="ConceptRoot" MaxWidth="1180">
+    <Grid x:Name="ConceptRoot" MaxWidth="1180">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
         <ContentControl x:Name="DiscordConnectionHost"
-                        Margin="0,0,0,12"
+                        Margin="0,0,0,8"
                         HorizontalContentAlignment="Stretch" />
 
-            <Grid>
+        <Grid Grid.Row="1">
+            <Grid x:Name="SettingsLauncherPanel">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="14" />
+                    <ColumnDefinition Width="8" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="8" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <Border x:Name="AudioBehaviorColumn"
+                <Button x:Name="OpenGlobalSettingsButton"
                         Grid.Column="0"
-                        Style="{StaticResource ConceptColumnCard}">
+                        Tag="Global"
+                        Style="{StaticResource ConceptLauncherButton}"
+                        Click="OnOpenSettingsModal">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="32" />
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
                         </Grid.ColumnDefinitions>
-
-                        <controls:JourneyTrace x:Name="AudioBehaviorTrace"
-                                               Width="20" Height="400"
-                                               Margin="0,36,0,0"
-                                               HorizontalAlignment="Left"
-                                               VerticalAlignment="Top"
-                                               IsHitTestVisible="False"
-                                               Orientation="Vertical"
-                                               EdgeFade="0.12"
-                                               BaseStrokeA="0.8"
-                                               BaseStrokeB="0.65"
-                                               BaseOpacityA="0.52"
-                                               BaseOpacityB="0.3"
-                                               TraceA="M 10,3 C 5,62 15,109 8,166 C 3,224 16,282 10,397"
-                                               TraceB="M 13,4 C 8,60 14,110 11,166 C 7,224 14,283 13,396">
-                            <controls:JourneyTrace.Particles>
-                                <controls:JourneyParticle X="9" Y="58" Size="2.6" Opacity="0.42" Tone="BlendedPrimary" />
-                                <controls:JourneyParticle X="13" Y="166" Size="1.8" Opacity="0.34" Tone="BlendedSecondary" />
-                                <controls:JourneyParticle X="7" Y="275" Size="2.3" Opacity="0.4" Tone="BlendedPrimary" />
-                                <controls:JourneyParticle X="12" Y="359" Size="1.5" Opacity="0.3" Tone="BlendedSecondary" />
-                            </controls:JourneyTrace.Particles>
-                        </controls:JourneyTrace>
-
-                        <StackPanel Grid.Column="1">
-                            <Grid Margin="2,0,2,10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Width="32" Height="32" CornerRadius="9"
-                                        Background="{DynamicResource AeziolGoldWash}">
-                                    <Path Width="17" Height="17"
-                                          Data="M 3,8 L 3,13 L 7,13 L 12,17 L 12,3 L 7,7 L 3,7 Z M 15,7 C 17,9 17,11 15,13"
-                                          Stretch="Uniform"
-                                          Stroke="{DynamicResource AeziolGold}"
-                                          StrokeThickness="1.5"
-                                          StrokeStartLineCap="Round"
-                                          StrokeEndLineCap="Round"
-                                          StrokeLineJoin="Round" />
-                                </Border>
-                                <StackPanel Grid.Column="1" Margin="11,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock Style="{StaticResource ConceptSectionHeading}"
-                                               Text="Comportement audio" />
-                                    <TextBlock Margin="0,3,0,0" FontSize="10"
-                                               Foreground="{DynamicResource AeziolDim}"
-                                               Text="Des réglages simples pour le retour à votre écoute habituelle." />
-                                </StackPanel>
-                            </Grid>
-
-                            <Border x:Name="RestoreDelaySetting"
-                                    Tag="DiscordSetting:2"
-                                    Style="{StaticResource ConceptSettingRow}">
-                                <StackPanel>
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource ConceptSettingTitle}"
-                                                   Text="Délai avant restauration de la sortie" />
-                                        <TextBlock Style="{StaticResource ConceptSettingHelp}"
-                                                   Text="Laissez quelques secondes aux applications pour libérer leur son." />
-                                    </StackPanel>
-                                    <ComboBox x:Name="RestoreDelayComboBox"
-                                              Width="150"
-                                              Margin="0,10,0,0"
-                                              HorizontalAlignment="Left"
-                                              MinHeight="34"
-                                              SelectedIndex="1"
-                                              automation:AutomationProperties.Name="Délai avant restauration de la sortie">
-                                        <ComboBoxItem Content="Immédiatement" />
-                                        <ComboBoxItem Content="5 secondes" />
-                                        <ComboBoxItem Content="10 secondes" />
-                                        <ComboBoxItem Content="30 secondes" />
-                                    </ComboBox>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Height="1" Margin="8,8"
-                                    Background="{DynamicResource AeziolBorderSoft}" />
-
-                            <Border x:Name="WindowsNotificationSetting"
-                                    Tag="DiscordSetting:9"
-                                    Style="{StaticResource ConceptSettingRow}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
-                                        <TextBlock Style="{StaticResource ConceptSettingTitle}"
-                                                   Text="Notification Windows" />
-                                        <TextBlock Style="{StaticResource ConceptSettingHelp}"
-                                                   Text="Prévenez-moi lorsqu'une sortie audio est modifiée." />
-                                    </StackPanel>
-                                    <CheckBox x:Name="WindowsNotificationToggle"
-                                              Grid.Column="1"
-                                              VerticalAlignment="Center"
-                                              IsChecked="True"
-                                              Style="{StaticResource ToggleSwitch}"
-                                              automation:AutomationProperties.Name="Envoyer une notification Windows lors d'un changement de sortie audio" />
-                                </Grid>
-                            </Border>
-
-                            <Border Height="1" Margin="8,8"
-                                    Background="{DynamicResource AeziolBorderSoft}" />
-
-                            <Border x:Name="ExcludedOutputsSetting"
-                                    Tag="DiscordSetting:3"
-                                    Style="{StaticResource ConceptSettingRow}">
-                                <StackPanel>
-                                    <TextBlock Style="{StaticResource ConceptSettingTitle}"
-                                               Text="Sorties à ne jamais modifier" />
-                                    <TextBlock Style="{StaticResource ConceptSettingHelp}"
-                                               Text="Cochez les appareils qui doivent toujours rester intacts." />
-                                    <StackPanel Margin="0,9,0,0">
-                                        <CheckBox Style="{StaticResource DeviceCheck}" IsChecked="True"
-                                                  Content="Casque USB" />
-                                        <CheckBox Style="{StaticResource DeviceCheck}"
-                                                  Content="Haut-parleurs du moniteur" />
-                                        <CheckBox Style="{StaticResource DeviceCheck}"
-                                                  Content="Sortie HDMI" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </Border>
+                        <Border Width="28" Height="28" CornerRadius="8"
+                                Background="{DynamicResource AeziolGoldWash}">
+                            <Path Width="16" Height="16"
+                                  Data="M 3,8 L 3,13 L 7,13 L 12,17 L 12,3 L 7,7 L 3,7 Z M 15,7 C 17,9 17,11 15,13"
+                                  Stretch="Uniform" Stroke="{DynamicResource AeziolGold}"
+                                  StrokeThickness="1.5" StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="10,0,8,0" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource ConceptSettingTitle}"
+                                       Text="Réglages Discord globaux" />
+                            <TextBlock Style="{StaticResource ConceptSettingHelp}"
+                                       Text="Délai et notifications" />
                         </StackPanel>
+                        <Path Grid.Column="2" Width="6" Height="10"
+                              Data="M 1,1 L 5,5 L 1,9"
+                              Stroke="{DynamicResource AeziolDim}" StrokeThickness="1.3"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
                     </Grid>
-                </Border>
+                </Button>
 
-                <Border x:Name="DiscordInstallationColumn"
+                <Button x:Name="OpenOutputDevicesButton"
                         Grid.Column="2"
-                        Style="{StaticResource ConceptColumnCard}">
+                        Tag="Outputs"
+                        Style="{StaticResource ConceptLauncherButton}"
+                        Click="OnOpenSettingsModal">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="32" />
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
                         </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28" CornerRadius="8"
+                                Background="{DynamicResource AeziolGoldWash}">
+                            <Path Width="16" Height="16"
+                                  Data="M 3,5 L 3,15 L 17,15 L 17,5 Z M 6,5 L 7,2 L 13,2 L 14,5 M 6,9 L 14,9"
+                                  Stretch="Uniform" Stroke="{DynamicResource AeziolGold}"
+                                  StrokeThickness="1.5" StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="10,0,8,0" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource ConceptSettingTitle}"
+                                       Text="Périphériques de sortie" />
+                            <TextBlock Style="{StaticResource ConceptSettingHelp}"
+                                       Text="Sorties à ne jamais modifier" />
+                        </StackPanel>
+                        <Path Grid.Column="2" Width="6" Height="10"
+                              Data="M 1,1 L 5,5 L 1,9"
+                              Stroke="{DynamicResource AeziolDim}" StrokeThickness="1.3"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                    </Grid>
+                </Button>
 
-                        <controls:JourneyTrace x:Name="DiscordInstallationTrace"
-                                               Width="20" Height="400"
-                                               Margin="0,36,0,0"
-                                               HorizontalAlignment="Left"
-                                               VerticalAlignment="Top"
-                                               IsHitTestVisible="False"
-                                               Orientation="Vertical"
-                                               EdgeFade="0.12"
-                                               BaseStrokeA="0.8"
-                                               BaseStrokeB="0.65"
-                                               BaseOpacityA="0.52"
-                                               BaseOpacityB="0.3"
-                                               TraceA="M 10,3 C 15,67 4,119 11,181 C 17,241 6,306 10,397"
-                                               TraceB="M 13,4 C 14,67 8,120 13,182 C 15,242 9,306 13,396">
-                            <controls:JourneyTrace.Particles>
-                                <controls:JourneyParticle X="11" Y="66" Size="2.5" Opacity="0.4" Tone="BlendedSecondary" />
-                                <controls:JourneyParticle X="8" Y="180" Size="1.7" Opacity="0.3" Tone="BlendedPrimary" />
-                                <controls:JourneyParticle X="13" Y="296" Size="2.4" Opacity="0.4" Tone="BlendedSecondary" />
-                            </controls:JourneyTrace.Particles>
-                        </controls:JourneyTrace>
+                <Button x:Name="OpenFallbackSettingsButton"
+                        Grid.Column="4"
+                        Tag="Fallback"
+                        Style="{StaticResource ConceptLauncherButton}"
+                        Click="OnOpenSettingsModal">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28" CornerRadius="8"
+                                Background="{DynamicResource AeziolGoldWash}">
+                            <Path Width="16" Height="16"
+                                  Data="M 3,4 L 17,4 L 17,16 L 3,16 Z M 6,8 L 14,8 M 6,12 L 11,12"
+                                  Stretch="Uniform" Stroke="{DynamicResource AeziolGold}"
+                                  StrokeThickness="1.5" StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="10,0,8,0" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource ConceptSettingTitle}"
+                                       Text="Dépannage Discord" />
+                            <TextBlock Style="{StaticResource ConceptSettingHelp}"
+                                       Text="Détection et chemin manuel" />
+                        </StackPanel>
+                        <Path Grid.Column="2" Width="6" Height="10"
+                              Data="M 1,1 L 5,5 L 1,9"
+                              Stroke="{DynamicResource AeziolDim}" StrokeThickness="1.3"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                    </Grid>
+                </Button>
+            </Grid>
+        </Grid>
 
-                        <StackPanel Grid.Column="1">
-                            <Grid Margin="2,0,2,10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Width="32" Height="32" CornerRadius="9"
-                                        Background="{DynamicResource AeziolGoldWash}">
-                                    <Path Width="17" Height="17"
-                                          Data="M 3,5 L 3,15 L 17,15 L 17,5 Z M 6,5 L 7,2 L 13,2 L 14,5 M 6,9 L 14,9"
-                                          Stretch="Uniform"
-                                          Stroke="{DynamicResource AeziolGold}"
-                                          StrokeThickness="1.5"
-                                          StrokeStartLineCap="Round"
-                                          StrokeEndLineCap="Round"
-                                          StrokeLineJoin="Round" />
+            <Grid x:Name="SettingsModalLayer"
+                  Grid.RowSpan="2"
+                  MinHeight="360"
+                  Visibility="Collapsed"
+                  Panel.ZIndex="10"
+                  Background="#D9090A0C"
+                  MouseLeftButtonUp="OnSettingsModalBackdropClick">
+                <Border x:Name="SettingsModalSurface"
+                        Width="590"
+                        MaxHeight="410"
+                        Margin="12"
+                        Padding="18,14"
+                        CornerRadius="16"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="{DynamicResource AeziolSurface}"
+                        BorderBrush="{DynamicResource AeziolGoldLine}"
+                        BorderThickness="1"
+                        MouseLeftButtonUp="OnSettingsModalSurfaceClick">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="38" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <TextBlock x:Name="SettingsModalTitleText"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                            <Button x:Name="SettingsModalCloseButton"
+                                    Width="32" Height="32"
+                                    HorizontalAlignment="Right"
+                                    Style="{StaticResource WindowButton}"
+                                    Content="×"
+                                    Click="OnCloseSettingsModal" />
+                        </Grid>
+
+                        <ScrollViewer x:Name="SettingsModalScrollViewer"
+                                      Grid.Row="1"
+                                      Margin="0,6,4,0"
+                                      MaxHeight="330"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <Grid>
+                                <StackPanel x:Name="GlobalSettingsPanel" Visibility="Collapsed">
+                                    <Border x:Name="RestoreDelaySetting"
+                                            Tag="DiscordSetting:2"
+                                            Style="{StaticResource ConceptSettingRow}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="140" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Margin="0,0,12,0">
+                                                <TextBlock Style="{StaticResource ConceptSettingTitle}"
+                                                           Text="Délai avant restauration de la sortie" />
+                                                <TextBlock Style="{StaticResource ConceptSettingHelp}"
+                                                           Text="Laissez quelques secondes aux applications pour libérer leur son." />
+                                            </StackPanel>
+                                            <ComboBox x:Name="RestoreDelayComboBox"
+                                                      Grid.Column="1"
+                                                      MinHeight="32"
+                                                      SelectedIndex="1"
+                                                      automation:AutomationProperties.Name="Délai avant restauration de la sortie">
+                                                <ComboBoxItem Content="Immédiatement" />
+                                                <ComboBoxItem Content="5 secondes" />
+                                                <ComboBoxItem Content="10 secondes" />
+                                                <ComboBoxItem Content="30 secondes" />
+                                            </ComboBox>
+                                        </Grid>
+                                    </Border>
+
+                                    <Border Height="1" Margin="8,6"
+                                            Background="{DynamicResource AeziolBorderSoft}" />
+
+                                    <Border x:Name="WindowsNotificationSetting"
+                                            Tag="DiscordSetting:9"
+                                            Style="{StaticResource ConceptSettingRow}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                                <TextBlock Style="{StaticResource ConceptSettingTitle}"
+                                                           Text="Notification Windows" />
+                                                <TextBlock Style="{StaticResource ConceptSettingHelp}"
+                                                           Text="Prévenez-moi lorsqu'une sortie audio est modifiée." />
+                                            </StackPanel>
+                                            <CheckBox x:Name="WindowsNotificationToggle"
+                                                      Grid.Column="1"
+                                                      VerticalAlignment="Center"
+                                                      IsChecked="True"
+                                                      Style="{StaticResource ToggleSwitch}"
+                                                      automation:AutomationProperties.Name="Envoyer une notification Windows lors d'un changement de sortie audio" />
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
+                                <Border x:Name="ExcludedOutputsSetting"
+                                        Tag="DiscordSetting:3"
+                                        Padding="4,2,2,2"
+                                        CornerRadius="10"
+                                        Visibility="Collapsed"
+                                        Background="{DynamicResource AeziolRaised}"
+                                        BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                        BorderThickness="1">
+                                    <ContentControl x:Name="ExcludedOutputsHost"
+                                                    MinHeight="150"
+                                                    MaxHeight="280"
+                                                    HorizontalContentAlignment="Stretch"
+                                                    VerticalContentAlignment="Stretch" />
                                 </Border>
-                                <StackPanel Grid.Column="1" Margin="11,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock Style="{StaticResource ConceptSectionHeading}"
-                                               Text="Installation Discord" />
-                                    <TextBlock Margin="0,3,0,0" FontSize="10"
-                                               Foreground="{DynamicResource AeziolDim}"
-                                               Text="Aeziol retrouve normalement l'application sans votre aide." />
+
+                                <StackPanel x:Name="FallbackSettingsPanel" Visibility="Collapsed">
+                                    <StackPanel x:Name="DiscordFallbackHost"
+                                                Tag="DiscordSetting:8" />
                                 </StackPanel>
                             </Grid>
-
-                            <StackPanel x:Name="DiscordFallbackHost"
-                                        Tag="DiscordSetting:8" />
-                        </StackPanel>
+                        </ScrollViewer>
                     </Grid>
                 </Border>
             </Grid>
-    </StackPanel>
+    </Grid>
 </UserControl>

@@ -90,10 +90,15 @@ public partial class MainWindow : Window
             fallbackParent.Children.Remove(DiscordFallbackToggle);
             fallbackParent.Children.Remove(DiscordFallbackPanel);
         }
+        if (ExclusionsJourneyHost.Parent is System.Windows.Controls.Panel exclusionsParent)
+        {
+            exclusionsParent.Children.Remove(ExclusionsJourneyHost);
+        }
         SettingsDiscordScrollViewer.Content = null;
         discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;
         discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackToggle);
         discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackPanel);
+        discordSettings.ExcludedOutputsHost.Content = ExclusionsJourneyHost;
         DiscordSettingsHost.Content = discordSettings;
         CloseActionsMenu.LayoutTransform = _closeActionsMenuScale;
         NotificationItems.ItemsSource = _notifications.Items;

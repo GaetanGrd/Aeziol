@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Linq;
 using Aeziol.App.DiscordSettingsV4;
@@ -80,24 +81,33 @@ public sealed class DiscordSettingsV4Concept2StructureTests
         Assert.DoesNotContain(document.Descendants(), element => element.Name.LocalName == "Image");
         Assert.DoesNotContain("DiscordSymbolGeometry", source, StringComparison.Ordinal);
         Assert.DoesNotContain("AeziolCicadaDrawing", source, StringComparison.Ordinal);
-        Assert.DoesNotContain(document.Descendants(), element => element.Name.LocalName == "ScrollViewer");
-        Assert.DoesNotContain("Réglages Discord", source, StringComparison.Ordinal);
+        var modalScrollViewer = Assert.Single(
+            document.Descendants(),
+            element => element.Name.LocalName == "ScrollViewer");
+        Assert.Contains(modalScrollViewer.Ancestors(), element =>
+            element.Attribute(Xaml + "Name")?.Value == "SettingsModalLayer");
+        Assert.DoesNotContain(document.Descendants(), element =>
+            string.Equals(element.Attribute("Text")?.Value, "Réglages Discord", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void ConceptUsesTwoBalancedColumnsAndDefaultsToAutomaticDetection()
+    public void ConceptUsesThreeCompactLaunchersAndModalSections()
     {
         var document = LoadConcept();
-        var audioColumn = FindNamedElement(document, "AudioBehaviorColumn");
-        var installationColumn = FindNamedElement(document, "DiscordInstallationColumn");
-        var columns = audioColumn.Parent!.Elements()
-            .Single(element => element.Name.LocalName == "Grid.ColumnDefinitions");
-
-        Assert.Equal("0", audioColumn.Attribute("Grid.Column")?.Value);
-        Assert.Equal("2", installationColumn.Attribute("Grid.Column")?.Value);
-        Assert.Equal(["*", "14", "*"], columns.Elements().Select(element => element.Attribute("Width")?.Value));
-        Assert.Equal("150", FindNamedElement(document, "RestoreDelayComboBox").Attribute("Width")?.Value);
-        Assert.Equal("Left", FindNamedElement(document, "RestoreDelayComboBox").Attribute("HorizontalAlignment")?.Value);
+        Assert.Equal("0", FindNamedElement(document, "OpenGlobalSettingsButton").Attribute("Grid.Column")?.Value);
+        Assert.Equal("2", FindNamedElement(document, "OpenOutputDevicesButton").Attribute("Grid.Column")?.Value);
+        Assert.Equal("4", FindNamedElement(document, "OpenFallbackSettingsButton").Attribute("Grid.Column")?.Value);
+        Assert.Equal("Collapsed", FindNamedElement(document, "SettingsModalLayer").Attribute("Visibility")?.Value);
+        Assert.Equal("360", FindNamedElement(document, "SettingsModalLayer").Attribute("MinHeight")?.Value);
+        Assert.Equal("330", FindNamedElement(document, "SettingsModalScrollViewer").Attribute("MaxHeight")?.Value);
+        Assert.Equal("1", FindNamedElement(document, "RestoreDelayComboBox").Attribute("Grid.Column")?.Value);
+        Assert.Equal("32", FindNamedElement(document, "RestoreDelayComboBox").Attribute("MinHeight")?.Value);
+        Assert.Equal("280", FindNamedElement(document, "ExcludedOutputsHost").Attribute("MaxHeight")?.Value);
+        foreach (var panelName in new[] { "GlobalSettingsPanel", "ExcludedOutputsSetting", "FallbackSettingsPanel" })
+        {
+            Assert.Contains(FindNamedElement(document, panelName).Ancestors(), element =>
+                element.Attribute(Xaml + "Name")?.Value == "SettingsModalLayer");
+        }
     }
 
     private static XDocument LoadConcept() => XDocument.Load(FindConceptPath());
@@ -139,6 +149,17 @@ public sealed class DiscordSettingsV4Concept2WpfTests
             Assert.IsType<Border>(concept.FindName("WindowsNotificationSetting"));
             Assert.IsType<ContentControl>(concept.FindName("DiscordConnectionHost"));
             Assert.IsType<StackPanel>(concept.FindName("DiscordFallbackHost"));
+            Assert.IsType<ContentControl>(concept.FindName("ExcludedOutputsHost"));
+
+            var outputsButton = Assert.IsType<System.Windows.Controls.Button>(
+                concept.FindName("OpenOutputDevicesButton"));
+            outputsButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+
+            Assert.Equal(Visibility.Visible, Assert.IsType<Grid>(concept.FindName("SettingsModalLayer")).Visibility);
+            Assert.Equal(Visibility.Visible, Assert.IsType<Border>(concept.FindName("ExcludedOutputsSetting")).Visibility);
+            Assert.Equal(
+                "Périphériques de sortie",
+                Assert.IsType<TextBlock>(concept.FindName("SettingsModalTitleText")).Text);
         });
     }
 }

@@ -1320,7 +1320,7 @@
                                               VerticalScrollBarVisibility="Auto"
                                               HorizontalScrollBarVisibility="Disabled">
                                     <Border x:Name="DiscordSettingsCard" Margin="0,0,8,8"
-                                            Padding="18" CornerRadius="13"
+                                            Padding="12" CornerRadius="13"
                                             VerticalAlignment="Top"
                                             Background="{DynamicResource AeziolSurface}"
                                             BorderBrush="{DynamicResource AeziolTraceBorder}"
@@ -1350,21 +1350,21 @@
                                                 </StackPanel>
                                             </Grid>
 
-                                            <Grid Margin="0,12,0,2" Height="90">
+                                            <Grid Margin="0,6,0,0" Height="64">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="64" />
+                                                    <ColumnDefinition Width="54" />
                                                     <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="64" />
+                                                    <ColumnDefinition Width="54" />
                                                 </Grid.ColumnDefinitions>
 
                                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                    <Border Width="48" Height="48" CornerRadius="15"
+                                                    <Border Width="40" Height="40" CornerRadius="13"
                                                             Background="{DynamicResource AeziolRaised}">
-                                                        <Path Width="26" Height="20" Stretch="Uniform"
+                                                        <Path Width="22" Height="17" Stretch="Uniform"
                                                               Data="{StaticResource DiscordSymbolGeometry}"
                                                               Fill="#5865F2" />
                                                     </Border>
-                                                    <TextBlock Margin="0,5,0,0" Text="Discord" FontSize="9"
+                                                    <TextBlock Margin="0,3,0,0" Text="Discord" FontSize="8"
                                                                Foreground="{DynamicResource AeziolMuted}"
                                                                HorizontalAlignment="Center" />
                                                 </StackPanel>
@@ -1526,9 +1526,9 @@
                                                 </Grid>
 
                                                 <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                    <Image Width="48" Height="48"
+                                                    <Image Width="40" Height="40"
                                                            Source="{DynamicResource AeziolCicadaDrawing}" />
-                                                    <TextBlock Margin="0,5,0,0" Text="AEZIOL" FontSize="9" FontWeight="SemiBold"
+                                                    <TextBlock Margin="0,3,0,0" Text="AEZIOL" FontSize="8" FontWeight="SemiBold"
                                                                Foreground="{DynamicResource AeziolGoldBright}"
                                                                HorizontalAlignment="Center" />
                                                 </StackPanel>
