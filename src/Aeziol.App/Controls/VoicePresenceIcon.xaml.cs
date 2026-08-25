@@ -33,6 +33,8 @@ public partial class VoicePresenceIcon : System.Windows.Controls.UserControl
     public VoicePresenceIcon()
     {
         InitializeComponent();
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
         ShowState(State, animate: false);
     }
 
@@ -80,6 +82,15 @@ public partial class VoicePresenceIcon : System.Windows.Controls.UserControl
 
     private static void OnStateChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs) =>
         ((VoicePresenceIcon)dependencyObject).ShowState((VoicePresenceState)eventArgs.NewValue, animate: true);
+
+    private void OnLoaded(object sender, RoutedEventArgs eventArgs) => StartStateRotationIfNeeded();
+
+    private void OnUnloaded(object sender, RoutedEventArgs eventArgs)
+    {
+        _transitionGeneration++;
+        ClearTransitionAnimations();
+        StopStateRotation();
+    }
 
     private void ShowState(VoicePresenceState state, bool animate)
     {

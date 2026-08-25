@@ -114,8 +114,12 @@
                                 </Grid.ColumnDefinitions>
                                 <Border Width="76" Height="76" CornerRadius="14" ClipToBounds="True"
                                         BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="1">
-                                    <Image Stretch="UniformToFill"
-                                           Source="/Aeziol.App;component/Assets/Audio/onde-doree-cover.png" />
+                                    <Image Stretch="UniformToFill">
+                                        <Image.Source>
+                                            <BitmapImage UriSource="/Aeziol.App;component/Assets/Audio/onde-doree-cover.png"
+                                                         DecodePixelWidth="380" CacheOption="OnLoad" />
+                                        </Image.Source>
+                                    </Image>
                                 </Border>
                                 <StackPanel Grid.Column="1" Margin="6,4,0,0" VerticalAlignment="Center">
                                     <TextBlock x:Name="MusicTrackTitleText" FontSize="14" FontWeight="SemiBold" />

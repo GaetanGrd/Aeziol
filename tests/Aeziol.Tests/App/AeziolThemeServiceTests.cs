@@ -5,6 +5,7 @@ using MediaColor = System.Windows.Media.Color;
 
 namespace Aeziol.Tests.App;
 
+[Collection(WpfUiTestGroup.Name)]
 public sealed class AeziolThemeServiceTests
 {
     public static TheoryData<AeziolTheme> Themes => new()
@@ -88,6 +89,24 @@ public sealed class AeziolThemeServiceTests
         var dark = AeziolThemeService.GetAppearancePalette(enhancedContrast: false);
 
         Assert.Equal(System.Windows.Media.Color.FromRgb(0x07, 0x07, 0x09), dark.Canvas);
+    }
+
+    [Fact]
+    public void Apply_ReplacesCommonSolidBrushesWithFrozenSharedResources()
+    {
+        WpfTestHost.Run(() =>
+        {
+            AeziolThemeService.Apply(AeziolTheme.Elgo);
+            var resources = System.Windows.Application.Current.Resources;
+            var first = Assert.IsType<SolidColorBrush>(resources["AeziolText"]);
+            Assert.True(first.IsFrozen);
+
+            AeziolThemeService.Apply(AeziolTheme.Yuna, enhanceContrast: true);
+            var second = Assert.IsType<SolidColorBrush>(resources["AeziolText"]);
+            Assert.True(second.IsFrozen);
+            Assert.NotSame(first, second);
+            Assert.Equal(AeziolThemeService.GetAppearancePalette(true).Text, second.Color);
+        });
     }
 
     private static MediaColor CompositeOver(MediaColor foreground, MediaColor background)

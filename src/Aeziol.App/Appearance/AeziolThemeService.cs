@@ -172,13 +172,9 @@ public static class AeziolThemeService
 
     private static void SetBrush(ResourceDictionary resources, string key, MediaColor color)
     {
-        if (resources[key] is SolidColorBrush brush && !brush.IsFrozen)
-        {
-            brush.Color = color;
-            return;
-        }
-
-        resources[key] = new SolidColorBrush(color);
+        var brush = new SolidColorBrush(color);
+        brush.Freeze();
+        resources[key] = brush;
     }
 
     private static void SetJourneyDecorationBrushes(

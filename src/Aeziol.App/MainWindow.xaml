@@ -1176,8 +1176,7 @@
                                                                               MediaEnded="OnSettingsMusicCoverEnded"
                                                                               MediaFailed="OnSettingsMusicCoverFailed" />
                                                                 <Image x:Name="SettingsMusicStaticCover"
-                                                                       Stretch="UniformToFill"
-                                                                       Source="/Aeziol.App;component/Assets/Audio/onde-doree-cover.png" />
+                                                                       Stretch="UniformToFill" />
                                                             </Grid>
                                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                                 <TextBlock x:Name="AmbientMusicTrackTitleText"
@@ -2021,8 +2020,7 @@
                                                       LoadedBehavior="Manual" UnloadedBehavior="Stop"
                                                       MediaEnded="OnAboutMusicCoverEnded"
                                                       MediaFailed="OnAboutMusicCoverFailed" />
-                                        <Image x:Name="AboutMusicStaticCover" Stretch="UniformToFill"
-                                               Source="/Aeziol.App;component/Assets/Audio/onde-doree-cover.png" />
+                                        <Image x:Name="AboutMusicStaticCover" Stretch="UniformToFill" />
                                     </Grid>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                         <TextBlock x:Name="AboutMusicTitleText" FontSize="13" FontWeight="SemiBold" />
@@ -2039,7 +2037,7 @@
                                     </Grid.ColumnDefinitions>
                                     <Rectangle Style="{StaticResource AboutWorldLogo}">
                                         <Rectangle.Fill>
-                                            <ImageBrush ImageSource="/Aeziol.App;component/Assets/Brand/elgo-logo-square.png"
+                                            <ImageBrush x:Name="AboutWorldLogoBrush"
                                                         Stretch="UniformToFill" AlignmentX="Center" AlignmentY="Center" />
                                         </Rectangle.Fill>
                                     </Rectangle>

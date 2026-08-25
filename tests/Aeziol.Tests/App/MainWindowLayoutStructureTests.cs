@@ -428,12 +428,13 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Equal("AutomationRouteControlHost", automationAction.Ancestors().First(element => element.Attribute(Xaml + "Name") is not null).Attribute(Xaml + "Name")?.Value);
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RuleDestinationCombo");
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "SettingsDiscordTab");
-        Assert.Contains("_discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();", source, StringComparison.Ordinal);
-        Assert.Contains("_discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;", source, StringComparison.Ordinal);
+        Assert.Contains("var discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();", source, StringComparison.Ordinal);
+        Assert.Contains("discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;", source, StringComparison.Ordinal);
         Assert.DoesNotContain("DiscordFallbackHost.Children.Add", source, StringComparison.Ordinal);
         Assert.DoesNotContain("DiscordFallbackToggle.Visibility = Visibility.Collapsed;", source, StringComparison.Ordinal);
         Assert.DoesNotContain("SettingsModalLayer", source, StringComparison.Ordinal);
-        Assert.Contains("DiscordSettingsHost.Content = _discordSettings;", source, StringComparison.Ordinal);
+        Assert.Contains("DiscordSettingsHost.Content = discordSettings;", source, StringComparison.Ordinal);
+        Assert.Contains("ReleaseDiscordSettings();", source, StringComparison.Ordinal);
         Assert.Contains("UpdateDiscordSettingsAvailableHeight", source, StringComparison.Ordinal);
 
         var connectionCard = FindNamedElement(document, "DiscordSettingsCard");
