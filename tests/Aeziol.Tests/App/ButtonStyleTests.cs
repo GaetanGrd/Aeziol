@@ -523,12 +523,48 @@ public sealed class ButtonStyleTests
                 testWindow.Show();
                 toggle.ApplyTemplate();
                 var thumb = FindVisualChild<System.Windows.Shapes.Ellipse>(toggle);
+                var toggleTrack = Assert.IsType<Border>(toggle.Template.FindName("Track", toggle));
+                var toggleAccent = Assert.IsType<Border>(toggle.Template.FindName("TrackAccent", toggle));
                 Assert.Equal(3, thumb.Margin.Left);
+                Assert.Equal(44, toggleTrack.Width);
+                Assert.Equal(24, toggleTrack.Height);
+                Assert.Equal(
+                    Assert.IsType<SolidColorBrush>(application.Resources["AeziolRaised"]).Color,
+                    Assert.IsType<SolidColorBrush>(toggleTrack.Background).Color);
+                Assert.Equal(
+                    Assert.IsType<SolidColorBrush>(application.Resources["AeziolBorderSoft"]).Color,
+                    Assert.IsType<SolidColorBrush>(toggleTrack.BorderBrush).Color);
+                Assert.Equal(0, toggleAccent.Opacity);
 
                 toggle.IsChecked = true;
                 toggle.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
                 WaitUntil(() => thumb.Margin.Left >= 22.5, TimeSpan.FromSeconds(1));
                 Assert.InRange(thumb.Margin.Left, 22.5, 23.5);
+                Assert.Equal(
+                    Assert.IsType<SolidColorBrush>(application.Resources["AeziolGoldWash"]).Color,
+                    Assert.IsType<SolidColorBrush>(toggleTrack.Background).Color);
+                Assert.Equal(
+                    Assert.IsType<SolidColorBrush>(application.Resources["AeziolGold"]).Color,
+                    Assert.IsType<SolidColorBrush>(thumb.Fill).Color);
+                Assert.Equal(0.45, toggleAccent.Opacity, 2);
+
+                deviceCheck.ApplyTemplate();
+                var deviceRow = Assert.IsType<Border>(deviceCheck.Template.FindName("Row", deviceCheck));
+                var deviceBox = Assert.IsType<Border>(deviceCheck.Template.FindName("Box", deviceCheck));
+                var deviceAccent = Assert.IsType<Border>(deviceCheck.Template.FindName("BoxAccent", deviceCheck));
+                var deviceTick = Assert.IsType<System.Windows.Shapes.Path>(deviceCheck.Template.FindName("Tick", deviceCheck));
+                Assert.Equal(18, deviceBox.Width);
+                Assert.Equal(18, deviceBox.Height);
+                Assert.Equal(1, deviceRow.BorderThickness.Left);
+                Assert.Equal(0, deviceAccent.Opacity);
+                Assert.Equal("Round", deviceTick.StrokeStartLineCap.ToString());
+                Assert.Equal("Round", deviceTick.StrokeEndLineCap.ToString());
+                deviceCheck.IsChecked = true;
+                Assert.Equal(
+                    Assert.IsType<SolidColorBrush>(application.Resources["AeziolGoldWash"]).Color,
+                    Assert.IsType<SolidColorBrush>(deviceBox.Background).Color);
+                Assert.Equal(0.55, deviceAccent.Opacity, 2);
+                Assert.Equal(1, deviceTick.Opacity);
 
                 windowButton.ApplyTemplate();
                 var iconCenter = maximizeGlyph.TranslatePoint(
@@ -612,7 +648,6 @@ public sealed class ButtonStyleTests
                 Assert.IsType<DrawingBrush>(application.Resources["AeziolCanvas"]);
                 Assert.IsType<DrawingBrush>(application.Resources["AeziolBorder"]);
 
-                deviceCheck.ApplyTemplate();
                 deviceCheck.IsChecked = true;
                 var tick = Assert.IsType<System.Windows.Shapes.Path>(deviceCheck.Template.FindName("Tick", deviceCheck));
                 Assert.True(Assert.IsType<ScaleTransform>(tick.RenderTransform).IsFrozen);
