@@ -307,32 +307,66 @@
                     <Grid x:Name="DiscordView">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="70" />
-                            <RowDefinition Height="46" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <Grid x:Name="DiscordHeading" Grid.Row="0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <TextBlock x:Name="DiscordTitleText" Style="{StaticResource PageTitle}" />
-                            <TextBlock x:Name="DiscordSubtitleText" Grid.Row="1" Margin="0,5,0,0"
-                                       Style="{StaticResource PageSubtitle}" />
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Top">
+                                <TextBlock x:Name="DiscordTitleText" Style="{StaticResource PageTitle}" />
+                                <TextBlock x:Name="DiscordSubtitleText" Margin="0,5,0,0"
+                                           Style="{StaticResource PageSubtitle}" />
+                            </StackPanel>
+                            <ToggleButton x:Name="DiscordSettingsToggleButton"
+                                          Grid.Column="1"
+                                          Width="40" Height="40"
+                                          VerticalAlignment="Top"
+                                          Cursor="Hand"
+                                          Checked="OnDiscordSettingsToggled"
+                                          Unchecked="OnDiscordSettingsToggled">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="SettingsToggleSurface"
+                                                CornerRadius="12"
+                                                Background="{DynamicResource AeziolRaised}"
+                                                BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                                BorderThickness="1">
+                                            <Path Width="19" Height="19"
+                                                  Stretch="Uniform"
+                                                  Data="{StaticResource SettingsRingsGeometry}"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                                  StrokeThickness="1.7"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="SettingsToggleSurface" Property="Background"
+                                                        Value="{DynamicResource AeziolHover}" />
+                                                <Setter TargetName="SettingsToggleSurface" Property="BorderBrush"
+                                                        Value="{DynamicResource AeziolGoldLine}" />
+                                            </Trigger>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="SettingsToggleSurface" Property="Background"
+                                                        Value="{DynamicResource AeziolGoldWash}" />
+                                                <Setter TargetName="SettingsToggleSurface" Property="BorderBrush"
+                                                        Value="{DynamicResource AeziolGoldLine}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource AeziolGold}" />
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter TargetName="SettingsToggleSurface" Property="Background"
+                                                        Value="{DynamicResource AeziolSecondary}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
                         </Grid>
 
-                        <Border Grid.Row="1" Margin="0,0,0,7"
-                                BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="0,0,0,1">
-                            <StackPanel Orientation="Horizontal">
-                                <RadioButton x:Name="DiscordOverviewTab" GroupName="DiscordSections"
-                                             Style="{StaticResource SettingsSectionTab}" IsChecked="True"
-                                             Checked="OnDiscordSectionChanged" />
-                                <RadioButton x:Name="DiscordRulesTab" GroupName="DiscordSections"
-                                             Style="{StaticResource SettingsSectionTab}"
-                                             Checked="OnDiscordSectionChanged" />
-                            </StackPanel>
-                        </Border>
-
-                        <Grid Grid.Row="2">
+                        <Grid Grid.Row="1">
                         <Border x:Name="PassageAutomationContent" CornerRadius="24"
                                 BorderBrush="{DynamicResource AeziolTraceBorder}" BorderThickness="1">
                             <Border.Background>

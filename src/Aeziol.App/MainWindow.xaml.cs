@@ -2214,8 +2214,7 @@ public partial class MainWindow : Window
         System.Windows.Automation.AutomationProperties.SetName(SettingsNav, settingsLabel);
         DiscordTitleText.Text = _localization.Get("page-discord-title", register);
         DiscordSubtitleText.Text = _localization.Get("page-discord-subtitle", register);
-        DiscordOverviewTab.Content = _localization.Get("discord-section-overview", register);
-        DiscordRulesTab.Content = _localization.Get("discord-section-rule", register);
+        UpdateDiscordSettingsTogglePresentation();
         UpdateAutomationPresentation(_runtime.Settings.AutomationEnabled, animate: false);
         SourceLabelText.Text = _localization.Get("source", register);
         TargetLabelText.Text = _localization.Get("destination", register);
@@ -2360,17 +2359,34 @@ public partial class MainWindow : Window
         UpdateNavigationContext();
     }
 
-    private void OnDiscordSectionChanged(object sender, RoutedEventArgs eventArgs)
+    private void OnDiscordSettingsToggled(object sender, RoutedEventArgs eventArgs)
     {
         if (!IsInitialized)
         {
             return;
         }
 
-        var showRules = ReferenceEquals(sender, DiscordRulesTab);
-        PassageAutomationContent.Visibility = showRules ? Visibility.Collapsed : Visibility.Visible;
-        RulesView.Visibility = showRules ? Visibility.Visible : Visibility.Collapsed;
-        AnimateSettingsPanel(showRules ? RulesView : PassageAutomationContent);
+        var showSettings = DiscordSettingsToggleButton.IsChecked == true;
+        PassageAutomationContent.Visibility = showSettings ? Visibility.Collapsed : Visibility.Visible;
+        RulesView.Visibility = showSettings ? Visibility.Visible : Visibility.Collapsed;
+        UpdateDiscordSettingsTogglePresentation();
+        AnimateSettingsPanel(showSettings ? RulesView : PassageAutomationContent);
+    }
+
+    private void UpdateDiscordSettingsTogglePresentation()
+    {
+        var actionLabel = _localization.Get(
+            DiscordSettingsToggleButton.IsChecked == true
+                ? "discord-section-overview"
+                : "discord-section-rule",
+            SelectedRegister);
+        DiscordSettingsToggleButton.ToolTip = actionLabel;
+        System.Windows.Automation.AutomationProperties.SetName(
+            DiscordSettingsToggleButton,
+            actionLabel);
+        System.Windows.Automation.AutomationProperties.SetHelpText(
+            DiscordSettingsToggleButton,
+            actionLabel);
     }
 
     private void OnNavigateSettings(object sender, RoutedEventArgs eventArgs)

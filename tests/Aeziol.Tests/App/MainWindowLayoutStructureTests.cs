@@ -331,8 +331,27 @@ public sealed class MainWindowLayoutStructureTests
         var rulesView = FindNamedElement(document, "RulesView");
         var settingsHost = FindNamedElement(document, "DiscordSettingsHost");
         var automationAction = FindNamedElement(document, "AutomationActionButton");
+        var discordView = FindNamedElement(document, "DiscordView");
+        var discordHeading = FindNamedElement(document, "DiscordHeading");
+        var discordSettingsToggle = FindNamedElement(document, "DiscordSettingsToggleButton");
 
         Assert.Contains(settingsHost, rulesView.Descendants());
+        Assert.Equal(
+            ["70", "*"],
+            discordView.Elements().Single(element => element.Name.LocalName == "Grid.RowDefinitions")
+                .Elements().Select(element => element.Attribute("Height")?.Value));
+        Assert.Contains(discordSettingsToggle, discordHeading.Descendants());
+        Assert.Equal("1", discordSettingsToggle.Attribute("Grid.Column")?.Value);
+        Assert.Equal("40", discordSettingsToggle.Attribute("Width")?.Value);
+        Assert.Equal("40", discordSettingsToggle.Attribute("Height")?.Value);
+        Assert.Equal("OnDiscordSettingsToggled", discordSettingsToggle.Attribute("Checked")?.Value);
+        Assert.Equal("OnDiscordSettingsToggled", discordSettingsToggle.Attribute("Unchecked")?.Value);
+        Assert.Contains(discordSettingsToggle.Descendants(), element =>
+            element.Name.LocalName == "Path"
+            && element.Attribute("Data")?.Value == "{StaticResource SettingsRingsGeometry}");
+        Assert.DoesNotContain(document.Descendants(), element =>
+            element.Attribute(Xaml + "Name")?.Value is "DiscordOverviewTab" or "DiscordRulesTab");
+        Assert.Contains("UpdateDiscordSettingsTogglePresentation", source, StringComparison.Ordinal);
         Assert.Equal("AutomationRouteControlHost", automationAction.Ancestors().First(element => element.Attribute(Xaml + "Name") is not null).Attribute(Xaml + "Name")?.Value);
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RuleDestinationCombo");
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "SettingsDiscordTab");
