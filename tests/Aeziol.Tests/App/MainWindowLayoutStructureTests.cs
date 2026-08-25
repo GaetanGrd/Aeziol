@@ -366,8 +366,7 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Equal("18", discordSettingsCloseGlyph.Attribute("Height")?.Value);
         Assert.Equal("Center", discordSettingsCloseGlyph.Attribute("HorizontalAlignment")?.Value);
         Assert.Equal("Center", discordSettingsCloseGlyph.Attribute("VerticalAlignment")?.Value);
-        var closePath = Assert.Single(discordSettingsCloseGlyph.Descendants(),
-            element => element.Name.LocalName == "Path");
+        var closePath = FindNamedElement(document, "DiscordSettingsClosePath");
         Assert.Equal("Round", closePath.Attribute("StrokeStartLineCap")?.Value);
         Assert.Equal("Round", closePath.Attribute("StrokeEndLineCap")?.Value);
         var discordSettingsTriggers = discordSettingsToggle.Descendants()
@@ -380,7 +379,12 @@ public sealed class MainWindowLayoutStructureTests
             .Descendants(), setter => setter.Attribute("Property")?.Value == "Background"
                 && setter.Attribute("Value")?.Value == "{DynamicResource AeziolSecondary}");
         Assert.Contains(discordSettingsTriggers.Single(trigger => trigger.Attribute("Property")?.Value == "IsMouseOver")
-            .Descendants(), setter => setter.Attribute("Property")?.Value == "Foreground"
+            .Descendants(), setter => setter.Attribute("TargetName")?.Value == "DiscordSettingsGearGlyph"
+                && setter.Attribute("Property")?.Value == "Foreground"
+                && setter.Attribute("Value")?.Value == "{DynamicResource AeziolOnSecondary}");
+        Assert.Contains(discordSettingsTriggers.Single(trigger => trigger.Attribute("Property")?.Value == "IsMouseOver")
+            .Descendants(), setter => setter.Attribute("TargetName")?.Value == "DiscordSettingsClosePath"
+                && setter.Attribute("Property")?.Value == "Stroke"
                 && setter.Attribute("Value")?.Value == "{DynamicResource AeziolOnSecondary}");
         var checkedTrigger = discordSettingsTriggers.Single(trigger => trigger.Attribute("Property")?.Value == "IsChecked");
         Assert.Contains(checkedTrigger.Descendants(), setter =>
