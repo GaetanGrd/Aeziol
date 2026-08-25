@@ -88,21 +88,14 @@ public sealed class DiscordSettingsV4Concept4Tests
     {
         WpfTestHost.Run(() =>
         {
-            var window = new DiscordSettingsV4Concept4();
-            try
-            {
-                var root = Assert.IsType<System.Windows.Controls.Border>(window.Content);
-                Assert.NotNull(root.Child);
-                root.Measure(new WpfSize(992, 712));
-                root.Arrange(new Rect(0, 0, 992, 712));
-                root.UpdateLayout();
-                Assert.True(root.DesiredSize.Width > 0);
-                Assert.True(root.DesiredSize.Height > 0);
-            }
-            finally
-            {
-                window.Close();
-            }
+            var control = new DiscordSettingsV4Concept4();
+            var root = Assert.IsType<System.Windows.Controls.Border>(control.Content);
+            Assert.NotNull(root.Child);
+            root.Measure(new WpfSize(992, 712));
+            root.Arrange(new Rect(0, 0, 992, 712));
+            root.UpdateLayout();
+            Assert.True(root.DesiredSize.Width > 0);
+            Assert.True(root.DesiredSize.Height > 0);
         });
     }
 

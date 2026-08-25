@@ -85,7 +85,7 @@ public partial class MainWindow : Window
         _updateService = new AppUpdateService(UpdateHttpClient, paths.UpdatesDirectory);
         InitializeComponent();
         SettingsDiscordScrollViewer.Content = null;
-        DiscordSettingsHost.Content = DiscordSettingsCard;
+        DiscordSettingsHost.Content = new DiscordSettingsV4.DiscordSettingsV4Gallery();
         CloseActionsMenu.LayoutTransform = _closeActionsMenuScale;
         NotificationItems.ItemsSource = _notifications.Items;
         MotionAssist.SetIsReduced(this, runtime.Settings.ReduceAnimations);
