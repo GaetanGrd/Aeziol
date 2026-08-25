@@ -340,6 +340,8 @@ public sealed class MainWindowLayoutStructureTests
         var discordView = FindNamedElement(document, "DiscordView");
         var discordHeading = FindNamedElement(document, "DiscordHeading");
         var discordSettingsToggle = FindNamedElement(document, "DiscordSettingsToggleButton");
+        var discordSettingsGearGlyph = FindNamedElement(document, "DiscordSettingsGearGlyph");
+        var discordSettingsCloseGlyph = FindNamedElement(document, "DiscordSettingsCloseGlyph");
 
         Assert.Contains(settingsHost, rulesView.Descendants());
         Assert.Equal("Grid", discordSettingsViewport.Name.LocalName);
@@ -355,14 +357,19 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Equal("1", discordSettingsToggle.Attribute("Grid.Column")?.Value);
         Assert.Equal("42", discordSettingsToggle.Attribute("Width")?.Value);
         Assert.Equal("42", discordSettingsToggle.Attribute("Height")?.Value);
-        Assert.Equal("\uE713", discordSettingsToggle.Attribute("Content")?.Value);
         Assert.Equal("{DynamicResource AeziolGold}", discordSettingsToggle.Attribute("Foreground")?.Value);
         Assert.Equal("OnDiscordSettingsToggled", discordSettingsToggle.Attribute("Checked")?.Value);
         Assert.Equal("OnDiscordSettingsToggled", discordSettingsToggle.Attribute("Unchecked")?.Value);
-        Assert.Contains(discordSettingsToggle.Descendants(), element =>
-            element.Name.LocalName == "TextBlock"
-            && element.Attribute("FontFamily")?.Value == "Segoe Fluent Icons"
-            && element.Attribute("Text")?.Value.Contains("Content", StringComparison.Ordinal) == true);
+        Assert.Equal("Segoe Fluent Icons", discordSettingsGearGlyph.Attribute("FontFamily")?.Value);
+        Assert.Equal("\uE713", discordSettingsGearGlyph.Attribute("Text")?.Value);
+        Assert.Equal("18", discordSettingsCloseGlyph.Attribute("Width")?.Value);
+        Assert.Equal("18", discordSettingsCloseGlyph.Attribute("Height")?.Value);
+        Assert.Equal("Center", discordSettingsCloseGlyph.Attribute("HorizontalAlignment")?.Value);
+        Assert.Equal("Center", discordSettingsCloseGlyph.Attribute("VerticalAlignment")?.Value);
+        var closePath = Assert.Single(discordSettingsCloseGlyph.Descendants(),
+            element => element.Name.LocalName == "Path");
+        Assert.Equal("Round", closePath.Attribute("StrokeStartLineCap")?.Value);
+        Assert.Equal("Round", closePath.Attribute("StrokeEndLineCap")?.Value);
         var discordSettingsTriggers = discordSettingsToggle.Descendants()
             .Where(element => element.Name.LocalName == "Trigger")
             .ToArray();
@@ -375,7 +382,15 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Contains(discordSettingsTriggers.Single(trigger => trigger.Attribute("Property")?.Value == "IsMouseOver")
             .Descendants(), setter => setter.Attribute("Property")?.Value == "Foreground"
                 && setter.Attribute("Value")?.Value == "{DynamicResource AeziolOnSecondary}");
-        Assert.Contains("DiscordSettingsToggleButton.Content = settingsAreOpen ? \"\\uE711\" : \"\\uE713\";", source, StringComparison.Ordinal);
+        var checkedTrigger = discordSettingsTriggers.Single(trigger => trigger.Attribute("Property")?.Value == "IsChecked");
+        Assert.Contains(checkedTrigger.Descendants(), setter =>
+            setter.Attribute("TargetName")?.Value == "DiscordSettingsGearGlyph"
+            && setter.Attribute("Property")?.Value == "Visibility"
+            && setter.Attribute("Value")?.Value == "Collapsed");
+        Assert.Contains(checkedTrigger.Descendants(), setter =>
+            setter.Attribute("TargetName")?.Value == "DiscordSettingsCloseGlyph"
+            && setter.Attribute("Property")?.Value == "Visibility"
+            && setter.Attribute("Value")?.Value == "Visible");
         Assert.DoesNotContain(document.Descendants(), element =>
             element.Attribute(Xaml + "Name")?.Value is "DiscordOverviewTab" or "DiscordRulesTab");
         Assert.Contains("UpdateDiscordSettingsTogglePresentation", source, StringComparison.Ordinal);

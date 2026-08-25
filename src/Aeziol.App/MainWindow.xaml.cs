@@ -2376,7 +2376,6 @@ public partial class MainWindow : Window
     private void UpdateDiscordSettingsTogglePresentation()
     {
         var settingsAreOpen = DiscordSettingsToggleButton.IsChecked == true;
-        DiscordSettingsToggleButton.Content = settingsAreOpen ? "\uE711" : "\uE713";
         var actionLabel = _localization.Get(
             settingsAreOpen
                 ? "discord-section-overview"

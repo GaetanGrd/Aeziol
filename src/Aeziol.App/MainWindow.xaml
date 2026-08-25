@@ -323,7 +323,6 @@
                                           Grid.Column="1"
                                           Width="42" Height="42"
                                           VerticalAlignment="Top"
-                                          Content="&#xE713;"
                                           Foreground="{DynamicResource AeziolGold}"
                                           Cursor="Hand"
                                           Checked="OnDiscordSettingsToggled"
@@ -335,15 +334,33 @@
                                                 Background="{DynamicResource AeziolGoldWash}"
                                                 BorderBrush="{DynamicResource AeziolGoldLine}"
                                                 BorderThickness="1">
-                                            <TextBlock Text="{Binding Content, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
-                                                       FontFamily="Segoe Fluent Icons"
-                                                       FontSize="19"
-                                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
+                                            <Grid>
+                                                <TextBlock x:Name="DiscordSettingsGearGlyph"
+                                                           Text="&#xE713;"
+                                                           FontFamily="Segoe Fluent Icons"
+                                                           FontSize="19"
+                                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center" />
+                                                <Viewbox x:Name="DiscordSettingsCloseGlyph"
+                                                         Width="18" Height="18"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"
+                                                         Visibility="Collapsed">
+                                                    <Canvas Width="20" Height="20">
+                                                        <Path Data="M 5,5 L 15,15 M 15,5 L 5,15"
+                                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                                              StrokeThickness="1.8"
+                                                              StrokeStartLineCap="Round"
+                                                              StrokeEndLineCap="Round" />
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Grid>
                                         </Border>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="DiscordSettingsGearGlyph" Property="Visibility" Value="Collapsed" />
+                                                <Setter TargetName="DiscordSettingsCloseGlyph" Property="Visibility" Value="Visible" />
                                                 <Setter TargetName="SettingsToggleSurface" Property="Background"
                                                         Value="{DynamicResource AeziolGoldWash}" />
                                                 <Setter TargetName="SettingsToggleSurface" Property="BorderBrush"
