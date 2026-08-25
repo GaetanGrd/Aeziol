@@ -256,6 +256,8 @@ public sealed class JourneyTraceTests
                 trace.LeadingBreakProgress = 1;
 
                 Assert.True(trace.UsesLeadingBreakMasks);
+                var primaryMask = trace.LeadingPrimaryMaskIdentity;
+                var secondaryMask = trace.LeadingSecondaryMaskIdentity;
                 Assert.Equal(
                     DiscordBrokenTrailPattern.PrimaryStops.Where(stop => stop.IsTransparent).Select(stop => stop.Offset * 0.5),
                     trace.RenderedPrimaryBreakTransparentOffsets);
@@ -270,6 +272,10 @@ public sealed class JourneyTraceTests
                 Assert.Empty(trace.RenderedPrimaryBreakTransparentOffsets);
                 Assert.Empty(trace.RenderedSecondaryBreakTransparentOffsets);
                 Assert.Equal(0, trace.RenderedLeadingBreakDustOpacity);
+
+                trace.LeadingBreakProgress = 0.5;
+                Assert.Same(primaryMask, trace.LeadingPrimaryMaskIdentity);
+                Assert.Same(secondaryMask, trace.LeadingSecondaryMaskIdentity);
             }
             catch (Exception exception)
             {

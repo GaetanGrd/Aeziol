@@ -23,13 +23,18 @@ public partial class App : System.Windows.Application
     private AppLogger? _logger;
     private LocalizationService? _localization;
     private JsonAppSettingsStore? _settingsStore;
+    private AppPaths? _paths;
+    private Task? _runtimeInitialization;
     private AmbientMusicService? _ambientMusic;
     private SingleInstanceCoordinator? _singleInstance;
     private Forms.NotifyIcon? _trayIcon;
     private Icon? _trayIconImage;
     private Forms.ToolStripItem? _openTrayItem;
     private Forms.ToolStripItem? _quitTrayItem;
+    private MainWindowSessionState? _mainWindowSessionState;
     private bool _showMainWindowWhenReady;
+    private bool _runMainWindowStartupTasks = true;
+    private bool _isUnloadingMainWindow;
     private bool _isQuitting;
     private readonly bool _suppressProductStartup;
     private int _handlingFatalException;
@@ -126,7 +131,11 @@ public partial class App : System.Windows.Application
         {
             var isUiPreview = e.Args.Contains("--ui-preview", StringComparer.OrdinalIgnoreCase);
             var forceFirstRun = e.Args.Contains("--first-run", StringComparer.OrdinalIgnoreCase);
-            var isWindowsStartup = !isUiPreview && IsWindowsStartup(e.Args);
+            var isPreviewBackground = isUiPreview
+                && e.Args.Contains("--background", StringComparer.OrdinalIgnoreCase);
+            var isPreviewMinimizeToTray = isUiPreview
+                && e.Args.Contains("--minimize-to-tray", StringComparer.OrdinalIgnoreCase);
+            var isWindowsStartup = isPreviewBackground || (!isUiPreview && IsWindowsStartup(e.Args));
             if (!isUiPreview)
             {
                 _singleInstance = new SingleInstanceCoordinator();
@@ -140,7 +149,7 @@ public partial class App : System.Windows.Application
                 _singleInstance.ActivationRequested += OnSingleInstanceActivationRequested;
             }
 
-            var paths = isUiPreview
+            var paths = _paths = isUiPreview
                 ? new AppPaths(Path.Combine(Path.GetTempPath(), "Aeziol.UiPreview"))
                 : AppPaths.CreateDefault();
             var logger = _logger = new AppLogger(paths.LogsDirectory);
@@ -153,7 +162,10 @@ public partial class App : System.Windows.Application
                     FirstRunCompleted = true,
                     AutomationEnabled = false,
                     Language = "fr",
-                    CloseBehavior = CloseBehavior.Ask,
+                    CloseBehavior = isPreviewMinimizeToTray
+                        ? CloseBehavior.MinimizeToTray
+                        : CloseBehavior.Ask,
+                    OpenHiddenAtWindowsStartup = isPreviewBackground,
                 };
             }
             else
@@ -262,25 +274,18 @@ public partial class App : System.Windows.Application
             _localization.ChangeLanguage(settings.Language);
             _ambientMusic.Apply(settings);
             _runtime = new AeziolRuntime(settings, paths, logger);
-            var runtimeInitialization = _runtime.InitializeAsync();
-            var window = new MainWindow(
-                _runtime,
-                _settingsStore,
-                _localization,
-                paths,
-                runtimeInitialization);
-            MainWindow = window;
-            CreateTrayIcon(window);
+            _runtimeInitialization = _runtime.InitializeAsync();
+            CreateTrayIcon();
             if (ShouldShowMainWindow(
                     _showMainWindowWhenReady,
                     isWindowsStartup,
                     settings.OpenHiddenAtWindowsStartup))
             {
-                window.Show();
+                ShowMainWindow();
             }
             else
             {
-                await runtimeInitialization.ConfigureAwait(true);
+                await _runtimeInitialization.ConfigureAwait(true);
             }
         }
         catch (Exception exception)
@@ -305,7 +310,10 @@ public partial class App : System.Windows.Application
 
     public void HandleMainWindowClosing(CancelEventArgs eventArgs)
     {
-        if (_isQuitting || MainWindow is not MainWindow window || _localization is null)
+        if (_isQuitting
+            || _isUnloadingMainWindow
+            || MainWindow is not MainWindow window
+            || _localization is null)
         {
             return;
         }
@@ -319,8 +327,7 @@ public partial class App : System.Windows.Application
 
         if (window.CurrentSettings.CloseBehavior == CloseBehavior.MinimizeToTray)
         {
-            eventArgs.Cancel = true;
-            window.Hide();
+            PrepareMainWindowForBackground(window);
             return;
         }
 
@@ -362,9 +369,9 @@ public partial class App : System.Windows.Application
     private void OnSingleInstanceActivationRequested(object? sender, EventArgs eventArgs) =>
         Dispatcher.BeginInvoke(() =>
         {
-            if (MainWindow is MainWindow window)
+            if (MainWindow is MainWindow)
             {
-                ShowMainWindow(window);
+                ShowMainWindow();
                 return;
             }
 
@@ -375,7 +382,14 @@ public partial class App : System.Windows.Application
                 return;
             }
 
-            _showMainWindowWhenReady = true;
+            if (_runtime is not null)
+            {
+                ShowMainWindow();
+            }
+            else
+            {
+                _showMainWindowWhenReady = true;
+            }
         });
 
     private void OnDispatcherUnhandledException(
@@ -432,7 +446,7 @@ public partial class App : System.Windows.Application
         }
     }
 
-    private void CreateTrayIcon(MainWindow window)
+    private void CreateTrayIcon()
     {
         var executablePath = Environment.ProcessPath
             ?? throw new InvalidOperationException("The Aeziol executable path is unavailable.");
@@ -443,7 +457,7 @@ public partial class App : System.Windows.Application
         }
 
         var menu = new Forms.ContextMenuStrip();
-        _openTrayItem = menu.Items.Add(string.Empty, null, (_, _) => Dispatcher.Invoke(() => ShowMainWindow(window)));
+        _openTrayItem = menu.Items.Add(string.Empty, null, (_, _) => Dispatcher.Invoke(ShowMainWindow));
         _quitTrayItem = menu.Items.Add(string.Empty, null, (_, _) => Dispatcher.Invoke(RequestQuit));
         _trayIcon = new Forms.NotifyIcon
         {
@@ -452,13 +466,13 @@ public partial class App : System.Windows.Application
             Visible = true,
             ContextMenuStrip = menu,
         };
-        _trayIcon.DoubleClick += (_, _) => Dispatcher.Invoke(() => ShowMainWindow(window));
+        _trayIcon.DoubleClick += (_, _) => Dispatcher.Invoke(ShowMainWindow);
         RefreshTrayLocalization();
     }
 
     public void RefreshTrayLocalization()
     {
-        if (_localization is null || MainWindow is not MainWindow window)
+        if (_localization is null || _openTrayItem is null || _quitTrayItem is null)
         {
             return;
         }
@@ -471,6 +485,18 @@ public partial class App : System.Windows.Application
 
     public void SetAmbientMusicHostVisible(bool isVisible) =>
         _ambientMusic?.SetApplicationVisible(isVisible);
+
+    public void HideMainWindow(MainWindow window)
+    {
+        ArgumentNullException.ThrowIfNull(window);
+        if (_isQuitting || _isUnloadingMainWindow || !ReferenceEquals(MainWindow, window))
+        {
+            return;
+        }
+
+        PrepareMainWindowForBackground(window);
+        window.Close();
+    }
 
     internal static bool ShouldShowMainWindow(
         bool activationRequested,
@@ -508,10 +534,90 @@ public partial class App : System.Windows.Application
         }
     }
 
-    private static void ShowMainWindow(MainWindow window)
+    private void PrepareMainWindowForBackground(MainWindow window)
     {
+        _mainWindowSessionState = window.CaptureSessionState();
+        _isUnloadingMainWindow = true;
+        SetAmbientMusicHostVisible(false);
+    }
+
+    private void ShowMainWindow()
+    {
+        if (MainWindow is not MainWindow window)
+        {
+            var runtime = _runtime
+                ?? throw new InvalidOperationException("The Aeziol runtime is unavailable.");
+            var settingsStore = _settingsStore
+                ?? throw new InvalidOperationException("The settings store is unavailable.");
+            var localization = _localization
+                ?? throw new InvalidOperationException("The localization service is unavailable.");
+            var paths = _paths
+                ?? throw new InvalidOperationException("The application paths are unavailable.");
+            var runtimeInitialization = _runtimeInitialization
+                ?? throw new InvalidOperationException("Runtime initialization is unavailable.");
+
+            window = new MainWindow(
+                runtime,
+                settingsStore,
+                localization,
+                paths,
+                runtimeInitialization,
+                _runMainWindowStartupTasks,
+                _mainWindowSessionState);
+            _runMainWindowStartupTasks = false;
+            window.Closed += OnMainWindowClosed;
+            MainWindow = window;
+        }
+
         window.Show();
         window.WindowState = WindowState.Normal;
+        if (_mainWindowSessionState?.WasMaximized == true)
+        {
+            window.WindowState = WindowState.Maximized;
+        }
+
         window.Activate();
     }
+
+    private void OnMainWindowClosed(object? sender, EventArgs eventArgs)
+    {
+        if (sender is not MainWindow window)
+        {
+            return;
+        }
+
+        window.Closed -= OnMainWindowClosed;
+        if (ReferenceEquals(MainWindow, window))
+        {
+            MainWindow = null;
+        }
+
+        _isUnloadingMainWindow = false;
+        SetAmbientMusicHostVisible(false);
+        ScheduleHiddenUiCollection();
+        _ = _logger?.WriteAsync(
+            "information",
+            "main-window-unloaded",
+            new
+            {
+                HasMainWindow = MainWindow is not null,
+                WindowCount = Windows.Count,
+            });
+    }
+
+    private void ScheduleHiddenUiCollection() =>
+        Dispatcher.BeginInvoke(
+            System.Windows.Threading.DispatcherPriority.ContextIdle,
+            new Action(() =>
+            {
+                if (_isQuitting || MainWindow is not null)
+                {
+                    return;
+                }
+
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+                GC.WaitForPendingFinalizers();
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: false);
+                ProcessMemoryTrimmer.TryTrimWorkingSet();
+            }));
 }

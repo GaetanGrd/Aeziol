@@ -285,6 +285,10 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
 
     internal double RenderedLeadingBreakDustOpacity => LeadingBreakDustLayer.Opacity;
 
+    internal object? LeadingPrimaryMaskIdentity => _leadingPrimaryMask;
+
+    internal object? LeadingSecondaryMaskIdentity => _leadingSecondaryMask;
+
     internal int HighlightLayerCount => _highlights.Count;
 
     internal int OutgoingHighlightCount =>
@@ -560,8 +564,16 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
         var progress = LeadingBreakProgress;
         if (progress <= 0)
         {
-            _leadingPrimaryMask = null;
-            _leadingSecondaryMask = null;
+            if (_leadingPrimaryMask is not null)
+            {
+                UpdateLeadingBreakMask(_leadingPrimaryMask, DiscordBrokenTrailPattern.PrimaryStops, progress);
+            }
+
+            if (_leadingSecondaryMask is not null)
+            {
+                UpdateLeadingBreakMask(_leadingSecondaryMask, DiscordBrokenTrailPattern.SecondaryStops, progress);
+            }
+
             BaseTraceA.OpacityMask = null;
             BaseTraceB.OpacityMask = null;
             BaseParticleLayer.OpacityMask = null;
@@ -570,8 +582,10 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
             return;
         }
 
-        _leadingPrimaryMask = CreateLeadingBreakMask(DiscordBrokenTrailPattern.PrimaryStops, progress);
-        _leadingSecondaryMask = CreateLeadingBreakMask(DiscordBrokenTrailPattern.SecondaryStops, progress);
+        _leadingPrimaryMask ??= CreateLeadingBreakMask(DiscordBrokenTrailPattern.PrimaryStops);
+        _leadingSecondaryMask ??= CreateLeadingBreakMask(DiscordBrokenTrailPattern.SecondaryStops);
+        UpdateLeadingBreakMask(_leadingPrimaryMask, DiscordBrokenTrailPattern.PrimaryStops, progress);
+        UpdateLeadingBreakMask(_leadingSecondaryMask, DiscordBrokenTrailPattern.SecondaryStops, progress);
         BaseTraceA.OpacityMask = _leadingPrimaryMask;
         BaseTraceB.OpacityMask = _leadingSecondaryMask;
         BaseParticleLayer.OpacityMask = _leadingPrimaryMask;
@@ -581,9 +595,7 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
             : 0;
     }
 
-    private LinearGradientBrush CreateLeadingBreakMask(
-        IReadOnlyList<DiscordBrokenTrailStop> pattern,
-        double progress)
+    private LinearGradientBrush CreateLeadingBreakMask(IReadOnlyList<DiscordBrokenTrailStop> pattern)
     {
         var horizontal = Orientation == JourneyTraceOrientation.Horizontal;
         var mask = new LinearGradientBrush
@@ -592,18 +604,32 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
             StartPoint = horizontal ? new System.Windows.Point(0, 0.5) : new System.Windows.Point(0.5, 0),
             EndPoint = horizontal ? new System.Windows.Point(1, 0.5) : new System.Windows.Point(0.5, 1),
         };
-        var transparentAlpha = (byte)Math.Round(255 * (1 - progress));
         foreach (var stop in pattern)
         {
-            var color = stop.IsTransparent
-                ? System.Windows.Media.Color.FromArgb(transparentAlpha, 255, 255, 255)
-                : Colors.White;
-            mask.GradientStops.Add(new GradientStop(color, stop.Offset * 0.5));
+            mask.GradientStops.Add(new GradientStop(Colors.White, stop.Offset * 0.5));
         }
 
         mask.GradientStops.Add(new GradientStop(Colors.White, 0.5));
         mask.GradientStops.Add(new GradientStop(Colors.White, 1));
         return mask;
+    }
+
+    private void UpdateLeadingBreakMask(
+        LinearGradientBrush mask,
+        IReadOnlyList<DiscordBrokenTrailStop> pattern,
+        double progress)
+    {
+        var horizontal = Orientation == JourneyTraceOrientation.Horizontal;
+        mask.StartPoint = horizontal ? new System.Windows.Point(0, 0.5) : new System.Windows.Point(0.5, 0);
+        mask.EndPoint = horizontal ? new System.Windows.Point(1, 0.5) : new System.Windows.Point(0.5, 1);
+        var transparentAlpha = (byte)Math.Round(255 * (1 - progress));
+        for (var index = 0; index < pattern.Count; index++)
+        {
+            var stop = pattern[index];
+            mask.GradientStops[index].Color = stop.IsTransparent
+                ? System.Windows.Media.Color.FromArgb(transparentAlpha, 255, 255, 255)
+                : Colors.White;
+        }
     }
 
     private static double[] GetTransparentOffsets(LinearGradientBrush? mask) =>

@@ -317,6 +317,33 @@ public sealed class VoicePresenceIconTests
     }
 
     [Fact]
+    public void UnloadedControlStopsPerpetualRotationAndTransitionTimers()
+    {
+        WpfTestHost.Run(() =>
+        {
+            var icon = new VoicePresenceIcon { State = VoicePresenceState.Connecting };
+            var host = new System.Windows.Window { Content = icon };
+            try
+            {
+                host.Show();
+                PumpDispatcher(TimeSpan.FromMilliseconds(VoicePresenceIcon.TransitionDurationMilliseconds + 80));
+                Assert.True(icon.HasActiveStateRotation);
+
+                host.Content = null;
+                PumpDispatcher(TimeSpan.FromMilliseconds(20));
+
+                Assert.False(icon.HasActiveTransition);
+                Assert.False(icon.HasActiveStateRotation);
+                Assert.False(icon.HasAnimatedClocks);
+            }
+            finally
+            {
+                host.Close();
+            }
+        });
+    }
+
+    [Fact]
     public void CompletedStableTransitionCleansAllAnimationClocksAfterRapidChanges()
     {
         WpfTestHost.Run(() =>

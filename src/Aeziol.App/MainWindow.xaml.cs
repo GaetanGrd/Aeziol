@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using Aeziol.App.Appearance;
 using Aeziol.App.Localization;
 using Aeziol.App.Notifications;
@@ -43,9 +44,13 @@ public partial class MainWindow : Window
     private readonly AppPaths _paths;
     private readonly Task _runtimeInitialization;
     private readonly AppUpdateService _updateService;
-    private readonly DiscordSettingsV4.DiscordSettingsV4Concept2 _discordSettings;
+    private DiscordSettingsV4.DiscordSettingsV4Concept2? _discordSettings;
+    private readonly System.Windows.Controls.Panel? _legacyExclusionsJourneyParent;
+    private readonly bool _runStartupTasks;
+    private readonly MainWindowSessionState? _restoredSessionState;
     private readonly SemaphoreSlim _settingsGate = new(1, 1);
     private readonly NotificationCenter _notifications = new();
+    private readonly Dictionary<Guid, System.Windows.Threading.DispatcherTimer> _notificationTimers = [];
     private List<EndpointChoice> _endpointChoices = [];
     private AudioRouteSnapshot? _currentRoute;
     private CancellationTokenSource? _endpointRefreshCancellation;
@@ -71,31 +76,25 @@ public partial class MainWindow : Window
     private AppUpdateRelease? _availableUpdate;
     private readonly ScaleTransform _closeActionsMenuScale = new(1, 1);
 
-    public MainWindow(
+    internal MainWindow(
         AeziolRuntime runtime,
         JsonAppSettingsStore settingsStore,
         LocalizationService localization,
         AppPaths paths,
-        Task runtimeInitialization)
+        Task runtimeInitialization,
+        bool runStartupTasks,
+        MainWindowSessionState? restoredSessionState)
     {
         _runtime = runtime;
         _settingsStore = settingsStore;
         _localization = localization;
         _paths = paths;
         _runtimeInitialization = runtimeInitialization;
+        _runStartupTasks = runStartupTasks;
+        _restoredSessionState = restoredSessionState;
         _updateService = new AppUpdateService(UpdateHttpClient, paths.UpdatesDirectory);
         InitializeComponent();
-        _discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();
-        _discordSettings.SetRestoreDelaySeconds(runtime.Settings.ExitGracePeriodSeconds);
-        _discordSettings.RestoreDelayChanged += OnDiscordRestoreDelayChanged;
-        if (ExclusionsJourneyHost.Parent is System.Windows.Controls.Panel exclusionsParent)
-        {
-            exclusionsParent.Children.Remove(ExclusionsJourneyHost);
-        }
-        SettingsDiscordScrollViewer.Content = null;
-        _discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;
-        _discordSettings.ExcludedOutputsHost.Content = ExclusionsJourneyHost;
-        DiscordSettingsHost.Content = _discordSettings;
+        _legacyExclusionsJourneyParent = ExclusionsJourneyHost.Parent as System.Windows.Controls.Panel;
         RulesView.SizeChanged += (_, _) => UpdateDiscordSettingsAvailableHeight();
         DiscordSettingsHost.Loaded += (_, _) => UpdateDiscordSettingsAvailableHeight();
         CloseActionsMenu.LayoutTransform = _closeActionsMenuScale;
@@ -113,6 +112,7 @@ public partial class MainWindow : Window
         _runtime.RoutingStateChanged += OnRoutingStateChanged;
         _runtime.DiscordAuthorizationChanged += OnDiscordAuthorizationChanged;
         _runtime.AudioEndpointsChanged += OnAudioEndpointsChanged;
+        RestoreSessionState();
     }
 
     public AppSettings CurrentSettings => _runtime.Settings;
@@ -128,18 +128,21 @@ public partial class MainWindow : Window
             _initializing = false;
             UpdateRuntimeVoiceState(_runtime.VoiceState);
             UpdateAuthorizationState(_runtime.IsDiscordAuthorized);
-            var recovery = await _runtime.InspectRecoveryAsync().ConfigureAwait(true);
-            if (recovery is not null)
+            if (_runStartupTasks)
             {
-                var decision = await ShowModalAsync(
-                    _localization.Get("recovery-title", SelectedRegister),
-                    _localization.Get("recovery-message", SelectedRegister),
-                    _localization.Get("confirm", SelectedRegister)).ConfigureAwait(true);
-                await _runtime.ResolveRecoveryAsync(decision == ModalDecision.Confirm).ConfigureAwait(true);
-                await RefreshEndpointsAsync(debounce: false).ConfigureAwait(true);
-            }
+                var recovery = await _runtime.InspectRecoveryAsync().ConfigureAwait(true);
+                if (recovery is not null)
+                {
+                    var decision = await ShowModalAsync(
+                        _localization.Get("recovery-title", SelectedRegister),
+                        _localization.Get("recovery-message", SelectedRegister),
+                        _localization.Get("confirm", SelectedRegister)).ConfigureAwait(true);
+                    await _runtime.ResolveRecoveryAsync(decision == ModalDecision.Confirm).ConfigureAwait(true);
+                    await RefreshEndpointsAsync(debounce: false).ConfigureAwait(true);
+                }
 
-            _ = CheckForUpdatesAsync(showResultNotification: false);
+                _ = CheckForUpdatesAsync(showResultNotification: false);
+            }
         }
         catch (Exception exception)
         {
@@ -155,6 +158,7 @@ public partial class MainWindow : Window
         {
             RuleAutomationToggle.IsChecked = settings.AutomationEnabled;
             UpdateAutomationPresentation(settings.AutomationEnabled, animate: false);
+            _discordSettings?.SetRestoreDelaySeconds(settings.ExitGracePeriodSeconds);
             AutostartToggle.IsChecked = settings.StartWithWindows;
             OpenHiddenAtStartupToggle.IsChecked = settings.OpenHiddenAtWindowsStartup;
             EnhancedContrastToggle.IsChecked = settings.EnhanceContrast;
@@ -168,7 +172,6 @@ public partial class MainWindow : Window
             RefreshLanguageChoices(settings.Language);
             SelectByTag(ThemeCombo, settings.Theme.ToString());
             SelectByTag(CloseBehaviorCombo, settings.CloseBehavior.ToString());
-            _discordSettings.SetRestoreDelaySeconds(settings.ExitGracePeriodSeconds);
             AmbientMusicVolumeSlider.Value = Math.Clamp(settings.AmbientMusicVolumePercent, 0, 100);
             UpdateDiscordExecutableControls();
             UpdateCloseBehaviorPreview();
@@ -2051,12 +2054,23 @@ public partial class MainWindow : Window
         {
             Interval = notification.DisplayDuration,
         };
-        timer.Tick += (_, _) =>
-        {
-            timer.Stop();
-            DismissNotification(notification.Id);
-        };
+        timer.Tick += OnNotificationTimerTick;
+        _notificationTimers[notification.Id] = timer;
         timer.Start();
+    }
+
+    private void OnNotificationTimerTick(object? sender, EventArgs eventArgs)
+    {
+        if (sender is not System.Windows.Threading.DispatcherTimer timer)
+        {
+            return;
+        }
+
+        var notification = _notificationTimers.FirstOrDefault(pair => ReferenceEquals(pair.Value, timer));
+        if (notification.Key != Guid.Empty)
+        {
+            DismissNotification(notification.Key);
+        }
     }
 
     private void OnDismissNotification(object sender, RoutedEventArgs eventArgs)
@@ -2069,6 +2083,12 @@ public partial class MainWindow : Window
 
     private void DismissNotification(Guid id)
     {
+        if (_notificationTimers.Remove(id, out var timer))
+        {
+            timer.Stop();
+            timer.Tick -= OnNotificationTimerTick;
+        }
+
         _notifications.Dismiss(id);
         NotificationHost.Visibility = _notifications.Items.Count == 0
             ? Visibility.Collapsed
@@ -2367,6 +2387,15 @@ public partial class MainWindow : Window
         }
 
         var showSettings = DiscordSettingsToggleButton.IsChecked == true;
+        if (showSettings)
+        {
+            EnsureDiscordSettingsLoaded();
+        }
+        else
+        {
+            ReleaseDiscordSettings();
+        }
+
         PassageAutomationContent.Visibility = showSettings ? Visibility.Collapsed : Visibility.Visible;
         RulesView.Visibility = showSettings ? Visibility.Visible : Visibility.Collapsed;
         UpdateDiscordSettingsTogglePresentation();
@@ -2832,6 +2861,12 @@ public partial class MainWindow : Window
 
     private void OnOpenAbout(object sender, RoutedEventArgs eventArgs)
     {
+        AboutMusicStaticCover.Source ??= LoadDecodedBitmap(
+            "Assets/Audio/onde-doree-cover.png",
+            decodePixelWidth: 320);
+        AboutWorldLogoBrush.ImageSource ??= LoadDecodedBitmap(
+            "Assets/Brand/elgo-logo-square.png",
+            decodePixelWidth: 250);
         AboutLayer.Visibility = Visibility.Visible;
         UpdateMusicCovers();
         AboutCloseButton.Focus();
@@ -2881,10 +2916,18 @@ public partial class MainWindow : Window
     private void UpdateSettingsMusicCover()
     {
         var videoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Audio", "onde-doree-cover.mp4");
-        var animate = SettingsView.Visibility == Visibility.Visible
+        var coverIsNeeded = SettingsView.Visibility == Visibility.Visible
             && SettingsGeneralPanel.Visibility == Visibility.Visible
             && SettingsEditorLayer.Visibility == Visibility.Visible
-            && MusicEditorPanel.Visibility == Visibility.Visible
+            && MusicEditorPanel.Visibility == Visibility.Visible;
+        if (coverIsNeeded)
+        {
+            SettingsMusicStaticCover.Source ??= LoadDecodedBitmap(
+                "Assets/Audio/onde-doree-cover.png",
+                decodePixelWidth: 320);
+        }
+
+        var animate = coverIsNeeded
             && AboutLayer.Visibility != Visibility.Visible
             && IsVisible
             && WindowState != WindowState.Minimized
@@ -2903,6 +2946,11 @@ public partial class MainWindow : Window
         if (!animate)
         {
             ReleaseMediaElement(SettingsMusicAnimatedCover);
+            if (!coverIsNeeded)
+            {
+                SettingsMusicStaticCover.Source = null;
+            }
+
             return;
         }
 
@@ -2965,7 +3013,29 @@ public partial class MainWindow : Window
     {
         ReleaseMediaElement(AboutMusicAnimatedCover);
         AboutLayer.Visibility = Visibility.Collapsed;
+        AboutMusicStaticCover.Source = null;
+        AboutWorldLogoBrush.ImageSource = null;
         UpdateSettingsMusicCover();
+    }
+
+    internal static BitmapImage LoadDecodedBitmap(string resourcePath, int decodePixelWidth)
+    {
+        var resourceUri = new Uri(
+            $"pack://application:,,,/Aeziol.App;component/{resourcePath}",
+            UriKind.Absolute);
+        var resource = System.Windows.Application.GetResourceStream(resourceUri)
+            ?? throw new InvalidOperationException($"The image resource '{resourcePath}' is unavailable.");
+        using (resource.Stream)
+        {
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.DecodePixelWidth = decodePixelWidth;
+            bitmap.StreamSource = resource.Stream;
+            bitmap.EndInit();
+            bitmap.Freeze();
+            return bitmap;
+        }
     }
 
     internal static bool ReleaseMediaElement(MediaElement mediaElement)
@@ -3044,7 +3114,9 @@ public partial class MainWindow : Window
 
     private void UpdateDiscordSettingsAvailableHeight()
     {
-        if (!DiscordSettingsHost.IsLoaded || RulesView.ActualHeight <= 0)
+        if (_discordSettings is not { } discordSettings
+            || !DiscordSettingsHost.IsLoaded
+            || RulesView.ActualHeight <= 0)
         {
             return;
         }
@@ -3055,8 +3127,52 @@ public partial class MainWindow : Window
         var availableHeight = RulesView.ActualHeight - Math.Max(0, contentTop);
         if (availableHeight > 0)
         {
-            _discordSettings.Height = availableHeight;
+            discordSettings.Height = availableHeight;
         }
+    }
+
+    private void EnsureDiscordSettingsLoaded()
+    {
+        if (_discordSettings is not null)
+        {
+            return;
+        }
+
+        if (_legacyExclusionsJourneyParent?.Children.Contains(ExclusionsJourneyHost) == true)
+        {
+            _legacyExclusionsJourneyParent.Children.Remove(ExclusionsJourneyHost);
+        }
+
+        SettingsDiscordScrollViewer.Content = null;
+        var discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();
+        discordSettings.SetRestoreDelaySeconds(_runtime.Settings.ExitGracePeriodSeconds);
+        discordSettings.RestoreDelayChanged += OnDiscordRestoreDelayChanged;
+        discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;
+        discordSettings.ExcludedOutputsHost.Content = ExclusionsJourneyHost;
+        DiscordSettingsHost.Content = discordSettings;
+        _discordSettings = discordSettings;
+        UpdateDiscordSettingsAvailableHeight();
+    }
+
+    private void ReleaseDiscordSettings()
+    {
+        if (_discordSettings is not { } discordSettings)
+        {
+            return;
+        }
+
+        discordSettings.RestoreDelayChanged -= OnDiscordRestoreDelayChanged;
+        discordSettings.DiscordConnectionHost.Content = null;
+        discordSettings.ExcludedOutputsHost.Content = null;
+        DiscordSettingsHost.Content = null;
+        SettingsDiscordScrollViewer.Content = DiscordSettingsCard;
+        if (_legacyExclusionsJourneyParent is not null
+            && !_legacyExclusionsJourneyParent.Children.Contains(ExclusionsJourneyHost))
+        {
+            _legacyExclusionsJourneyParent.Children.Add(ExclusionsJourneyHost);
+        }
+
+        _discordSettings = null;
     }
 
     private void UpdateResponsiveScale()
@@ -3109,7 +3225,7 @@ public partial class MainWindow : Window
         switch (_runtime.Settings.CloseBehavior)
         {
             case CloseBehavior.MinimizeToTray:
-                Hide();
+                RequestBackgroundMode();
                 return;
             case CloseBehavior.Quit:
                 if (System.Windows.Application.Current is App app)
@@ -3152,6 +3268,17 @@ public partial class MainWindow : Window
     private async void OnHideFromCloseMenu(object sender, RoutedEventArgs eventArgs)
     {
         await RememberCloseChoiceAsync(CloseBehavior.MinimizeToTray).ConfigureAwait(true);
+        RequestBackgroundMode();
+    }
+
+    private void RequestBackgroundMode()
+    {
+        if (System.Windows.Application.Current is App app)
+        {
+            app.HideMainWindow(this);
+            return;
+        }
+
         Hide();
     }
 
@@ -3223,8 +3350,16 @@ public partial class MainWindow : Window
         _updateCheckCancellation?.Dispose();
         _updateDownloadCancellation?.Cancel();
         _updateDownloadCancellation?.Dispose();
+        foreach (var timer in _notificationTimers.Values)
+        {
+            timer.Stop();
+            timer.Tick -= OnNotificationTimerTick;
+        }
+
+        _notificationTimers.Clear();
         ReleaseMediaElement(SettingsMusicAnimatedCover);
         ReleaseMediaElement(AboutMusicAnimatedCover);
+        ReleaseDiscordSettings();
         _settingsGate.Dispose();
         _runtime.VoiceStateChanged -= OnVoiceStateChanged;
         _runtime.RoutingStateChanged -= OnRoutingStateChanged;
@@ -3232,6 +3367,41 @@ public partial class MainWindow : Window
         _runtime.AudioEndpointsChanged -= OnAudioEndpointsChanged;
         StateChanged -= OnWindowStateChanged;
         IsVisibleChanged -= OnWindowVisibilityChanged;
+    }
+
+    internal MainWindowSessionState CaptureSessionState() => MainWindowSessionState.Capture(
+        this,
+        SettingsView.Visibility == Visibility.Visible,
+        DiscordSettingsToggleButton.IsChecked == true);
+
+    private void RestoreSessionState()
+    {
+        if (_restoredSessionState is not { } state)
+        {
+            return;
+        }
+
+        if (state.HasValidBounds)
+        {
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = state.Left;
+            Top = state.Top;
+            Width = state.Width;
+            Height = state.Height;
+        }
+
+        DiscordNav.IsChecked = !state.SettingsSelected;
+        SettingsNav.IsChecked = state.SettingsSelected;
+        DiscordView.Visibility = state.SettingsSelected ? Visibility.Collapsed : Visibility.Visible;
+        SettingsView.Visibility = state.SettingsSelected ? Visibility.Visible : Visibility.Collapsed;
+        DiscordSettingsToggleButton.IsChecked = state.DiscordSettingsOpen;
+        if (state.DiscordSettingsOpen)
+        {
+            EnsureDiscordSettingsLoaded();
+        }
+
+        PassageAutomationContent.Visibility = state.DiscordSettingsOpen ? Visibility.Collapsed : Visibility.Visible;
+        RulesView.Visibility = state.DiscordSettingsOpen ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private static WritingRegister SelectedRegister => WritingRegister.Standard;
