@@ -757,16 +757,22 @@
             <StackPanel Orientation="Horizontal">
                 <Border x:Name="Track" Width="44" Height="24" CornerRadius="12"
                         Background="{DynamicResource AeziolRaised}"
-                        BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="1"
+                        BorderBrush="{DynamicResource AeziolTraceBorder}" BorderThickness="1"
                         RenderTransformOrigin="0.5,0.5">
                     <Border.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1" /></Border.RenderTransform>
                     <Grid>
-                        <Border x:Name="TrackAccent" Margin="2" CornerRadius="10"
-                                BorderBrush="{DynamicResource AeziolGoldLine}"
-                                BorderThickness="1" Opacity="0" />
+                        <Canvas x:Name="TrackAccent" Margin="2" ClipToBounds="True"
+                                Opacity="0.28" IsHitTestVisible="False">
+                            <Path Data="M 2,15 C 10,5 19,18 39,7"
+                                  Stroke="{DynamicResource AeziolGoldLine}"
+                                  StrokeThickness="1" StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round" />
+                            <Ellipse Width="2.2" Height="2.2" Canvas.Left="28" Canvas.Top="4"
+                                     Fill="{DynamicResource AeziolGold}" />
+                        </Canvas>
                         <Ellipse x:Name="Thumb" Width="16" Height="16" Margin="3,0,0,0"
-                                 Fill="{DynamicResource AeziolMuted}"
-                                 Stroke="{DynamicResource AeziolBorderSoft}" StrokeThickness="1"
+                                 Fill="{DynamicResource AeziolSurface}"
+                                 Stroke="{DynamicResource AeziolGoldLine}" StrokeThickness="1"
                                  HorizontalAlignment="Left" VerticalAlignment="Center" />
                     </Grid>
                 </Border>
@@ -776,8 +782,8 @@
             <ControlTemplate.Triggers>
                 <Trigger Property="IsChecked" Value="True">
                     <Setter TargetName="Track" Property="Background" Value="{DynamicResource AeziolGoldWash}" />
-                    <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AeziolGoldLine}" />
-                    <Setter TargetName="TrackAccent" Property="Opacity" Value="0.45" />
+                    <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AeziolTraceBorderHover}" />
+                    <Setter TargetName="TrackAccent" Property="Opacity" Value="0.72" />
                     <Setter TargetName="Thumb" Property="Fill" Value="{DynamicResource AeziolGold}" />
                     <Setter TargetName="Thumb" Property="Stroke" Value="{DynamicResource AeziolGoldBright}" />
                     <Setter TargetName="Thumb" Property="Margin" Value="23,0,0,0" />
@@ -787,13 +793,13 @@
                         <Condition Property="IsMouseOver" Value="True" />
                         <Condition Property="IsEnabled" Value="True" />
                     </MultiTrigger.Conditions>
-                    <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AeziolGold}" />
-                    <Setter TargetName="TrackAccent" Property="Opacity" Value="0.8" />
+                    <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AeziolTraceBorderHover}" />
+                    <Setter TargetName="TrackAccent" Property="Opacity" Value="1" />
                     <Setter TargetName="Thumb" Property="Stroke" Value="{DynamicResource AeziolGold}" />
                 </MultiTrigger>
                 <Trigger Property="IsKeyboardFocused" Value="True">
-                    <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AeziolGold}" />
-                    <Setter TargetName="TrackAccent" Property="Opacity" Value="0.8" />
+                    <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AeziolTraceBorderHover}" />
+                    <Setter TargetName="TrackAccent" Property="Opacity" Value="1" />
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
                     <Setter TargetName="Track" Property="RenderTransform">
@@ -1240,13 +1246,19 @@
                                     <ColumnDefinition Width="22" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <Border x:Name="Box" Width="18" Height="18" CornerRadius="5"
-                                        BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="1"
+                                <Border x:Name="Box" Width="18" Height="18" CornerRadius="7,4,7,4"
+                                        BorderBrush="{DynamicResource AeziolTraceBorder}" BorderThickness="1"
                                         Background="{DynamicResource AeziolSurface}">
                                     <Grid>
-                                        <Border x:Name="BoxAccent" Margin="2" CornerRadius="3"
-                                                BorderBrush="{DynamicResource AeziolGoldLine}"
-                                                BorderThickness="1" Opacity="0" />
+                                        <Canvas x:Name="BoxAccent" ClipToBounds="True"
+                                                Opacity="0.3" IsHitTestVisible="False">
+                                            <Path Data="M 1,14 C 5,4 11,16 17,5"
+                                                  Stroke="{DynamicResource AeziolGoldLine}"
+                                                  StrokeThickness="0.9" StrokeStartLineCap="Round"
+                                                  StrokeEndLineCap="Round" />
+                                            <Ellipse Width="1.8" Height="1.8" Canvas.Left="12.5" Canvas.Top="3"
+                                                     Fill="{DynamicResource AeziolGold}" />
+                                        </Canvas>
                                         <Path x:Name="Tick" Data="M 3.5,8.5 L 7.2,12 L 14.5,4.5"
                                               Stroke="{DynamicResource AeziolGoldBright}" StrokeThickness="1.8"
                                               StrokeStartLineCap="Round" StrokeEndLineCap="Round"
@@ -1265,8 +1277,8 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Box" Property="Background" Value="{DynamicResource AeziolGoldWash}" />
-                                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AeziolGoldLine}" />
-                                <Setter TargetName="BoxAccent" Property="Opacity" Value="0.55" />
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AeziolTraceBorderHover}" />
+                                <Setter TargetName="BoxAccent" Property="Opacity" Value="0.8" />
                                 <Setter TargetName="Tick" Property="Opacity" Value="1" />
                                 <Setter TargetName="Tick" Property="RenderTransform">
                                     <Setter.Value><ScaleTransform ScaleX="1" ScaleY="1" /></Setter.Value>
@@ -1279,15 +1291,15 @@
                                 </MultiTrigger.Conditions>
                                 <Setter TargetName="Row" Property="Background" Value="{DynamicResource AeziolHover}" />
                                 <Setter TargetName="Row" Property="BorderBrush" Value="{DynamicResource AeziolGoldLine}" />
-                                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AeziolGold}" />
-                                <Setter TargetName="BoxAccent" Property="Opacity" Value="0.8" />
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AeziolTraceBorderHover}" />
+                                <Setter TargetName="BoxAccent" Property="Opacity" Value="1" />
                             </MultiTrigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Row" Property="Background" Value="{DynamicResource AeziolGoldWash}" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="Row" Property="BorderBrush" Value="{DynamicResource AeziolGoldLine}" />
-                                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AeziolGold}" />
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AeziolTraceBorderHover}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.38" />
