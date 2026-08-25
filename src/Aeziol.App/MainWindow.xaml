@@ -629,10 +629,16 @@
                                             <TextBlock x:Name="ExclusionsTitleText" FontSize="14" FontWeight="SemiBold" />
                                             <TextBlock x:Name="ExclusionsHelpText" Margin="0,4,0,0" Style="{StaticResource BodyMuted}" />
                                         </StackPanel>
-                                        <Grid x:Name="ExclusionsJourneyHost" Grid.Row="1">
-                                            <Viewbox Width="19" Margin="1,5,0,5"
-                                                     HorizontalAlignment="Left" Stretch="Fill"
-                                                     IsHitTestVisible="False">
+                                        <Grid x:Name="ExclusionsJourneyHost"
+                                              Grid.Row="1"
+                                              MaxHeight="300">
+                                            <Canvas x:Name="ExclusionsJourneyTraceCanvas"
+                                                    Width="19" Margin="1,5,0,5"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Stretch"
+                                                    ClipToBounds="True"
+                                                    SizeChanged="OnExclusionsJourneyTraceCanvasSizeChanged"
+                                                    IsHitTestVisible="False">
                                                 <controls:JourneyTrace x:Name="ExclusionsJourneyTrace"
                                                                        Width="19" Height="200"
                                                                        Orientation="Vertical"
@@ -651,8 +657,10 @@
                                                                                   HighlightSize="3" HighlightOpacity="0.88" Tone="Primary" />
                                                     </controls:JourneyTrace.Particles>
                                                 </controls:JourneyTrace>
-                                            </Viewbox>
-                                            <ScrollViewer Margin="24,0,0,0"
+                                            </Canvas>
+                                            <ScrollViewer x:Name="ExclusionsScrollViewer"
+                                                          Margin="24,0,0,0"
+                                                          MaxHeight="300"
                                                           VerticalScrollBarVisibility="Auto"
                                                           HorizontalScrollBarVisibility="Disabled">
                                                 <ItemsControl x:Name="ExclusionsList"

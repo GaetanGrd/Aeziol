@@ -2469,17 +2469,18 @@ public partial class MainWindow : Window
     {
         if (sender is not FrameworkElement row
             || row.ActualHeight <= 0
-            || ExclusionsJourneyHost.ActualHeight <= 0)
+            || ExclusionsJourneyTraceCanvas.ActualHeight <= 0)
         {
             return;
         }
 
-        var scale = ExclusionsJourneyTrace.Height / ExclusionsJourneyHost.ActualHeight;
-        var rowTop = row.TranslatePoint(new System.Windows.Point(0, 0), ExclusionsJourneyHost).Y * scale;
+        var rowTop = row.TranslatePoint(
+            new System.Windows.Point(0, 0),
+            ExclusionsJourneyTraceCanvas).Y;
         var fadeTop = Math.Max(0, rowTop - 5);
         var fadeBottom = Math.Min(
             ExclusionsJourneyTrace.Height,
-            rowTop + (row.ActualHeight * scale) + 5);
+            rowTop + row.ActualHeight + 5);
         if (fadeBottom <= fadeTop)
         {
             return;
@@ -2495,6 +2496,95 @@ public partial class MainWindow : Window
         object sender,
         System.Windows.Input.MouseEventArgs eventArgs) =>
         ExclusionsJourneyTrace.HideHighlight(sender, MotionAssist.GetIsReduced(this));
+
+    private void OnExclusionsJourneyTraceCanvasSizeChanged(object sender, SizeChangedEventArgs eventArgs)
+    {
+        var height = ExclusionsJourneyTraceCanvas.ActualHeight;
+        ExclusionsJourneyTrace.Visibility = height > 1 ? Visibility.Visible : Visibility.Collapsed;
+        if (height <= 1 || Math.Abs(ExclusionsJourneyTrace.Height - height) < 0.1)
+        {
+            return;
+        }
+
+        ExclusionsJourneyTrace.Height = height;
+        ExclusionsJourneyTrace.TraceA = CreateExclusionsJourneyGeometry(
+            height,
+            7, 4, 0.225, 14, 0.34, 12, 0.575,
+            10, 0.765, 5, 0.885, 9);
+        ExclusionsJourneyTrace.TraceB = CreateExclusionsJourneyGeometry(
+            height,
+            11, 7, 0.23, 16, 0.35, 10, 0.585,
+            8, 0.775, 8, 0.875, 12);
+
+        ExclusionsJourneyTrace.Particles.Clear();
+        ExclusionsJourneyTrace.Particles.Add(new Controls.JourneyParticle
+        {
+            X = 3,
+            Y = height * 0.24,
+            Size = 2,
+            Opacity = 0.42,
+            HighlightSize = 3,
+            HighlightOpacity = 0.92,
+            Tone = Controls.JourneyParticleTone.Primary,
+        });
+        ExclusionsJourneyTrace.Particles.Add(new Controls.JourneyParticle
+        {
+            X = 15,
+            Y = height * 0.52,
+            Size = 1.5,
+            Opacity = 0.45,
+            HighlightSize = 2.5,
+            HighlightOpacity = 0.9,
+            Tone = Controls.JourneyParticleTone.Secondary,
+        });
+        ExclusionsJourneyTrace.Particles.Add(new Controls.JourneyParticle
+        {
+            X = 4,
+            Y = height * 0.815,
+            Size = 2,
+            Opacity = 0.38,
+            HighlightSize = 3,
+            HighlightOpacity = 0.88,
+            Tone = Controls.JourneyParticleTone.Primary,
+        });
+    }
+
+    private static StreamGeometry CreateExclusionsJourneyGeometry(
+        double height,
+        double startX,
+        double firstControlX,
+        double firstControlY,
+        double secondControlX,
+        double secondControlY,
+        double midpointX,
+        double midpointY,
+        double thirdControlX,
+        double thirdControlY,
+        double fourthControlX,
+        double fourthControlY,
+        double endX)
+    {
+        var geometry = new StreamGeometry();
+        using (var context = geometry.Open())
+        {
+            context.BeginFigure(new System.Windows.Point(startX, 0), isFilled: false, isClosed: false);
+            context.BezierTo(
+                new System.Windows.Point(firstControlX, height * firstControlY),
+                new System.Windows.Point(secondControlX, height * secondControlY),
+                new System.Windows.Point(midpointX, height * midpointY),
+                isStroked: true,
+                isSmoothJoin: false);
+            context.BezierTo(
+                new System.Windows.Point(thirdControlX, height * thirdControlY),
+                new System.Windows.Point(fourthControlX, height * fourthControlY),
+                new System.Windows.Point(endX, height),
+                isStroked: true,
+                isSmoothJoin: false);
+        }
+
+        geometry.Freeze();
+        return geometry;
+    }
 
     private void OnOpenSettingsEditor(object sender, RoutedEventArgs eventArgs)
     {

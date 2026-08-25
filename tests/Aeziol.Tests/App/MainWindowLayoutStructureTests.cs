@@ -72,6 +72,9 @@ public sealed class MainWindowLayoutStructureTests
         var passageJourneyTrace = FindNamedElement(windowDocument, "PassageJourneyTrace");
         var settingsJourneyTrace = FindNamedElement(windowDocument, "SettingsJourneyTrace");
         var exclusionsJourneyTrace = FindNamedElement(windowDocument, "ExclusionsJourneyTrace");
+        var exclusionsJourneyHost = FindNamedElement(windowDocument, "ExclusionsJourneyHost");
+        var exclusionsJourneyTraceCanvas = FindNamedElement(windowDocument, "ExclusionsJourneyTraceCanvas");
+        var exclusionsScrollViewer = FindNamedElement(windowDocument, "ExclusionsScrollViewer");
         var navigationBrand = FindNamedElement(windowDocument, "NavigationBrandCicada");
         var surfaceStateTriggers = controlSurface.Descendants()
             .Where(element => element.Name.LocalName == "DataTrigger")
@@ -129,6 +132,17 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Equal("SymmetricFromCenter", passageJourneyTrace.Attribute("ProgressMode")?.Value);
         Assert.Null(settingsJourneyTrace.Attribute("ProgressMode"));
         Assert.Null(exclusionsJourneyTrace.Attribute("ProgressMode"));
+        Assert.Equal("300", exclusionsJourneyHost.Attribute("MaxHeight")?.Value);
+        Assert.Equal("Canvas", exclusionsJourneyTraceCanvas.Name.LocalName);
+        Assert.Equal("True", exclusionsJourneyTraceCanvas.Attribute("ClipToBounds")?.Value);
+        Assert.Equal(
+            "OnExclusionsJourneyTraceCanvasSizeChanged",
+            exclusionsJourneyTraceCanvas.Attribute("SizeChanged")?.Value);
+        Assert.Equal("300", exclusionsScrollViewer.Attribute("MaxHeight")?.Value);
+        Assert.Equal(
+            "ExclusionsJourneyTraceCanvas",
+            exclusionsJourneyTrace.Parent?.Attribute(Xaml + "Name")?.Value);
+        Assert.Contains("CreateExclusionsJourneyGeometry", windowSource, StringComparison.Ordinal);
         Assert.Equal("RotateTransform", cicadaRotation.Name.LocalName);
         Assert.Equal("0", cicadaRotation.Attribute("Angle")?.Value);
         Assert.Equal("False", navigationBrand.Attribute("IsHitTestVisible")?.Value);

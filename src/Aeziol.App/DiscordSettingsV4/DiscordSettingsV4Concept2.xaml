@@ -257,9 +257,8 @@
                                         BorderBrush="{DynamicResource AeziolBorderSoft}"
                                         BorderThickness="1">
                                     <ContentControl x:Name="ExcludedOutputsHost"
-                                                    MinHeight="300"
                                                     HorizontalContentAlignment="Stretch"
-                                                    VerticalContentAlignment="Stretch" />
+                                                    VerticalContentAlignment="Top" />
                                 </Border>
 
                                 <StackPanel x:Name="FallbackSettingsPanel" Visibility="Collapsed">

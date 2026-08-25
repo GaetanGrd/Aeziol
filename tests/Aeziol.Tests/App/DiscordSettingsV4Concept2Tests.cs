@@ -147,7 +147,8 @@ public sealed class DiscordSettingsV4Concept2StructureTests
                 .Select(element => element.Attribute("Tag")?.Value));
         Assert.Equal("Collapsed", FindNamedElement(document, "CustomRestoreDelayPanel").Attribute("Visibility")?.Value);
         Assert.Equal("2", FindNamedElement(document, "CustomRestoreDelayTextBox").Attribute("MaxLength")?.Value);
-        Assert.Equal("300", FindNamedElement(document, "ExcludedOutputsHost").Attribute("MinHeight")?.Value);
+        Assert.Null(FindNamedElement(document, "ExcludedOutputsHost").Attribute("MinHeight"));
+        Assert.Equal("Top", FindNamedElement(document, "ExcludedOutputsHost").Attribute("VerticalContentAlignment")?.Value);
         foreach (var panelName in new[] { "GlobalSettingsPanel", "ExcludedOutputsSetting", "FallbackSettingsPanel" })
         {
             Assert.Contains(FindNamedElement(document, panelName).Ancestors(), element =>
