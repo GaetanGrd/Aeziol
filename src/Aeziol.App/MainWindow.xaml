@@ -390,7 +390,7 @@
                                                                    Orientation="Horizontal"
                                                                    ProgressMode="SymmetricFromCenter"
                                                                    EdgeFade="0.06" HighlightFade="0.14" HighlightRadius="12"
-                                                                   BaseStrokeA="1.2" BaseStrokeB="0.9"
+                                                                   BaseStrokeA="0.9" BaseStrokeB="0.75"
                                                                    BaseOpacityA="1" BaseOpacityB="0.44"
                                                                    HighlightStroke="1.7" GlowStroke="5"
                                                                    TraceA="M 0,35 C 22,8 48,7 75,26 C 88,35 94,39 103,38 C 130,59 166,58 200,31"
@@ -1389,12 +1389,17 @@
 
                                                             <Canvas x:Name="DiscordConnectedTrailCanvas" Width="440" Height="58"
                                                                     Visibility="Collapsed">
-                                                                <Canvas.Effect>
-                                                                    <DropShadowEffect x:Name="DiscordConnectedTrailGlow"
-                                                                                      BlurRadius="7" ShadowDepth="0"
-                                                                                      Color="{DynamicResource AeziolPrimaryColor}"
-                                                                                      Opacity="0.62" />
-                                                                </Canvas.Effect>
+                                                                <Canvas x:Name="DiscordConnectedTrailGlowLayer"
+                                                                        Width="440" Height="58" Opacity="0.82">
+                                                                    <Path Data="M 0,31 C 65,4 116,51 188,26 C 258,1 315,51 440,21"
+                                                                          Stroke="{DynamicResource AeziolPrimary}"
+                                                                          StrokeThickness="4.8" StrokeStartLineCap="Round"
+                                                                          StrokeEndLineCap="Round" Opacity="0.22" />
+                                                                    <Path Data="M 0,36 C 72,13 121,46 193,29 C 266,10 327,43 440,27"
+                                                                          Stroke="{DynamicResource AeziolSecondary}"
+                                                                          StrokeThickness="4.2" StrokeStartLineCap="Round"
+                                                                          StrokeEndLineCap="Round" Opacity="0.16" />
+                                                                </Canvas>
                                                                 <Path Data="M 0,31 C 65,4 116,51 188,26 C 258,1 315,51 440,21"
                                                                       Stroke="{DynamicResource AeziolPrimary}"
                                                                       StrokeThickness="0.9" StrokeStartLineCap="Round"
@@ -1759,7 +1764,7 @@
                                         </Canvas.OpacityMask>
                                         <Path Data="M 8,1 C 3,10 11,17 7,26 C 4,33 9,38 7,45"
                                               Style="{StaticResource NotificationTraceStyle}"
-                                              StrokeThickness="1.15" StrokeStartLineCap="Round"
+                                              StrokeThickness="0.9" StrokeStartLineCap="Round"
                                               StrokeEndLineCap="Round" Opacity="0.82" />
                                         <Path Data="M 12,2 C 8,11 13,18 10,25 C 7,31 12,37 10,44"
                                               Style="{StaticResource NotificationTraceStyle}"

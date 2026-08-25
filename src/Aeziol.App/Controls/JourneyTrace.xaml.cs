@@ -24,6 +24,9 @@ public enum JourneyTraceProgressMode
 
 public partial class JourneyTrace : System.Windows.Controls.UserControl
 {
+    public const double StandardPrimaryStroke = 0.9d;
+    public const double StandardSecondaryStroke = 0.75d;
+
     private static int _nextCorruptionIdentity;
     private static readonly TimeSpan DefaultHighlightInDuration = TimeSpan.FromMilliseconds(280);
     private static readonly TimeSpan DefaultHighlightOutDuration = TimeSpan.FromMilliseconds(650);
@@ -96,11 +99,11 @@ public partial class JourneyTrace : System.Windows.Controls.UserControl
 
     public static readonly DependencyProperty BaseStrokeAProperty = DependencyProperty.Register(
         nameof(BaseStrokeA), typeof(double), typeof(JourneyTrace),
-        new FrameworkPropertyMetadata(0.9d, OnAppearanceChanged));
+        new FrameworkPropertyMetadata(StandardPrimaryStroke, OnAppearanceChanged));
 
     public static readonly DependencyProperty BaseStrokeBProperty = DependencyProperty.Register(
         nameof(BaseStrokeB), typeof(double), typeof(JourneyTrace),
-        new FrameworkPropertyMetadata(0.75d, OnAppearanceChanged));
+        new FrameworkPropertyMetadata(StandardSecondaryStroke, OnAppearanceChanged));
 
     public static readonly DependencyProperty BaseOpacityAProperty = DependencyProperty.Register(
         nameof(BaseOpacityA), typeof(double), typeof(JourneyTrace),

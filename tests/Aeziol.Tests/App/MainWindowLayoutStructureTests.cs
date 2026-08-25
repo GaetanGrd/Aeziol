@@ -338,7 +338,7 @@ public sealed class MainWindowLayoutStructureTests
         var discordEndpointIcon = FindNamedElement(document, "DiscordConnectionEndpointIcon");
         var aeziolEndpointIcon = FindNamedElement(document, "AeziolConnectionEndpointIcon");
         var connectedTrail = FindNamedElement(document, "DiscordConnectedTrailCanvas");
-        var connectedGlow = FindNamedElement(document, "DiscordConnectedTrailGlow");
+        var connectedGlow = FindNamedElement(document, "DiscordConnectedTrailGlowLayer");
         Assert.Equal("16", connectionCard.Attribute("Padding")?.Value);
         Assert.Equal("88", connectionRoute.Attribute("Height")?.Value);
         Assert.Equal("52", discordEndpointIcon.Attribute("Width")?.Value);
@@ -348,8 +348,9 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Equal(["0.9", "0.75"], connectedTrail.Elements()
             .Where(element => element.Name.LocalName == "Path")
             .Select(element => element.Attribute("StrokeThickness")?.Value));
-        Assert.Equal("0.62", connectedGlow.Attribute("Opacity")?.Value);
-        Assert.Contains("DiscordConnectedTrailGlow.Opacity = isAuthorized ? 0.62 : 0;", source, StringComparison.Ordinal);
+        Assert.Equal("0.82", connectedGlow.Attribute("Opacity")?.Value);
+        Assert.Equal(2, connectedGlow.Elements().Count(element => element.Name.LocalName == "Path"));
+        Assert.Contains("DiscordConnectedTrailGlowLayer.Opacity = isAuthorized ? 0.82 : 0;", source, StringComparison.Ordinal);
         Assert.Contains("authorizationGlow", source, StringComparison.Ordinal);
         Assert.Contains(connectionCard.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "DiscordConnectionTrail");
         Assert.Contains(connectionCard.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RevokeDiscordButton");
