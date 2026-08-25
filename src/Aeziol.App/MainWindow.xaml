@@ -355,12 +355,12 @@
                                                         Value="{DynamicResource AeziolSecondary}" />
                                                 <Setter TargetName="SettingsToggleSurface" Property="BorderBrush"
                                                         Value="{DynamicResource AeziolGoldLine}" />
-                                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSecondary}" />
                                             </Trigger>
                                             <Trigger Property="IsPressed" Value="True">
                                                 <Setter TargetName="SettingsToggleSurface" Property="Background"
                                                         Value="{DynamicResource AeziolSecondary}" />
-                                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSecondary}" />
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>

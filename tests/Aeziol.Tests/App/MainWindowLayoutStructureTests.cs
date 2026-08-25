@@ -372,6 +372,9 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Contains(discordSettingsTriggers.Single(trigger => trigger.Attribute("Property")?.Value == "IsMouseOver")
             .Descendants(), setter => setter.Attribute("Property")?.Value == "Background"
                 && setter.Attribute("Value")?.Value == "{DynamicResource AeziolSecondary}");
+        Assert.Contains(discordSettingsTriggers.Single(trigger => trigger.Attribute("Property")?.Value == "IsMouseOver")
+            .Descendants(), setter => setter.Attribute("Property")?.Value == "Foreground"
+                && setter.Attribute("Value")?.Value == "{DynamicResource AeziolOnSecondary}");
         Assert.Contains("DiscordSettingsToggleButton.Content = settingsAreOpen ? \"\\uE711\" : \"\\uE713\";", source, StringComparison.Ordinal);
         Assert.DoesNotContain(document.Descendants(), element =>
             element.Attribute(Xaml + "Name")?.Value is "DiscordOverviewTab" or "DiscordRulesTab");
