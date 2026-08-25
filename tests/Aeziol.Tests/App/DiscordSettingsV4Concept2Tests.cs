@@ -99,8 +99,10 @@ public sealed class DiscordSettingsV4Concept2StructureTests
         Assert.Equal("4", FindNamedElement(document, "OpenFallbackSettingsButton").Attribute("Grid.Column")?.Value);
         Assert.Equal("Collapsed", FindNamedElement(document, "SettingsModalLayer").Attribute("Visibility")?.Value);
         Assert.Null(FindNamedElement(document, "SettingsModalLayer").Attribute("MinHeight"));
-        Assert.Equal("Stretch", FindNamedElement(document, "SettingsModalSurface").Attribute("HorizontalAlignment")?.Value);
+        Assert.Equal("520", FindNamedElement(document, "SettingsModalSurface").Attribute("Width")?.Value);
+        Assert.Equal("Right", FindNamedElement(document, "SettingsModalSurface").Attribute("HorizontalAlignment")?.Value);
         Assert.Equal("Stretch", FindNamedElement(document, "SettingsModalSurface").Attribute("VerticalAlignment")?.Value);
+        Assert.NotNull(FindNamedElement(document, "SettingsModalHeaderIcon"));
         Assert.Null(FindNamedElement(document, "SettingsModalScrollViewer").Attribute("MaxHeight"));
         Assert.Equal("1", FindNamedElement(document, "RestoreDelayComboBox").Attribute("Grid.Column")?.Value);
         Assert.Equal("32", FindNamedElement(document, "RestoreDelayComboBox").Attribute("MinHeight")?.Value);

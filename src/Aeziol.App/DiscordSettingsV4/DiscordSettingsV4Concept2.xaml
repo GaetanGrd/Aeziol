@@ -47,8 +47,8 @@
         <Style x:Key="ConceptLauncherButton"
                TargetType="Button"
                BasedOn="{StaticResource SettingsCommandRow}">
-            <Setter Property="MinHeight" Value="74" />
-            <Setter Property="Padding" Value="14,11" />
+            <Setter Property="MinHeight" Value="132" />
+            <Setter Property="Padding" Value="18,16" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
@@ -81,20 +81,20 @@
                         Click="OnOpenSettingsModal">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="32" />
+                            <ColumnDefinition Width="44" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="12" />
                         </Grid.ColumnDefinitions>
-                        <Border Width="28" Height="28" CornerRadius="8"
+                        <Border Width="40" Height="40" CornerRadius="12"
                                 Background="{DynamicResource AeziolGoldWash}">
-                            <Path Width="16" Height="16"
+                            <Path Width="20" Height="20"
                                   Data="M 3,8 L 3,13 L 7,13 L 12,17 L 12,3 L 7,7 L 3,7 Z M 15,7 C 17,9 17,11 15,13"
                                   Stretch="Uniform" Stroke="{DynamicResource AeziolGold}"
                                   StrokeThickness="1.5" StrokeStartLineCap="Round"
                                   StrokeEndLineCap="Round" StrokeLineJoin="Round" />
                         </Border>
-                        <StackPanel Grid.Column="1" Margin="10,0,8,0" VerticalAlignment="Center">
-                            <TextBlock Style="{StaticResource ConceptSettingTitle}"
+                        <StackPanel Grid.Column="1" Margin="14,0,8,0" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource ConceptSettingTitle}" FontSize="13"
                                        Text="Réglages Discord globaux" />
                             <TextBlock Style="{StaticResource ConceptSettingHelp}"
                                        Text="Délai et notifications" />
@@ -113,20 +113,20 @@
                         Click="OnOpenSettingsModal">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="32" />
+                            <ColumnDefinition Width="44" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="12" />
                         </Grid.ColumnDefinitions>
-                        <Border Width="28" Height="28" CornerRadius="8"
+                        <Border Width="40" Height="40" CornerRadius="12"
                                 Background="{DynamicResource AeziolGoldWash}">
-                            <Path Width="16" Height="16"
+                            <Path Width="20" Height="20"
                                   Data="M 3,5 L 3,15 L 17,15 L 17,5 Z M 6,5 L 7,2 L 13,2 L 14,5 M 6,9 L 14,9"
                                   Stretch="Uniform" Stroke="{DynamicResource AeziolGold}"
                                   StrokeThickness="1.5" StrokeStartLineCap="Round"
                                   StrokeEndLineCap="Round" StrokeLineJoin="Round" />
                         </Border>
-                        <StackPanel Grid.Column="1" Margin="10,0,8,0" VerticalAlignment="Center">
-                            <TextBlock Style="{StaticResource ConceptSettingTitle}"
+                        <StackPanel Grid.Column="1" Margin="14,0,8,0" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource ConceptSettingTitle}" FontSize="13"
                                        Text="Périphériques de sortie" />
                             <TextBlock Style="{StaticResource ConceptSettingHelp}"
                                        Text="Sorties à ne jamais modifier" />
@@ -145,20 +145,20 @@
                         Click="OnOpenSettingsModal">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="32" />
+                            <ColumnDefinition Width="44" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="12" />
                         </Grid.ColumnDefinitions>
-                        <Border Width="28" Height="28" CornerRadius="8"
+                        <Border Width="40" Height="40" CornerRadius="12"
                                 Background="{DynamicResource AeziolGoldWash}">
-                            <Path Width="16" Height="16"
+                            <Path Width="20" Height="20"
                                   Data="M 3,4 L 17,4 L 17,16 L 3,16 Z M 6,8 L 14,8 M 6,12 L 11,12"
                                   Stretch="Uniform" Stroke="{DynamicResource AeziolGold}"
                                   StrokeThickness="1.5" StrokeStartLineCap="Round"
                                   StrokeEndLineCap="Round" StrokeLineJoin="Round" />
                         </Border>
-                        <StackPanel Grid.Column="1" Margin="10,0,8,0" VerticalAlignment="Center">
-                            <TextBlock Style="{StaticResource ConceptSettingTitle}"
+                        <StackPanel Grid.Column="1" Margin="14,0,8,0" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource ConceptSettingTitle}" FontSize="13"
                                        Text="Dépannage Discord" />
                             <TextBlock Style="{StaticResource ConceptSettingHelp}"
                                        Text="Détection et chemin manuel" />
@@ -179,11 +179,11 @@
                   Background="#D9090A0C"
                   MouseLeftButtonUp="OnSettingsModalBackdropClick">
                 <Border x:Name="SettingsModalSurface"
-                        MaxWidth="980"
-                        Margin="20"
-                        Padding="22,18"
-                        CornerRadius="16"
-                        HorizontalAlignment="Stretch"
+                        Width="520"
+                        Margin="0,0,8,0"
+                        Padding="20,16"
+                        CornerRadius="12"
+                        HorizontalAlignment="Right"
                         VerticalAlignment="Stretch"
                         Background="{DynamicResource AeziolSurface}"
                         BorderBrush="{DynamicResource AeziolGoldLine}"
@@ -191,17 +191,38 @@
                         MouseLeftButtonUp="OnSettingsModalSurfaceClick">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="38" />
+                            <RowDefinition Height="54" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="42" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="34" />
+                            </Grid.ColumnDefinitions>
+                            <Border Width="38" Height="38" CornerRadius="12"
+                                    HorizontalAlignment="Left"
+                                    Background="{DynamicResource AeziolGoldWash}"
+                                    BorderBrush="{DynamicResource AeziolGoldLine}"
+                                    BorderThickness="1">
+                                <Path x:Name="SettingsModalHeaderIcon"
+                                      Width="20" Height="20"
+                                      Stretch="Uniform"
+                                      Stroke="{DynamicResource AeziolGold}"
+                                      StrokeThickness="1.5"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round" />
+                            </Border>
                             <TextBlock x:Name="SettingsModalTitleText"
+                                       Grid.Column="1"
+                                       Margin="10,0,8,0"
                                        FontSize="16"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center" />
                             <Button x:Name="SettingsModalCloseButton"
+                                    Grid.Column="2"
                                     Width="32" Height="32"
-                                    HorizontalAlignment="Right"
                                     Style="{StaticResource WindowButton}"
                                     Content="×"
                                     Click="OnCloseSettingsModal" />
