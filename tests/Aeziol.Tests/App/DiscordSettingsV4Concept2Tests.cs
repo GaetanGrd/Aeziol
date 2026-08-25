@@ -113,6 +113,8 @@ public sealed class DiscordSettingsV4Concept2StructureTests
         Assert.Equal("168", component.Root?.Attribute("MinHeight")?.Value);
         Assert.Equal("16", launcherSurface.Attribute("CornerRadius")?.Value);
         Assert.Equal("JourneyTrace", journeyTrace.Name.LocalName);
+        Assert.Equal("0.9", journeyTrace.Attribute("BaseStrokeA")?.Value);
+        Assert.Equal("0.75", journeyTrace.Attribute("BaseStrokeB")?.Value);
         Assert.Equal("52", iconSurface.Attribute("Width")?.Value);
         Assert.Equal("52", iconSurface.Attribute("Height")?.Value);
         Assert.Equal("OnCardMouseEnter", FindNamedElement(component, "SectionButton").Attribute("MouseEnter")?.Value);
@@ -125,9 +127,12 @@ public sealed class DiscordSettingsV4Concept2StructureTests
         Assert.Equal("4", FindNamedElement(document, "OpenFallbackSettingsButton").Attribute("Grid.Column")?.Value);
         Assert.Equal("Collapsed", FindNamedElement(document, "SettingsModalLayer").Attribute("Visibility")?.Value);
         Assert.Null(FindNamedElement(document, "SettingsModalLayer").Attribute("MinHeight"));
-        Assert.Equal("520", FindNamedElement(document, "SettingsModalSurface").Attribute("Width")?.Value);
-        Assert.Equal("Right", FindNamedElement(document, "SettingsModalSurface").Attribute("HorizontalAlignment")?.Value);
-        Assert.Equal("Stretch", FindNamedElement(document, "SettingsModalSurface").Attribute("VerticalAlignment")?.Value);
+        Assert.Null(FindNamedElement(document, "SettingsModalSurface").Attribute("Width"));
+        Assert.Equal("480", FindNamedElement(document, "SettingsModalSurface").Attribute("MinWidth")?.Value);
+        Assert.Equal("720", FindNamedElement(document, "SettingsModalSurface").Attribute("MaxWidth")?.Value);
+        Assert.Equal("520", FindNamedElement(document, "SettingsModalSurface").Attribute("MaxHeight")?.Value);
+        Assert.Equal("Center", FindNamedElement(document, "SettingsModalSurface").Attribute("HorizontalAlignment")?.Value);
+        Assert.Equal("Center", FindNamedElement(document, "SettingsModalSurface").Attribute("VerticalAlignment")?.Value);
         Assert.NotNull(FindNamedElement(document, "SettingsModalHeaderIcon"));
         Assert.Null(FindNamedElement(document, "SettingsModalScrollViewer").Attribute("MaxHeight"));
         Assert.Equal("1", FindNamedElement(document, "RestoreDelayComboBox").Attribute("Grid.Column")?.Value);

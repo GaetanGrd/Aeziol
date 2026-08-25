@@ -334,13 +334,23 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Contains("DiscordSettingsHost.Content = discordSettings;", source, StringComparison.Ordinal);
 
         var connectionCard = FindNamedElement(document, "DiscordSettingsCard");
+        var connectionRoute = FindNamedElement(document, "DiscordConnectionRouteGrid");
         var discordEndpointIcon = FindNamedElement(document, "DiscordConnectionEndpointIcon");
         var aeziolEndpointIcon = FindNamedElement(document, "AeziolConnectionEndpointIcon");
+        var connectedTrail = FindNamedElement(document, "DiscordConnectedTrailCanvas");
+        var connectedGlow = FindNamedElement(document, "DiscordConnectedTrailGlow");
         Assert.Equal("16", connectionCard.Attribute("Padding")?.Value);
+        Assert.Equal("88", connectionRoute.Attribute("Height")?.Value);
         Assert.Equal("52", discordEndpointIcon.Attribute("Width")?.Value);
         Assert.Equal("52", discordEndpointIcon.Attribute("Height")?.Value);
         Assert.Equal("52", aeziolEndpointIcon.Attribute("Width")?.Value);
         Assert.Equal("52", aeziolEndpointIcon.Attribute("Height")?.Value);
+        Assert.Equal(["0.9", "0.75"], connectedTrail.Elements()
+            .Where(element => element.Name.LocalName == "Path")
+            .Select(element => element.Attribute("StrokeThickness")?.Value));
+        Assert.Equal("0.62", connectedGlow.Attribute("Opacity")?.Value);
+        Assert.Contains("DiscordConnectedTrailGlow.Opacity = isAuthorized ? 0.62 : 0;", source, StringComparison.Ordinal);
+        Assert.Contains("authorizationGlow", source, StringComparison.Ordinal);
         Assert.Contains(connectionCard.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "DiscordConnectionTrail");
         Assert.Contains(connectionCard.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RevokeDiscordButton");
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RulesTitleText");

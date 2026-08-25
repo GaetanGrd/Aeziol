@@ -1350,7 +1350,8 @@
                                                 </StackPanel>
                                             </Grid>
 
-                                            <Grid Margin="0,10,0,2" Height="88">
+                                            <Grid x:Name="DiscordConnectionRouteGrid"
+                                                  Margin="0,10,0,2" Height="88">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="66" />
                                                     <ColumnDefinition Width="*" />
@@ -1371,7 +1372,11 @@
                                                 </StackPanel>
 
                                                 <Grid x:Name="DiscordConnectionTrail" Grid.Column="1" Margin="12,0">
-                                                    <Viewbox Height="58" Stretch="Fill" VerticalAlignment="Top">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="*" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <Viewbox Height="58" Stretch="Fill" VerticalAlignment="Center">
                                                         <Grid Width="440" Height="58" IsHitTestVisible="False">
                                                             <Grid.OpacityMask>
                                                                 <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
@@ -1384,14 +1389,20 @@
 
                                                             <Canvas x:Name="DiscordConnectedTrailCanvas" Width="440" Height="58"
                                                                     Visibility="Collapsed">
+                                                                <Canvas.Effect>
+                                                                    <DropShadowEffect x:Name="DiscordConnectedTrailGlow"
+                                                                                      BlurRadius="7" ShadowDepth="0"
+                                                                                      Color="{DynamicResource AeziolPrimaryColor}"
+                                                                                      Opacity="0.62" />
+                                                                </Canvas.Effect>
                                                                 <Path Data="M 0,31 C 65,4 116,51 188,26 C 258,1 315,51 440,21"
                                                                       Stroke="{DynamicResource AeziolPrimary}"
-                                                                      StrokeThickness="1.15" StrokeStartLineCap="Round"
-                                                                      StrokeEndLineCap="Round" Opacity="0.74" />
+                                                                      StrokeThickness="0.9" StrokeStartLineCap="Round"
+                                                                      StrokeEndLineCap="Round" Opacity="0.72" />
                                                                 <Path Data="M 0,36 C 72,13 121,46 193,29 C 266,10 327,43 440,27"
                                                                       Stroke="{DynamicResource AeziolSecondary}"
-                                                                      StrokeThickness="0.85" StrokeStartLineCap="Round"
-                                                                      StrokeEndLineCap="Round" Opacity="0.52" />
+                                                                      StrokeThickness="0.75" StrokeStartLineCap="Round"
+                                                                      StrokeEndLineCap="Round" Opacity="0.42" />
                                                                 <Ellipse Width="3.8" Height="3.8" Canvas.Left="69" Canvas.Top="12"
                                                                          Fill="{DynamicResource AeziolPrimary}" Opacity="0.74" />
                                                                 <Ellipse Width="2.2" Height="2.2" Canvas.Left="139" Canvas.Top="35"
@@ -1441,11 +1452,11 @@
                                                                 </Canvas.Resources>
                                                                 <Path Data="M 0,31 C 65,4 116,51 188,26 C 258,1 315,51 440,21"
                                                                       Stroke="{StaticResource DiscordBrokenPrimaryStroke}"
-                                                                      StrokeThickness="1.15" StrokeStartLineCap="Round"
+                                                                      StrokeThickness="0.9" StrokeStartLineCap="Round"
                                                                       StrokeEndLineCap="Round" />
                                                                 <Path Data="M 0,36 C 72,13 121,46 193,29 C 266,10 327,43 440,27"
                                                                       Stroke="{StaticResource DiscordBrokenSecondaryStroke}"
-                                                                      StrokeThickness="0.85" StrokeStartLineCap="Round"
+                                                                      StrokeThickness="0.75" StrokeStartLineCap="Round"
                                                                       StrokeEndLineCap="Round" Opacity="0.72" />
 
                                                                 <Canvas x:Name="DiscordRuptureGlints" Width="440" Height="58"
@@ -1515,7 +1526,7 @@
                                                             </Canvas>
                                                         </Grid>
                                                     </Viewbox>
-                                                    <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                                                    <StackPanel Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Center">
                                                         <Ellipse x:Name="DiscordRouteStateDot" Width="6" Height="6"
                                                                  Fill="{DynamicResource AeziolDim}"
                                                                  HorizontalAlignment="Center" />

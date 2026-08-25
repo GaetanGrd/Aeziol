@@ -2126,8 +2126,29 @@ public partial class MainWindow : Window
         DiscordConnectedTrailCanvas.BeginAnimation(OpacityProperty, null);
         DiscordBrokenTrailCanvas.BeginAnimation(OpacityProperty, null);
         DiscordRuptureGlints.BeginAnimation(OpacityProperty, null);
+        DiscordConnectedTrailGlow.BeginAnimation(System.Windows.Media.Effects.DropShadowEffect.OpacityProperty, null);
+        DiscordConnectedTrailGlow.Opacity = isAuthorized ? 0.62 : 0;
         DiscordBrokenTrailCanvas.Opacity = 0.76;
         DiscordRuptureGlints.Opacity = 0.76;
+
+        if (isAuthorized
+            && _lastDiscordAuthorizationState is false
+            && !_runtime.Settings.ReduceAnimations)
+        {
+            var authorizationGlow = new DoubleAnimationUsingKeyFrames();
+            authorizationGlow.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+            authorizationGlow.KeyFrames.Add(new EasingDoubleKeyFrame(0.92, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(180)))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
+            });
+            authorizationGlow.KeyFrames.Add(new EasingDoubleKeyFrame(0.62, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(520)))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut },
+            });
+            DiscordConnectedTrailGlow.BeginAnimation(
+                System.Windows.Media.Effects.DropShadowEffect.OpacityProperty,
+                authorizationGlow);
+        }
 
         if (!isAuthorized
             && _lastDiscordAuthorizationState is true
