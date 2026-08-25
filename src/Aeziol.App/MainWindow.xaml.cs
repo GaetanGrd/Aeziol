@@ -85,12 +85,15 @@ public partial class MainWindow : Window
         _updateService = new AppUpdateService(UpdateHttpClient, paths.UpdatesDirectory);
         InitializeComponent();
         var discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();
-        if (RevokeDiscordButton.Parent is System.Windows.Controls.Panel revokeButtonParent)
+        if (DiscordFallbackToggle.Parent is System.Windows.Controls.Panel fallbackParent)
         {
-            revokeButtonParent.Children.Remove(RevokeDiscordButton);
+            fallbackParent.Children.Remove(DiscordFallbackToggle);
+            fallbackParent.Children.Remove(DiscordFallbackPanel);
         }
-        discordSettings.RevokeDiscordAuthorizationHost.Content = RevokeDiscordButton;
         SettingsDiscordScrollViewer.Content = null;
+        discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;
+        discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackToggle);
+        discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackPanel);
         DiscordSettingsHost.Content = discordSettings;
         CloseActionsMenu.LayoutTransform = _closeActionsMenuScale;
         NotificationItems.ItemsSource = _notifications.Items;

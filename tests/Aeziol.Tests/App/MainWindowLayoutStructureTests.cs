@@ -323,9 +323,14 @@ public sealed class MainWindowLayoutStructureTests
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RuleDestinationCombo");
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "SettingsDiscordTab");
         Assert.Contains("var discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();", source, StringComparison.Ordinal);
-        Assert.Contains("revokeButtonParent.Children.Remove(RevokeDiscordButton);", source, StringComparison.Ordinal);
-        Assert.Contains("discordSettings.RevokeDiscordAuthorizationHost.Content = RevokeDiscordButton;", source, StringComparison.Ordinal);
+        Assert.Contains("discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;", source, StringComparison.Ordinal);
+        Assert.Contains("discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackToggle);", source, StringComparison.Ordinal);
+        Assert.Contains("discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackPanel);", source, StringComparison.Ordinal);
         Assert.Contains("DiscordSettingsHost.Content = discordSettings;", source, StringComparison.Ordinal);
+
+        var connectionCard = FindNamedElement(document, "DiscordSettingsCard");
+        Assert.Contains(connectionCard.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "DiscordConnectionTrail");
+        Assert.Contains(connectionCard.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RevokeDiscordButton");
     }
 
     private static XElement FindNamedElement(XDocument document, string name) =>

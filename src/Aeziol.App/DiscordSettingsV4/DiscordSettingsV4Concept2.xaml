@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:Aeziol.App.Controls"
              xmlns:automation="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             Background="{DynamicResource AeziolCanvas}"
+             Background="Transparent"
              Foreground="{DynamicResource AeziolText}">
     <UserControl.Resources>
         <Style x:Key="ConceptColumnCard" TargetType="Border">
@@ -26,6 +26,7 @@
             <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
 
         <Style x:Key="ConceptSettingHelp" TargetType="TextBlock">
@@ -43,25 +44,12 @@
         </Style>
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto"
-                  HorizontalScrollBarVisibility="Disabled">
-        <Grid x:Name="ConceptRoot" MaxWidth="1180" Margin="30,24,30,28">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+    <StackPanel x:Name="ConceptRoot" MaxWidth="1180">
+        <ContentControl x:Name="DiscordConnectionHost"
+                        Margin="0,0,0,18"
+                        HorizontalContentAlignment="Stretch" />
 
-            <StackPanel Margin="0,0,0,22">
-                <TextBlock Text="Réglages Discord"
-                           Style="{StaticResource PageTitle}" />
-                <TextBlock Margin="0,5,0,0"
-                           MaxWidth="720"
-                           HorizontalAlignment="Left"
-                           Style="{StaticResource PageSubtitle}"
-                           Text="Ajustez la restauration audio et l'installation locale de Discord." />
-            </StackPanel>
-
-            <Grid Grid.Row="1">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="18" />
@@ -128,19 +116,17 @@
                             <Border x:Name="RestoreDelaySetting"
                                     Tag="DiscordSetting:2"
                                     Style="{StaticResource ConceptSettingRow}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="150" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                <StackPanel>
+                                    <StackPanel>
                                         <TextBlock Style="{StaticResource ConceptSettingTitle}"
                                                    Text="Délai avant restauration de la sortie" />
                                         <TextBlock Style="{StaticResource ConceptSettingHelp}"
                                                    Text="Laissez quelques secondes aux applications pour libérer leur son." />
                                     </StackPanel>
                                     <ComboBox x:Name="RestoreDelayComboBox"
-                                              Grid.Column="1"
+                                              Width="160"
+                                              Margin="0,12,0,0"
+                                              HorizontalAlignment="Left"
                                               MinHeight="38"
                                               SelectedIndex="1"
                                               automation:AutomationProperties.Name="Délai avant restauration de la sortie">
@@ -149,7 +135,7 @@
                                         <ComboBoxItem Content="10 secondes" />
                                         <ComboBoxItem Content="30 secondes" />
                                     </ComboBox>
-                                </Grid>
+                                </StackPanel>
                             </Border>
 
                             <Border Height="1" Margin="8,10"
@@ -259,112 +245,11 @@
                                 </StackPanel>
                             </Grid>
 
-                            <Border x:Name="ManualDiscordExecutableSetting"
-                                    Tag="DiscordSetting:8"
-                                    Style="{StaticResource ConceptSettingRow}">
-                                <StackPanel>
-                                    <TextBlock Style="{StaticResource ConceptSettingTitle}"
-                                               Text="Emplacement de Discord.exe" />
-                                    <TextBlock Style="{StaticResource ConceptSettingHelp}"
-                                               Text="Le chemin manuel reste disponible pour une installation inhabituelle." />
-
-                                    <Border x:Name="AutoDetectionSummary"
-                                            Margin="0,11,0,0"
-                                            Padding="11,9"
-                                            CornerRadius="9"
-                                            Background="{DynamicResource AeziolCanvas}"
-                                            BorderBrush="{DynamicResource AeziolBorderSoft}"
-                                            BorderThickness="1">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <Ellipse Width="7" Height="7"
-                                                     Margin="1,0,10,0"
-                                                     VerticalAlignment="Center"
-                                                     Fill="{DynamicResource AeziolGold}" />
-                                            <StackPanel Grid.Column="1">
-                                                <TextBlock FontSize="11" FontWeight="SemiBold"
-                                                           Text="Détection automatique" />
-                                                <TextBlock Margin="0,2,0,0" FontSize="9"
-                                                           Foreground="{DynamicResource AeziolDim}"
-                                                           Text="Recherche dans les emplacements habituels de Discord." />
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-
-                                    <CheckBox x:Name="ManualDiscordExecutableToggle"
-                                              Margin="2,12,0,0"
-                                              IsChecked="False"
-                                              Style="{StaticResource ToggleSwitch}"
-                                              Content="Utiliser un chemin manuel" />
-
-                                    <Border x:Name="ManualDiscordExecutablePanel"
-                                            Margin="0,10,0,0"
-                                            Padding="12"
-                                            CornerRadius="9"
-                                            Background="{DynamicResource AeziolCanvas}"
-                                            BorderBrush="{DynamicResource AeziolBorderSoft}"
-                                            BorderThickness="1">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsChecked, ElementName=ManualDiscordExecutableToggle}"
-                                                                 Value="True">
-                                                        <Setter Property="Visibility" Value="Visible" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <TextBlock Style="{StaticResource SectionLabel}"
-                                                       Text="CHEMIN VERS DISCORD.EXE" />
-                                            <Grid Margin="0,7,0,0">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBox x:Name="DiscordExecutablePathTextBox"
-                                                         MinHeight="38"
-                                                         automation:AutomationProperties.Name="Chemin vers Discord.exe" />
-                                                <Button Grid.Column="1"
-                                                        Margin="7,0,0,0"
-                                                        MinHeight="38"
-                                                        Padding="12,6"
-                                                        Style="{StaticResource ActionButton}"
-                                                        Content="Parcourir..." />
-                                            </Grid>
-                                        </StackPanel>
-                                    </Border>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Height="1" Margin="8,18,8,15"
-                                    Background="{DynamicResource AeziolBorderSoft}" />
-
-                            <TextBlock Margin="2,0,0,8"
-                                       Style="{StaticResource SectionLabel}"
-                                       Text="SÉCURITÉ" />
-
-                            <Border x:Name="RevokeDiscordAuthorizationSetting"
-                                    Tag="DiscordSetting:7"
-                                    Style="{StaticResource ConceptSettingRow}">
-                                <StackPanel>
-                                    <TextBlock Style="{StaticResource ConceptSettingTitle}"
-                                               Text="Autorisation Discord" />
-                                    <TextBlock Style="{StaticResource ConceptSettingHelp}"
-                                               Text="Retirez l'accès accordé à Aeziol sur cet ordinateur." />
-                                    <ContentControl x:Name="RevokeDiscordAuthorizationHost"
-                                                    Margin="0,13,0,0"
-                                                    HorizontalAlignment="Left" />
-                                </StackPanel>
-                            </Border>
+                            <StackPanel x:Name="DiscordFallbackHost"
+                                        Tag="DiscordSetting:8" />
                         </StackPanel>
                     </Grid>
                 </Border>
             </Grid>
-        </Grid>
-    </ScrollViewer>
+    </StackPanel>
 </UserControl>

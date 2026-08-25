@@ -1,8 +1,6 @@
-using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Linq;
 using Aeziol.App.DiscordSettingsV4;
-using WpfCheckBox = System.Windows.Controls.CheckBox;
 
 namespace Aeziol.Tests.App;
 
@@ -11,22 +9,21 @@ public sealed class DiscordSettingsV4Concept2StructureTests
     private static readonly XNamespace Xaml = "http://schemas.microsoft.com/winfx/2006/xaml";
 
     [Fact]
-    public void ConceptContainsExactlyTheFiveAuthorizedSettings()
+    public void ConceptContainsTheFourSettingsNotOwnedByTheOriginalConnectionCard()
     {
         var document = LoadConcept();
         var settings = document.Descendants()
             .Where(element => element.Attribute("Tag")?.Value.StartsWith("DiscordSetting:", StringComparison.Ordinal) == true)
             .ToArray();
 
-        Assert.Equal(5, settings.Length);
+        Assert.Equal(4, settings.Length);
         Assert.Equal(
-            ["DiscordSetting:2", "DiscordSetting:3", "DiscordSetting:7", "DiscordSetting:8", "DiscordSetting:9"],
+            ["DiscordSetting:2", "DiscordSetting:3", "DiscordSetting:8", "DiscordSetting:9"],
             settings.Select(element => element.Attribute("Tag")!.Value).Order(StringComparer.Ordinal));
 
         Assert.Equal("DiscordSetting:2", FindNamedElement(document, "RestoreDelaySetting").Attribute("Tag")?.Value);
         Assert.Equal("DiscordSetting:3", FindNamedElement(document, "ExcludedOutputsSetting").Attribute("Tag")?.Value);
-        Assert.Equal("DiscordSetting:7", FindNamedElement(document, "RevokeDiscordAuthorizationSetting").Attribute("Tag")?.Value);
-        Assert.Equal("DiscordSetting:8", FindNamedElement(document, "ManualDiscordExecutableSetting").Attribute("Tag")?.Value);
+        Assert.Equal("DiscordSetting:8", FindNamedElement(document, "DiscordFallbackHost").Attribute("Tag")?.Value);
         Assert.Equal("DiscordSetting:9", FindNamedElement(document, "WindowsNotificationSetting").Attribute("Tag")?.Value);
     }
 
@@ -38,7 +35,6 @@ public sealed class DiscordSettingsV4Concept2StructureTests
         var forbiddenNames = new[]
         {
             "AuthorizeDiscord",
-            "DiscordConnection",
             "DiscordRoute",
             "ModuleActivation",
             "AutomationActivation",
@@ -84,6 +80,8 @@ public sealed class DiscordSettingsV4Concept2StructureTests
         Assert.DoesNotContain(document.Descendants(), element => element.Name.LocalName == "Image");
         Assert.DoesNotContain("DiscordSymbolGeometry", source, StringComparison.Ordinal);
         Assert.DoesNotContain("AeziolCicadaDrawing", source, StringComparison.Ordinal);
+        Assert.DoesNotContain(document.Descendants(), element => element.Name.LocalName == "ScrollViewer");
+        Assert.DoesNotContain("Réglages Discord", source, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -98,12 +96,8 @@ public sealed class DiscordSettingsV4Concept2StructureTests
         Assert.Equal("0", audioColumn.Attribute("Grid.Column")?.Value);
         Assert.Equal("2", installationColumn.Attribute("Grid.Column")?.Value);
         Assert.Equal(["*", "18", "*"], columns.Elements().Select(element => element.Attribute("Width")?.Value));
-        Assert.Equal("False", FindNamedElement(document, "ManualDiscordExecutableToggle").Attribute("IsChecked")?.Value);
-        Assert.Contains(
-            FindNamedElement(document, "ManualDiscordExecutablePanel").Descendants(),
-            element => element.Name.LocalName == "Setter"
-                && element.Attribute("Property")?.Value == "Visibility"
-                && element.Attribute("Value")?.Value == "Collapsed");
+        Assert.Equal("160", FindNamedElement(document, "RestoreDelayComboBox").Attribute("Width")?.Value);
+        Assert.Equal("Left", FindNamedElement(document, "RestoreDelayComboBox").Attribute("HorizontalAlignment")?.Value);
     }
 
     private static XDocument LoadConcept() => XDocument.Load(FindConceptPath());
@@ -133,7 +127,7 @@ public sealed class DiscordSettingsV4Concept2StructureTests
 public sealed class DiscordSettingsV4Concept2WpfTests
 {
     [Fact]
-    public void ConceptInstantiatesWithItsFiveInteractiveSettings()
+    public void ConceptInstantiatesWithTheOriginalConnectionAndFallbackHosts()
     {
         WpfTestHost.Run(() =>
         {
@@ -142,15 +136,9 @@ public sealed class DiscordSettingsV4Concept2WpfTests
 
             Assert.IsType<Border>(concept.FindName("RestoreDelaySetting"));
             Assert.IsType<Border>(concept.FindName("ExcludedOutputsSetting"));
-            Assert.IsType<Border>(concept.FindName("RevokeDiscordAuthorizationSetting"));
-            Assert.IsType<ContentControl>(concept.FindName("RevokeDiscordAuthorizationHost"));
-            Assert.IsType<Border>(concept.FindName("ManualDiscordExecutableSetting"));
             Assert.IsType<Border>(concept.FindName("WindowsNotificationSetting"));
-
-            var manualToggle = Assert.IsType<WpfCheckBox>(concept.FindName("ManualDiscordExecutableToggle"));
-            var manualPanel = Assert.IsType<Border>(concept.FindName("ManualDiscordExecutablePanel"));
-            Assert.False(manualToggle.IsChecked);
-            Assert.Equal(Visibility.Collapsed, manualPanel.Visibility);
+            Assert.IsType<ContentControl>(concept.FindName("DiscordConnectionHost"));
+            Assert.IsType<StackPanel>(concept.FindName("DiscordFallbackHost"));
         });
     }
 }
