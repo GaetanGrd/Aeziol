@@ -566,14 +566,9 @@
 
                     <Grid x:Name="RulesView" Visibility="Collapsed">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="70" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <StackPanel>
-                            <TextBlock x:Name="RulesTitleText" Style="{StaticResource PageTitle}" />
-                            <TextBlock x:Name="RulesSubtitleText" Margin="0,5,0,0" Style="{StaticResource PageSubtitle}" />
-                        </StackPanel>
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
                             <StackPanel Margin="0,0,8,2">
                                 <Grid x:Name="LegacyDiscordRulesLayout" Height="390" Visibility="Collapsed">
@@ -1325,7 +1320,7 @@
                                               VerticalScrollBarVisibility="Auto"
                                               HorizontalScrollBarVisibility="Disabled">
                                     <Border x:Name="DiscordSettingsCard" Margin="0,0,8,8"
-                                            Padding="24" CornerRadius="13"
+                                            Padding="18" CornerRadius="13"
                                             VerticalAlignment="Top"
                                             Background="{DynamicResource AeziolSurface}"
                                             BorderBrush="{DynamicResource AeziolTraceBorder}"
@@ -1355,17 +1350,17 @@
                                                 </StackPanel>
                                             </Grid>
 
-                                            <Grid Margin="0,16,0,4" Height="104">
+                                            <Grid Margin="0,12,0,2" Height="90">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="72" />
+                                                    <ColumnDefinition Width="64" />
                                                     <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="72" />
+                                                    <ColumnDefinition Width="64" />
                                                 </Grid.ColumnDefinitions>
 
                                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                    <Border Width="54" Height="54" CornerRadius="16"
+                                                    <Border Width="48" Height="48" CornerRadius="15"
                                                             Background="{DynamicResource AeziolRaised}">
-                                                        <Path Width="29" Height="22" Stretch="Uniform"
+                                                        <Path Width="26" Height="20" Stretch="Uniform"
                                                               Data="{StaticResource DiscordSymbolGeometry}"
                                                               Fill="#5865F2" />
                                                     </Border>
@@ -1531,7 +1526,7 @@
                                                 </Grid>
 
                                                 <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                    <Image Width="54" Height="54"
+                                                    <Image Width="48" Height="48"
                                                            Source="{DynamicResource AeziolCicadaDrawing}" />
                                                     <TextBlock Margin="0,5,0,0" Text="AEZIOL" FontSize="9" FontWeight="SemiBold"
                                                                Foreground="{DynamicResource AeziolGoldBright}"

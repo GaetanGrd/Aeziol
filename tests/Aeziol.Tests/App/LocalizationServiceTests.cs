@@ -76,8 +76,6 @@ public sealed class LocalizationServiceTests : IDisposable
             "page-discord-title",
             "discord-section-overview",
             "discord-section-rule",
-            "page-rules-title",
-            "page-rules-subtitle",
             "rule-route-hint",
             "reset-application",
             "reset-application-title",

@@ -95,8 +95,8 @@ public sealed class DiscordSettingsV4Concept2StructureTests
 
         Assert.Equal("0", audioColumn.Attribute("Grid.Column")?.Value);
         Assert.Equal("2", installationColumn.Attribute("Grid.Column")?.Value);
-        Assert.Equal(["*", "18", "*"], columns.Elements().Select(element => element.Attribute("Width")?.Value));
-        Assert.Equal("160", FindNamedElement(document, "RestoreDelayComboBox").Attribute("Width")?.Value);
+        Assert.Equal(["*", "14", "*"], columns.Elements().Select(element => element.Attribute("Width")?.Value));
+        Assert.Equal("150", FindNamedElement(document, "RestoreDelayComboBox").Attribute("Width")?.Value);
         Assert.Equal("Left", FindNamedElement(document, "RestoreDelayComboBox").Attribute("HorizontalAlignment")?.Value);
     }
 

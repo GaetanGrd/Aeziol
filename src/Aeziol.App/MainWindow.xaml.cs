@@ -2198,8 +2198,6 @@ public partial class MainWindow : Window
         TargetHelpText.Text = _localization.Get("target-help", register);
         ForceRestoreButton.Content = _localization.Get("force-restore", register);
 
-        RulesTitleText.Text = _localization.Get("page-rules-title", register);
-        RulesSubtitleText.Text = _localization.Get("page-rules-subtitle", register);
         RuleTriggerLabelText.Text = _localization.Get("rule-trigger", register);
         RuleNameText.Text = _localization.Get("rule-name", register);
         RuleWhenLabelText.Text = _localization.Get("rule-when-label", register);

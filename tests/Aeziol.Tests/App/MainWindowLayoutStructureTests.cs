@@ -331,6 +331,9 @@ public sealed class MainWindowLayoutStructureTests
         var connectionCard = FindNamedElement(document, "DiscordSettingsCard");
         Assert.Contains(connectionCard.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "DiscordConnectionTrail");
         Assert.Contains(connectionCard.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RevokeDiscordButton");
+        Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RulesTitleText");
+        Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RulesSubtitleText");
+        Assert.Single(rulesView.Elements().Single(element => element.Name.LocalName == "Grid.RowDefinitions").Elements());
     }
 
     private static XElement FindNamedElement(XDocument document, string name) =>
