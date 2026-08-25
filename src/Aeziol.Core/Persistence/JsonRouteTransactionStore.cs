@@ -12,7 +12,11 @@ public sealed class JsonRouteTransactionStore : IRouteTransactionStore, IDisposa
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+        Converters =
+        {
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
+            new ReadOnlySetJsonConverter<AudioRole>(),
+        },
     };
 
     private readonly string _path;
@@ -133,4 +137,20 @@ public sealed class JsonRouteTransactionStore : IRouteTransactionStore, IDisposa
         _disposed = true;
         GC.SuppressFinalize(this);
     }
+}
+
+internal sealed class ReadOnlySetJsonConverter<T> : JsonConverter<IReadOnlySet<T>>
+    where T : notnull
+{
+    public override IReadOnlySet<T>? Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options) =>
+        JsonSerializer.Deserialize<HashSet<T>>(ref reader, options);
+
+    public override void Write(
+        Utf8JsonWriter writer,
+        IReadOnlySet<T> value,
+        JsonSerializerOptions options) =>
+        JsonSerializer.Serialize(writer, value.ToArray(), options);
 }
