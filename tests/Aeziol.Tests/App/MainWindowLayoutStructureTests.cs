@@ -69,6 +69,7 @@ public sealed class MainWindowLayoutStructureTests
         var destinationCombo = FindNamedElement(windowDocument, "PassageDestinationCombo");
         var outputPanel = FindNamedElement(windowDocument, "PassageOutputPanel");
         var outputLayout = FindNamedElement(windowDocument, "PassageOutputLayout");
+        var currentOutputCombo = FindNamedElement(windowDocument, "CurrentOutputCombo");
         var controlSurface = FindNamedElement(windowDocument, "AutomationControlSurface");
         var cicada = FindNamedElement(windowDocument, "AutomationCicadaImage");
         var cicadaRotation = FindNamedElement(windowDocument, "AutomationCicadaRotation");
@@ -99,9 +100,14 @@ public sealed class MainWindowLayoutStructureTests
             element.Name.LocalName == "TextBlock"
             && element.Attribute("Text")?.Value == "{Binding DisplayName}"
             && element.Attribute("TextTrimming")?.Value == "CharacterEllipsis");
-        Assert.Equal("360", outputPanel.Attribute("Width")?.Value);
-        Assert.Equal("Right", outputPanel.Attribute("HorizontalAlignment")?.Value);
+        Assert.Equal("420", outputPanel.Attribute("Width")?.Value);
+        Assert.Equal("Center", outputPanel.Attribute("HorizontalAlignment")?.Value);
         Assert.Equal("Grid", outputLayout.Name.LocalName);
+        Assert.Equal(
+            ["*", "230", "Auto"],
+            outputLayout.Elements().Single(element => element.Name.LocalName == "Grid.ColumnDefinitions")
+                .Elements().Select(element => element.Attribute("Width")?.Value));
+        Assert.Equal("230", currentOutputCombo.Attribute("Width")?.Value);
         Assert.Equal("82", actionButton.Attribute("Width")?.Value);
         Assert.Equal("82", actionButton.Attribute("Height")?.Value);
         Assert.Equal("False", actionButton.Attribute("Focusable")?.Value);
@@ -357,7 +363,6 @@ public sealed class MainWindowLayoutStructureTests
         var automationAction = FindNamedElement(document, "AutomationActionButton");
         var discordView = FindNamedElement(document, "DiscordView");
         var discordHeading = FindNamedElement(document, "DiscordHeading");
-        var routeSegmentPreviewBar = FindNamedElement(document, "RouteSegmentPreviewBar");
         var discordSettingsToggle = FindNamedElement(document, "DiscordSettingsToggleButton");
         var discordSettingsGearGlyph = FindNamedElement(document, "DiscordSettingsGearGlyph");
         var discordSettingsCloseGlyph = FindNamedElement(document, "DiscordSettingsCloseGlyph");
@@ -373,16 +378,7 @@ public sealed class MainWindowLayoutStructureTests
             discordView.Elements().Single(element => element.Name.LocalName == "Grid.RowDefinitions")
                 .Elements().Select(element => element.Attribute("Height")?.Value));
         Assert.Contains(discordSettingsToggle, discordHeading.Descendants());
-        Assert.Contains(routeSegmentPreviewBar, discordHeading.Descendants());
-        var routeSegmentVariants = routeSegmentPreviewBar.Elements()
-            .Where(element => element.Name.LocalName == "RadioButton")
-            .ToArray();
-        Assert.Equal(["1", "2", "3"], routeSegmentVariants.Select(element => element.Attribute("Tag")?.Value));
-        Assert.All(routeSegmentVariants, element =>
-        {
-            Assert.Equal("RouteSegmentPreview", element.Attribute("GroupName")?.Value);
-            Assert.Equal("OnRouteSegmentPreviewChecked", element.Attribute("Checked")?.Value);
-        });
+        Assert.Equal("1", discordSettingsToggle.Attribute("Grid.Column")?.Value);
         Assert.Equal("42", discordSettingsToggle.Attribute("Width")?.Value);
         Assert.Equal("42", discordSettingsToggle.Attribute("Height")?.Value);
         Assert.Equal("{DynamicResource AeziolGold}", discordSettingsToggle.Attribute("Foreground")?.Value);
@@ -426,10 +422,9 @@ public sealed class MainWindowLayoutStructureTests
         Assert.DoesNotContain(document.Descendants(), element =>
             element.Attribute(Xaml + "Name")?.Value is "DiscordOverviewTab" or "DiscordRulesTab");
         Assert.Contains("UpdateDiscordSettingsTogglePresentation", source, StringComparison.Ordinal);
-        Assert.Contains("ApplyCompactRailPreview", source, StringComparison.Ordinal);
-        Assert.Contains("ApplyBalancedDockPreview", source, StringComparison.Ordinal);
-        Assert.Contains("ApplyFluidBandPreview", source, StringComparison.Ordinal);
-        Assert.Contains("RouteSegmentPreviewBar.Visibility = showSettings ? Visibility.Collapsed : Visibility.Visible;", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("RouteSegmentPreview", source, StringComparison.Ordinal);
+        Assert.DoesNotContain(document.Descendants(), element =>
+            element.Attribute(Xaml + "Name")?.Value == "RouteSegmentPreviewBar");
         Assert.Equal("AutomationRouteControlHost", automationAction.Ancestors().First(element => element.Attribute(Xaml + "Name") is not null).Attribute(Xaml + "Name")?.Value);
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RuleDestinationCombo");
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "SettingsDiscordTab");

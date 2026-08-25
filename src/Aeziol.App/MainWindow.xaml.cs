@@ -43,7 +43,6 @@ public partial class MainWindow : Window
     private readonly AppPaths _paths;
     private readonly Task _runtimeInitialization;
     private readonly AppUpdateService _updateService;
-    private int _routeSegmentPreviewVariant = 1;
     private readonly DiscordSettingsV4.DiscordSettingsV4Concept2 _discordSettings;
     private readonly SemaphoreSlim _settingsGate = new(1, 1);
     private readonly NotificationCenter _notifications = new();
@@ -86,7 +85,6 @@ public partial class MainWindow : Window
         _runtimeInitialization = runtimeInitialization;
         _updateService = new AppUpdateService(UpdateHttpClient, paths.UpdatesDirectory);
         InitializeComponent();
-        ApplyRouteSegmentPreview(_routeSegmentPreviewVariant);
         _discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();
         _discordSettings.SetRestoreDelaySeconds(runtime.Settings.ExitGracePeriodSeconds);
         _discordSettings.RestoreDelayChanged += OnDiscordRestoreDelayChanged;
@@ -2346,7 +2344,6 @@ public partial class MainWindow : Window
         UpdateNavigationContext();
         UpdateSettingsSummaries();
         RefreshUpdatePresentation();
-        ApplyRouteSegmentPreview(_routeSegmentPreviewVariant);
     }
 
     private void OnNavigateDiscord(object sender, RoutedEventArgs eventArgs)
@@ -2370,150 +2367,10 @@ public partial class MainWindow : Window
         }
 
         var showSettings = DiscordSettingsToggleButton.IsChecked == true;
-        RouteSegmentPreviewBar.Visibility = showSettings ? Visibility.Collapsed : Visibility.Visible;
         PassageAutomationContent.Visibility = showSettings ? Visibility.Collapsed : Visibility.Visible;
         RulesView.Visibility = showSettings ? Visibility.Visible : Visibility.Collapsed;
         UpdateDiscordSettingsTogglePresentation();
         AnimateSettingsPanel(showSettings ? RulesView : PassageAutomationContent);
-    }
-
-    private void OnRouteSegmentPreviewChecked(object sender, RoutedEventArgs eventArgs)
-    {
-        if (!IsInitialized
-            || sender is not System.Windows.Controls.RadioButton { IsChecked: true } option
-            || !int.TryParse(option.Tag?.ToString(), out var variant)
-            || variant is < 1 or > 3)
-        {
-            return;
-        }
-
-        _routeSegmentPreviewVariant = variant;
-        ApplyRouteSegmentPreview(variant);
-    }
-
-    private void ApplyRouteSegmentPreview(int variant)
-    {
-        ResetRouteSegmentPreview();
-        switch (variant)
-        {
-            case 1:
-                ApplyCompactRailPreview();
-                break;
-            case 2:
-                ApplyBalancedDockPreview();
-                break;
-            default:
-                ApplyFluidBandPreview();
-                break;
-        }
-    }
-
-    private void ResetRouteSegmentPreview()
-    {
-        PassageTargetPanel.Margin = new Thickness(0);
-        PassageTargetSelectorHost.Margin = new Thickness(0, 8, 0, 0);
-        PassageDestinationCombo.MinHeight = 38;
-        PassageDestinationCombo.Padding = new Thickness(10, 6, 10, 6);
-        PassageDestinationPlaceholderText.Margin = new Thickness(11, 0, 32, 0);
-        TargetHelpText.Margin = new Thickness(2, 6, 2, 0);
-        TargetHelpText.MaxHeight = 30;
-        TargetHelpText.FontSize = 10;
-        TargetHelpText.LineHeight = 14;
-
-        PassageOutputPanel.Margin = new Thickness(0);
-        PassageOutputPanel.Padding = new Thickness(12, 9, 12, 9);
-        PassageOutputPanel.SetResourceReference(Border.BorderBrushProperty, "AeziolBorderSoft");
-        PassageOutputLayout.ColumnDefinitions[0].Width = new GridLength(142);
-        PassageOutputLayout.ColumnDefinitions[1].Width = new GridLength(1, GridUnitType.Star);
-        PassageOutputLayout.ColumnDefinitions[2].Width = GridLength.Auto;
-        CurrentOutputLabelText.Margin = new Thickness(0);
-        CurrentOutputSelectorHost.Margin = new Thickness(0);
-        CurrentOutputCombo.Width = double.NaN;
-        CurrentOutputCombo.MaxWidth = double.PositiveInfinity;
-        CurrentOutputCombo.HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch;
-        RestoreOutputText.Margin = new Thickness(0, 6, 0, 0);
-        RestoreOutputText.FontSize = 11;
-        RestoreOutputText.VerticalAlignment = VerticalAlignment.Center;
-        ForceRestoreButton.Margin = new Thickness(10, 6, 0, 0);
-        ForceRestoreButton.Padding = new Thickness(9, 4, 9, 4);
-        ForceRestoreButton.MinHeight = 28;
-        ForceRestoreButton.HorizontalAlignment = System.Windows.HorizontalAlignment.Right;
-        ForceRestoreButton.VerticalAlignment = VerticalAlignment.Center;
-        PlaceRoutePreviewElement(CurrentOutputLabelText, row: 0, column: 0, rowSpan: 1, columnSpan: 3);
-        PlaceRoutePreviewElement(CurrentOutputSelectorHost, row: 1, column: 0, rowSpan: 1, columnSpan: 3);
-        PlaceRoutePreviewElement(RestoreOutputText, row: 2, column: 0, rowSpan: 1, columnSpan: 2);
-        PlaceRoutePreviewElement(ForceRestoreButton, row: 2, column: 2, rowSpan: 1, columnSpan: 1);
-    }
-
-    private void ApplyCompactRailPreview()
-    {
-        PassageOutputPanel.Width = 360;
-        PassageOutputPanel.HorizontalAlignment = System.Windows.HorizontalAlignment.Right;
-        PassageOutputPanel.Margin = new Thickness(0, 4, 0, 0);
-        CurrentOutputCombo.MaxWidth = 336;
-    }
-
-    private void ApplyBalancedDockPreview()
-    {
-        TargetHelpText.FontSize = 11;
-        TargetHelpText.LineHeight = 16;
-        PassageTargetSelectorHost.Margin = new Thickness(0, 7, 0, 0);
-        PassageOutputPanel.Width = 420;
-        PassageOutputPanel.HorizontalAlignment = System.Windows.HorizontalAlignment.Right;
-        PassageOutputPanel.Margin = new Thickness(0, 0, 4, 0);
-        PassageOutputPanel.Padding = new Thickness(14, 10, 14, 10);
-        PassageOutputPanel.SetResourceReference(Border.BorderBrushProperty, "AeziolGoldLine");
-        PassageOutputLayout.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
-        PassageOutputLayout.ColumnDefinitions[1].Width = new GridLength(230);
-        CurrentOutputLabelText.Margin = new Thickness(0, 0, 12, 0);
-        CurrentOutputCombo.Width = 230;
-        CurrentOutputCombo.MaxWidth = 230;
-        PlaceRoutePreviewElement(CurrentOutputLabelText, row: 0, column: 0, rowSpan: 1, columnSpan: 1);
-        PlaceRoutePreviewElement(CurrentOutputSelectorHost, row: 0, column: 1, rowSpan: 1, columnSpan: 2);
-        PlaceRoutePreviewElement(RestoreOutputText, row: 1, column: 0, rowSpan: 1, columnSpan: 3);
-        PlaceRoutePreviewElement(ForceRestoreButton, row: 2, column: 0, rowSpan: 1, columnSpan: 3);
-        ForceRestoreButton.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
-        ForceRestoreButton.Margin = new Thickness(0, 8, 0, 0);
-        ForceRestoreButton.Padding = new Thickness(10, 5, 10, 5);
-        ForceRestoreButton.MinHeight = 30;
-    }
-
-    private void ApplyFluidBandPreview()
-    {
-        PassageTargetPanel.Margin = new Thickness(14, 0, 0, 0);
-        PassageTargetSelectorHost.Margin = new Thickness(0, 7, 0, 0);
-        PassageDestinationCombo.Padding = new Thickness(11, 6, 11, 6);
-        PassageDestinationPlaceholderText.Margin = new Thickness(12, 0, 34, 0);
-        TargetHelpText.FontSize = 11;
-        TargetHelpText.LineHeight = 16;
-
-        PassageOutputPanel.Width = double.NaN;
-        PassageOutputPanel.HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch;
-        PassageOutputPanel.Padding = new Thickness(12, 8, 12, 8);
-        PassageOutputLayout.ColumnDefinitions[0].Width = new GridLength(142);
-        PassageOutputLayout.ColumnDefinitions[1].Width = new GridLength(1, GridUnitType.Star);
-        CurrentOutputSelectorHost.Margin = new Thickness(10, 0, 0, 0);
-        PlaceRoutePreviewElement(CurrentOutputLabelText, row: 0, column: 0, rowSpan: 1, columnSpan: 1);
-        PlaceRoutePreviewElement(CurrentOutputSelectorHost, row: 0, column: 1, rowSpan: 1, columnSpan: 1);
-        PlaceRoutePreviewElement(RestoreOutputText, row: 1, column: 1, rowSpan: 1, columnSpan: 1);
-        PlaceRoutePreviewElement(ForceRestoreButton, row: 0, column: 2, rowSpan: 2, columnSpan: 1);
-        RestoreOutputText.Margin = new Thickness(16, 3, 10, 0);
-        ForceRestoreButton.Margin = new Thickness(12, 0, 0, 0);
-        ForceRestoreButton.Padding = new Thickness(10, 5, 10, 5);
-        ForceRestoreButton.MinHeight = 30;
-    }
-
-    private static void PlaceRoutePreviewElement(
-        FrameworkElement element,
-        int row,
-        int column,
-        int rowSpan,
-        int columnSpan)
-    {
-        Grid.SetRow(element, row);
-        Grid.SetColumn(element, column);
-        Grid.SetRowSpan(element, rowSpan);
-        Grid.SetColumnSpan(element, columnSpan);
     }
 
     private void UpdateDiscordSettingsTogglePresentation()
