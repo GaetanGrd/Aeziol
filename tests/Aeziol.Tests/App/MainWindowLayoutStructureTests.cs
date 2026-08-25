@@ -358,6 +358,15 @@ public sealed class MainWindowLayoutStructureTests
             element.Name.LocalName == "TextBlock"
             && element.Attribute("FontFamily")?.Value == "Segoe Fluent Icons"
             && element.Attribute("Text")?.Value.Contains("Content", StringComparison.Ordinal) == true);
+        var discordSettingsTriggers = discordSettingsToggle.Descendants()
+            .Where(element => element.Name.LocalName == "Trigger")
+            .ToArray();
+        Assert.True(
+            Array.FindIndex(discordSettingsTriggers, trigger => trigger.Attribute("Property")?.Value == "IsMouseOver")
+            > Array.FindIndex(discordSettingsTriggers, trigger => trigger.Attribute("Property")?.Value == "IsChecked"));
+        Assert.Contains(discordSettingsTriggers.Single(trigger => trigger.Attribute("Property")?.Value == "IsMouseOver")
+            .Descendants(), setter => setter.Attribute("Property")?.Value == "Background"
+                && setter.Attribute("Value")?.Value == "{DynamicResource AeziolSecondary}");
         Assert.Contains("DiscordSettingsToggleButton.Content = settingsAreOpen ? \"\\uE711\" : \"\\uE713\";", source, StringComparison.Ordinal);
         Assert.DoesNotContain(document.Descendants(), element =>
             element.Attribute(Xaml + "Name")?.Value is "DiscordOverviewTab" or "DiscordRulesTab");

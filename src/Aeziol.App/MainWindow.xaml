@@ -343,19 +343,19 @@
                                                        VerticalAlignment="Center" />
                                         </Border>
                                         <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="SettingsToggleSurface" Property="Background"
-                                                        Value="{DynamicResource AeziolSecondary}" />
-                                                <Setter TargetName="SettingsToggleSurface" Property="BorderBrush"
-                                                        Value="{DynamicResource AeziolGoldLine}" />
-                                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
-                                            </Trigger>
                                             <Trigger Property="IsChecked" Value="True">
                                                 <Setter TargetName="SettingsToggleSurface" Property="Background"
                                                         Value="{DynamicResource AeziolGoldWash}" />
                                                 <Setter TargetName="SettingsToggleSurface" Property="BorderBrush"
                                                         Value="{DynamicResource AeziolGoldLine}" />
                                                 <Setter Property="Foreground" Value="{DynamicResource AeziolGold}" />
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="SettingsToggleSurface" Property="Background"
+                                                        Value="{DynamicResource AeziolSecondary}" />
+                                                <Setter TargetName="SettingsToggleSurface" Property="BorderBrush"
+                                                        Value="{DynamicResource AeziolGoldLine}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
                                             </Trigger>
                                             <Trigger Property="IsPressed" Value="True">
                                                 <Setter TargetName="SettingsToggleSurface" Property="Background"
