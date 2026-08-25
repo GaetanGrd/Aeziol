@@ -75,6 +75,7 @@ public sealed class MainWindowLayoutStructureTests
         var exclusionsJourneyHost = FindNamedElement(windowDocument, "ExclusionsJourneyHost");
         var exclusionsJourneyTraceCanvas = FindNamedElement(windowDocument, "ExclusionsJourneyTraceCanvas");
         var exclusionsScrollViewer = FindNamedElement(windowDocument, "ExclusionsScrollViewer");
+        var exclusionsList = FindNamedElement(windowDocument, "ExclusionsList");
         var navigationBrand = FindNamedElement(windowDocument, "NavigationBrandCicada");
         var surfaceStateTriggers = controlSurface.Descendants()
             .Where(element => element.Name.LocalName == "DataTrigger")
@@ -139,6 +140,9 @@ public sealed class MainWindowLayoutStructureTests
             "OnExclusionsJourneyTraceCanvasSizeChanged",
             exclusionsJourneyTraceCanvas.Attribute("SizeChanged")?.Value);
         Assert.Equal("300", exclusionsScrollViewer.Attribute("MaxHeight")?.Value);
+        Assert.Contains(exclusionsList.Descendants(), element =>
+            element.Name.LocalName == "UniformGrid"
+            && element.Attribute("Columns")?.Value == "3");
         Assert.Equal(
             "ExclusionsJourneyTraceCanvas",
             exclusionsJourneyTrace.Parent?.Attribute(Xaml + "Name")?.Value);

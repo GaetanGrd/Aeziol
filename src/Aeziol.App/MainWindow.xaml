@@ -665,14 +665,22 @@
                                                           HorizontalScrollBarVisibility="Disabled">
                                                 <ItemsControl x:Name="ExclusionsList"
                                                               HorizontalContentAlignment="Stretch">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <UniformGrid Columns="3" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemContainerStyle>
                                                         <Style TargetType="ContentPresenter">
                                                             <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                                            <Setter Property="VerticalAlignment" Value="Stretch" />
                                                         </Style>
                                                     </ItemsControl.ItemContainerStyle>
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
-                                                            <Grid Background="Transparent"
+                                                            <Grid MinHeight="58"
+                                                                  Margin="2"
+                                                                  Background="Transparent"
                                                                   HorizontalAlignment="Stretch"
                                                                   MouseEnter="OnExclusionJourneyEnter"
                                                                   MouseLeave="OnExclusionJourneyLeave">
@@ -682,8 +690,14 @@
                                                                           IsChecked="{Binding IsExcluded, Mode=TwoWay}"
                                                                           Click="OnExclusionChanged">
                                                                     <StackPanel>
-                                                                        <TextBlock Text="{Binding DisplayName}" FontSize="12" />
+                                                                        <TextBlock Text="{Binding DisplayName}"
+                                                                                   FontSize="11"
+                                                                                   LineHeight="15"
+                                                                                   TextWrapping="Wrap"
+                                                                                   ToolTip="{Binding DisplayName}" />
                                                                         <TextBlock Text="{Binding Detail}" Margin="0,2,0,0" FontSize="9"
+                                                                                   TextTrimming="CharacterEllipsis"
+                                                                                   ToolTip="{Binding Detail}"
                                                                                    Foreground="{DynamicResource AeziolDim}" />
                                                                     </StackPanel>
                                                                 </CheckBox>
