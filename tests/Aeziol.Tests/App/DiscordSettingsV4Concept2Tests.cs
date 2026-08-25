@@ -40,11 +40,15 @@ public sealed class DiscordSettingsV4Concept2StructureTests
         var columns = FindNamedElement(document, "DiscordSettingsColumns");
         var globalCard = FindNamedElement(document, "GlobalSettingsCard");
         var outputCard = FindNamedElement(document, "OutputSettingsCard");
+        var globalSettingsIcon = FindNamedElement(document, "GlobalSettingsIcon");
 
         Assert.Equal("*", columns.Descendants().First(element =>
             element.Name.LocalName == "ColumnDefinition").Attribute("Width")?.Value);
         Assert.Equal("0", globalCard.Attribute("Grid.Column")?.Value);
         Assert.Equal("2", outputCard.Attribute("Grid.Column")?.Value);
+        var globalSettingsIconData = globalSettingsIcon.Attribute("Data")?.Value ?? string.Empty;
+        Assert.Contains("M 3,5 L 17,5", globalSettingsIconData, StringComparison.Ordinal);
+        Assert.DoesNotContain("SettingsRingsGeometry", globalSettingsIconData, StringComparison.Ordinal);
         Assert.Equal("Stretch", FindNamedElement(document, "ExcludedOutputsHost")
             .Attribute("VerticalContentAlignment")?.Value);
         Assert.Null(FindNamedElement(document, "ExcludedOutputsHost").Attribute("MinHeight"));

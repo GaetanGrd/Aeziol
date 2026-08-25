@@ -342,13 +342,17 @@ public sealed class MainWindowLayoutStructureTests
                 .Elements().Select(element => element.Attribute("Height")?.Value));
         Assert.Contains(discordSettingsToggle, discordHeading.Descendants());
         Assert.Equal("1", discordSettingsToggle.Attribute("Grid.Column")?.Value);
-        Assert.Equal("40", discordSettingsToggle.Attribute("Width")?.Value);
-        Assert.Equal("40", discordSettingsToggle.Attribute("Height")?.Value);
+        Assert.Equal("42", discordSettingsToggle.Attribute("Width")?.Value);
+        Assert.Equal("42", discordSettingsToggle.Attribute("Height")?.Value);
+        Assert.Equal("\uE713", discordSettingsToggle.Attribute("Content")?.Value);
+        Assert.Equal("{DynamicResource AeziolGold}", discordSettingsToggle.Attribute("Foreground")?.Value);
         Assert.Equal("OnDiscordSettingsToggled", discordSettingsToggle.Attribute("Checked")?.Value);
         Assert.Equal("OnDiscordSettingsToggled", discordSettingsToggle.Attribute("Unchecked")?.Value);
         Assert.Contains(discordSettingsToggle.Descendants(), element =>
-            element.Name.LocalName == "Path"
-            && element.Attribute("Data")?.Value == "{StaticResource SettingsRingsGeometry}");
+            element.Name.LocalName == "TextBlock"
+            && element.Attribute("FontFamily")?.Value == "Segoe Fluent Icons"
+            && element.Attribute("Text")?.Value.Contains("Content", StringComparison.Ordinal) == true);
+        Assert.Contains("DiscordSettingsToggleButton.Content = settingsAreOpen ? \"\\uE711\" : \"\\uE713\";", source, StringComparison.Ordinal);
         Assert.DoesNotContain(document.Descendants(), element =>
             element.Attribute(Xaml + "Name")?.Value is "DiscordOverviewTab" or "DiscordRulesTab");
         Assert.Contains("UpdateDiscordSettingsTogglePresentation", source, StringComparison.Ordinal);

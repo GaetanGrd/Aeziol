@@ -321,8 +321,10 @@
                             </StackPanel>
                             <ToggleButton x:Name="DiscordSettingsToggleButton"
                                           Grid.Column="1"
-                                          Width="40" Height="40"
+                                          Width="42" Height="42"
                                           VerticalAlignment="Top"
+                                          Content="&#xE713;"
+                                          Foreground="{DynamicResource AeziolGold}"
                                           Cursor="Hand"
                                           Checked="OnDiscordSettingsToggled"
                                           Unchecked="OnDiscordSettingsToggled">
@@ -330,23 +332,23 @@
                                     <ControlTemplate TargetType="ToggleButton">
                                         <Border x:Name="SettingsToggleSurface"
                                                 CornerRadius="12"
-                                                Background="{DynamicResource AeziolRaised}"
-                                                BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                                Background="{DynamicResource AeziolGoldWash}"
+                                                BorderBrush="{DynamicResource AeziolGoldLine}"
                                                 BorderThickness="1">
-                                            <Path Width="19" Height="19"
-                                                  Stretch="Uniform"
-                                                  Data="{StaticResource SettingsRingsGeometry}"
-                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
-                                                  StrokeThickness="1.7"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Content, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                                       FontFamily="Segoe Fluent Icons"
+                                                       FontSize="19"
+                                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
                                         </Border>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
                                                 <Setter TargetName="SettingsToggleSurface" Property="Background"
-                                                        Value="{DynamicResource AeziolHover}" />
+                                                        Value="{DynamicResource AeziolSecondary}" />
                                                 <Setter TargetName="SettingsToggleSurface" Property="BorderBrush"
                                                         Value="{DynamicResource AeziolGoldLine}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnAccent}" />
                                             </Trigger>
                                             <Trigger Property="IsChecked" Value="True">
                                                 <Setter TargetName="SettingsToggleSurface" Property="Background"
