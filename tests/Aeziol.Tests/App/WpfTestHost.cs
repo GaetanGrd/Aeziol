@@ -13,6 +13,11 @@ internal static class WpfTestHost
     private static Dispatcher? _dispatcher;
     private static Exception? _startupFailure;
 
+    static WpfTestHost()
+    {
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => StopDispatcher();
+    }
+
     public static void Run(Action action)
     {
         ArgumentNullException.ThrowIfNull(action);
@@ -53,22 +58,32 @@ internal static class WpfTestHost
     {
         try
         {
-            var application = new Aeziol.App.App();
+            var application = new Aeziol.App.App(suppressProductStartup: true);
             application.InitializeComponent();
             _dispatcher = Dispatcher.CurrentDispatcher;
+            _dispatcher.BeginInvoke(
+                () => Ready.Set(),
+                DispatcherPriority.ApplicationIdle);
         }
         catch (Exception exception)
         {
             _startupFailure = exception;
-        }
-        finally
-        {
             Ready.Set();
+            return;
         }
 
-        if (_startupFailure is null)
+        Dispatcher.Run();
+    }
+
+    private static void StopDispatcher()
+    {
+        var dispatcher = _dispatcher;
+        if (dispatcher is null || dispatcher.HasShutdownStarted)
         {
-            Dispatcher.Run();
+            return;
         }
+
+        dispatcher.BeginInvokeShutdown(DispatcherPriority.Send);
+        UiThread.Join(TimeSpan.FromSeconds(5));
     }
 }

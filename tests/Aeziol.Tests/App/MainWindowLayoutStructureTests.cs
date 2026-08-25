@@ -63,6 +63,13 @@ public sealed class MainWindowLayoutStructureTests
         var windowDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml"));
         var windowSource = File.ReadAllText(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml.cs"));
         var actionButton = FindNamedElement(windowDocument, "AutomationActionButton");
+        var passageRouteGrid = FindNamedElement(windowDocument, "PassageRouteGrid");
+        var passageSourcePanel = FindNamedElement(windowDocument, "PassageSourcePanel");
+        var passageTargetPanel = FindNamedElement(windowDocument, "PassageTargetPanel");
+        var destinationCombo = FindNamedElement(windowDocument, "PassageDestinationCombo");
+        var outputPanel = FindNamedElement(windowDocument, "PassageOutputPanel");
+        var outputLayout = FindNamedElement(windowDocument, "PassageOutputLayout");
+        var currentOutputCombo = FindNamedElement(windowDocument, "CurrentOutputCombo");
         var controlSurface = FindNamedElement(windowDocument, "AutomationControlSurface");
         var cicada = FindNamedElement(windowDocument, "AutomationCicadaImage");
         var cicadaRotation = FindNamedElement(windowDocument, "AutomationCicadaRotation");
@@ -72,12 +79,35 @@ public sealed class MainWindowLayoutStructureTests
         var passageJourneyTrace = FindNamedElement(windowDocument, "PassageJourneyTrace");
         var settingsJourneyTrace = FindNamedElement(windowDocument, "SettingsJourneyTrace");
         var exclusionsJourneyTrace = FindNamedElement(windowDocument, "ExclusionsJourneyTrace");
+        var exclusionsJourneyHost = FindNamedElement(windowDocument, "ExclusionsJourneyHost");
+        var exclusionsJourneyTraceCanvas = FindNamedElement(windowDocument, "ExclusionsJourneyTraceCanvas");
+        var exclusionsScrollViewer = FindNamedElement(windowDocument, "ExclusionsScrollViewer");
         var navigationBrand = FindNamedElement(windowDocument, "NavigationBrandCicada");
         var surfaceStateTriggers = controlSurface.Descendants()
             .Where(element => element.Name.LocalName == "DataTrigger")
             .ToArray();
 
         Assert.Equal("Button", actionButton.Name.LocalName);
+        Assert.Equal(
+            ["207.5", "*", "207.5"],
+            passageRouteGrid.Elements().Single(element => element.Name.LocalName == "Grid.ColumnDefinitions")
+                .Elements().Select(element => element.Attribute("Width")?.Value));
+        Assert.Equal("250", passageSourcePanel.Attribute("Width")?.Value);
+        Assert.Equal("Left", passageSourcePanel.Attribute("HorizontalAlignment")?.Value);
+        Assert.Equal("Grid", passageTargetPanel.Name.LocalName);
+        Assert.Null(destinationCombo.Attribute("DisplayMemberPath"));
+        Assert.Contains(destinationCombo.Descendants(), element =>
+            element.Name.LocalName == "TextBlock"
+            && element.Attribute("Text")?.Value == "{Binding DisplayName}"
+            && element.Attribute("TextTrimming")?.Value == "CharacterEllipsis");
+        Assert.Equal("420", outputPanel.Attribute("Width")?.Value);
+        Assert.Equal("Center", outputPanel.Attribute("HorizontalAlignment")?.Value);
+        Assert.Equal("Grid", outputLayout.Name.LocalName);
+        Assert.Equal(
+            ["*", "230", "Auto"],
+            outputLayout.Elements().Single(element => element.Name.LocalName == "Grid.ColumnDefinitions")
+                .Elements().Select(element => element.Attribute("Width")?.Value));
+        Assert.Equal("230", currentOutputCombo.Attribute("Width")?.Value);
         Assert.Equal("82", actionButton.Attribute("Width")?.Value);
         Assert.Equal("82", actionButton.Attribute("Height")?.Value);
         Assert.Equal("False", actionButton.Attribute("Focusable")?.Value);
@@ -126,9 +156,22 @@ public sealed class MainWindowLayoutStructureTests
         Assert.DoesNotContain(surfaceStateTriggers, trigger =>
             trigger.Attribute("Binding")?.Value.Contains("IsKeyboardFocused", StringComparison.Ordinal) == true);
         Assert.DoesNotContain(journeyTraceView.Descendants(), element => element.Name.LocalName == "ScaleTransform");
+        Assert.Equal("200", passageJourneyTrace.Attribute("Width")?.Value);
+        Assert.Equal("62", passageJourneyTrace.Attribute("Height")?.Value);
         Assert.Equal("SymmetricFromCenter", passageJourneyTrace.Attribute("ProgressMode")?.Value);
         Assert.Null(settingsJourneyTrace.Attribute("ProgressMode"));
         Assert.Null(exclusionsJourneyTrace.Attribute("ProgressMode"));
+        Assert.Null(exclusionsJourneyHost.Attribute("MaxHeight"));
+        Assert.Equal("Canvas", exclusionsJourneyTraceCanvas.Name.LocalName);
+        Assert.Equal("True", exclusionsJourneyTraceCanvas.Attribute("ClipToBounds")?.Value);
+        Assert.Equal(
+            "OnExclusionsJourneyTraceCanvasSizeChanged",
+            exclusionsJourneyTraceCanvas.Attribute("SizeChanged")?.Value);
+        Assert.Null(exclusionsScrollViewer.Attribute("MaxHeight"));
+        Assert.Equal(
+            "ExclusionsJourneyTraceCanvas",
+            exclusionsJourneyTrace.Parent?.Attribute(Xaml + "Name")?.Value);
+        Assert.Contains("CreateExclusionsJourneyGeometry", windowSource, StringComparison.Ordinal);
         Assert.Equal("RotateTransform", cicadaRotation.Name.LocalName);
         Assert.Equal("0", cicadaRotation.Attribute("Angle")?.Value);
         Assert.Equal("False", navigationBrand.Attribute("IsHitTestVisible")?.Value);
@@ -315,14 +358,122 @@ public sealed class MainWindowLayoutStructureTests
         var source = File.ReadAllText(codePath);
 
         var rulesView = FindNamedElement(document, "RulesView");
+        var discordSettingsViewport = FindNamedElement(document, "DiscordSettingsViewport");
         var settingsHost = FindNamedElement(document, "DiscordSettingsHost");
         var automationAction = FindNamedElement(document, "AutomationActionButton");
+        var discordView = FindNamedElement(document, "DiscordView");
+        var discordHeading = FindNamedElement(document, "DiscordHeading");
+        var discordSettingsToggle = FindNamedElement(document, "DiscordSettingsToggleButton");
+        var discordSettingsGearGlyph = FindNamedElement(document, "DiscordSettingsGearGlyph");
+        var discordSettingsCloseGlyph = FindNamedElement(document, "DiscordSettingsCloseGlyph");
 
         Assert.Contains(settingsHost, rulesView.Descendants());
+        Assert.Equal("Grid", discordSettingsViewport.Name.LocalName);
+        Assert.Contains(settingsHost, discordSettingsViewport.Descendants());
+        Assert.DoesNotContain(settingsHost.Ancestors().TakeWhile(element => element != rulesView),
+            element => element.Name.LocalName == "ScrollViewer");
+        Assert.Equal("Stretch", settingsHost.Attribute("VerticalContentAlignment")?.Value);
+        Assert.Equal(
+            ["70", "*"],
+            discordView.Elements().Single(element => element.Name.LocalName == "Grid.RowDefinitions")
+                .Elements().Select(element => element.Attribute("Height")?.Value));
+        Assert.Contains(discordSettingsToggle, discordHeading.Descendants());
+        Assert.Equal("1", discordSettingsToggle.Attribute("Grid.Column")?.Value);
+        Assert.Equal("42", discordSettingsToggle.Attribute("Width")?.Value);
+        Assert.Equal("42", discordSettingsToggle.Attribute("Height")?.Value);
+        Assert.Equal("{DynamicResource AeziolGold}", discordSettingsToggle.Attribute("Foreground")?.Value);
+        Assert.Equal("OnDiscordSettingsToggled", discordSettingsToggle.Attribute("Checked")?.Value);
+        Assert.Equal("OnDiscordSettingsToggled", discordSettingsToggle.Attribute("Unchecked")?.Value);
+        Assert.Equal("Segoe Fluent Icons", discordSettingsGearGlyph.Attribute("FontFamily")?.Value);
+        Assert.Equal("\uE713", discordSettingsGearGlyph.Attribute("Text")?.Value);
+        Assert.Equal("18", discordSettingsCloseGlyph.Attribute("Width")?.Value);
+        Assert.Equal("18", discordSettingsCloseGlyph.Attribute("Height")?.Value);
+        Assert.Equal("Center", discordSettingsCloseGlyph.Attribute("HorizontalAlignment")?.Value);
+        Assert.Equal("Center", discordSettingsCloseGlyph.Attribute("VerticalAlignment")?.Value);
+        var closePath = FindNamedElement(document, "DiscordSettingsClosePath");
+        Assert.Equal("Round", closePath.Attribute("StrokeStartLineCap")?.Value);
+        Assert.Equal("Round", closePath.Attribute("StrokeEndLineCap")?.Value);
+        var discordSettingsTriggers = discordSettingsToggle.Descendants()
+            .Where(element => element.Name.LocalName == "Trigger")
+            .ToArray();
+        Assert.True(
+            Array.FindIndex(discordSettingsTriggers, trigger => trigger.Attribute("Property")?.Value == "IsMouseOver")
+            > Array.FindIndex(discordSettingsTriggers, trigger => trigger.Attribute("Property")?.Value == "IsChecked"));
+        Assert.Contains(discordSettingsTriggers.Single(trigger => trigger.Attribute("Property")?.Value == "IsMouseOver")
+            .Descendants(), setter => setter.Attribute("Property")?.Value == "Background"
+                && setter.Attribute("Value")?.Value == "{DynamicResource AeziolSecondary}");
+        Assert.Contains(discordSettingsTriggers.Single(trigger => trigger.Attribute("Property")?.Value == "IsMouseOver")
+            .Descendants(), setter => setter.Attribute("TargetName")?.Value == "DiscordSettingsGearGlyph"
+                && setter.Attribute("Property")?.Value == "Foreground"
+                && setter.Attribute("Value")?.Value == "{DynamicResource AeziolOnSecondary}");
+        Assert.Contains(discordSettingsTriggers.Single(trigger => trigger.Attribute("Property")?.Value == "IsMouseOver")
+            .Descendants(), setter => setter.Attribute("TargetName")?.Value == "DiscordSettingsClosePath"
+                && setter.Attribute("Property")?.Value == "Stroke"
+                && setter.Attribute("Value")?.Value == "{DynamicResource AeziolOnSecondary}");
+        var checkedTrigger = discordSettingsTriggers.Single(trigger => trigger.Attribute("Property")?.Value == "IsChecked");
+        Assert.Contains(checkedTrigger.Descendants(), setter =>
+            setter.Attribute("TargetName")?.Value == "DiscordSettingsGearGlyph"
+            && setter.Attribute("Property")?.Value == "Visibility"
+            && setter.Attribute("Value")?.Value == "Collapsed");
+        Assert.Contains(checkedTrigger.Descendants(), setter =>
+            setter.Attribute("TargetName")?.Value == "DiscordSettingsCloseGlyph"
+            && setter.Attribute("Property")?.Value == "Visibility"
+            && setter.Attribute("Value")?.Value == "Visible");
+        Assert.DoesNotContain(document.Descendants(), element =>
+            element.Attribute(Xaml + "Name")?.Value is "DiscordOverviewTab" or "DiscordRulesTab");
+        Assert.Contains("UpdateDiscordSettingsTogglePresentation", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("RouteSegmentPreview", source, StringComparison.Ordinal);
+        Assert.DoesNotContain(document.Descendants(), element =>
+            element.Attribute(Xaml + "Name")?.Value == "RouteSegmentPreviewBar");
         Assert.Equal("AutomationRouteControlHost", automationAction.Ancestors().First(element => element.Attribute(Xaml + "Name") is not null).Attribute(Xaml + "Name")?.Value);
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RuleDestinationCombo");
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "SettingsDiscordTab");
-        Assert.Contains("DiscordSettingsHost.Content = DiscordSettingsCard;", source, StringComparison.Ordinal);
+        Assert.Contains("_discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();", source, StringComparison.Ordinal);
+        Assert.Contains("_discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("DiscordFallbackHost.Children.Add", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("DiscordFallbackToggle.Visibility = Visibility.Collapsed;", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("SettingsModalLayer", source, StringComparison.Ordinal);
+        Assert.Contains("DiscordSettingsHost.Content = _discordSettings;", source, StringComparison.Ordinal);
+        Assert.Contains("UpdateDiscordSettingsAvailableHeight", source, StringComparison.Ordinal);
+
+        var connectionCard = FindNamedElement(document, "DiscordSettingsCard");
+        var connectionRoute = FindNamedElement(document, "DiscordConnectionRouteGrid");
+        var discordEndpointIcon = FindNamedElement(document, "DiscordConnectionEndpointIcon");
+        var aeziolEndpointIcon = FindNamedElement(document, "AeziolConnectionEndpointIcon");
+        var connectedTrail = FindNamedElement(document, "DiscordConnectedTrailCanvas");
+        var connectedGlow = FindNamedElement(document, "DiscordConnectedTrailGlowLayer");
+        var authorizationTag = FindNamedElement(document, "DiscordAuthorizationStateTag");
+        var authorizationText = FindNamedElement(document, "DiscordAuthorizationStateText");
+        var authorizationDot = FindNamedElement(document, "DiscordRouteStateDot");
+        var fallbackToggle = FindNamedElement(document, "DiscordFallbackToggle");
+        var fallbackPanel = FindNamedElement(document, "DiscordFallbackPanel");
+        Assert.Equal("14", connectionCard.Attribute("Padding")?.Value);
+        Assert.Equal("0", connectionCard.Attribute("Margin")?.Value);
+        Assert.Equal("70", connectionRoute.Attribute("Height")?.Value);
+        Assert.Equal("52", discordEndpointIcon.Attribute("Width")?.Value);
+        Assert.Equal("52", discordEndpointIcon.Attribute("Height")?.Value);
+        Assert.Equal("52", aeziolEndpointIcon.Attribute("Width")?.Value);
+        Assert.Equal("52", aeziolEndpointIcon.Attribute("Height")?.Value);
+        Assert.Contains(authorizationTag.Descendants(), element => ReferenceEquals(element, authorizationText));
+        Assert.Contains(authorizationTag.Descendants(), element => ReferenceEquals(element, authorizationDot));
+        Assert.DoesNotContain(FindNamedElement(document, "DiscordConnectionTrail").Descendants(), element =>
+            element.Attribute(Xaml + "Name")?.Value is "DiscordAuthorizationStateText" or "DiscordRouteStateDot");
+        Assert.Contains("DiscordAuthorizationStateTag.BorderBrush = authorizationBrush;", source, StringComparison.Ordinal);
+        Assert.Equal("DiscordSetting:8", fallbackToggle.Attribute("Tag")?.Value);
+        Assert.Equal("0,6,0,0", fallbackToggle.Attribute("Margin")?.Value);
+        Assert.Equal("0,6,0,0", fallbackPanel.Attribute("Margin")?.Value);
+        Assert.Equal(["0.9", "0.75"], connectedTrail.Elements()
+            .Where(element => element.Name.LocalName == "Path")
+            .Select(element => element.Attribute("StrokeThickness")?.Value));
+        Assert.Equal("0.82", connectedGlow.Attribute("Opacity")?.Value);
+        Assert.Equal(2, connectedGlow.Elements().Count(element => element.Name.LocalName == "Path"));
+        Assert.Contains("DiscordConnectedTrailGlowLayer.Opacity = isAuthorized ? 0.82 : 0;", source, StringComparison.Ordinal);
+        Assert.Contains("authorizationGlow", source, StringComparison.Ordinal);
+        Assert.Contains(connectionCard.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "DiscordConnectionTrail");
+        Assert.Contains(connectionCard.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RevokeDiscordButton");
+        Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RulesTitleText");
+        Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RulesSubtitleText");
+        Assert.Single(rulesView.Elements().Single(element => element.Name.LocalName == "Grid.RowDefinitions").Elements());
     }
 
     private static XElement FindNamedElement(XDocument document, string name) =>

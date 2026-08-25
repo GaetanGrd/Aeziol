@@ -31,6 +31,7 @@ public partial class App : System.Windows.Application
     private Forms.ToolStripItem? _quitTrayItem;
     private bool _showMainWindowWhenReady;
     private bool _isQuitting;
+    private readonly bool _suppressProductStartup;
     private int _handlingFatalException;
 
     public App()
@@ -38,6 +39,12 @@ public partial class App : System.Windows.Application
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnAppDomainUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+    }
+
+    internal App(bool suppressProductStartup)
+        : this()
+    {
+        _suppressProductStartup = suppressProductStartup;
     }
 
     private void OnToggleSwitchClick(object sender, RoutedEventArgs eventArgs)
@@ -110,6 +117,11 @@ public partial class App : System.Windows.Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        if (_suppressProductStartup)
+        {
+            return;
+        }
+
         try
         {
             var isUiPreview = e.Args.Contains("--ui-preview", StringComparer.OrdinalIgnoreCase);

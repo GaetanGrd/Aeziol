@@ -11,6 +11,57 @@ namespace Aeziol.Tests.App;
 [Collection(WpfUiTestGroup.Name)]
 public sealed class JourneyTraceTests
 {
+    private static readonly double[] StandardStrokePair =
+        [JourneyTrace.StandardPrimaryStroke, JourneyTrace.StandardSecondaryStroke];
+
+    [Fact]
+    public void EveryProductJourneyUsesTheSharedBaseStrokePair()
+    {
+        var appDirectory = Path.GetDirectoryName(FindSourceFile("src", "Aeziol.App", "App.xaml"));
+        Assert.NotNull(appDirectory);
+
+        var productTraces = Directory.EnumerateFiles(appDirectory, "*.xaml", SearchOption.AllDirectories)
+            .Select(XDocument.Load)
+            .SelectMany(document => document.Descendants())
+            .Where(element => element.Name.LocalName == "JourneyTrace")
+            .ToArray();
+
+        Assert.NotEmpty(productTraces);
+        Assert.All(productTraces, trace =>
+        {
+            Assert.Equal(
+                JourneyTrace.StandardPrimaryStroke,
+                double.Parse(trace.Attribute("BaseStrokeA")?.Value ?? string.Empty, System.Globalization.CultureInfo.InvariantCulture));
+            Assert.Equal(
+                JourneyTrace.StandardSecondaryStroke,
+                double.Parse(trace.Attribute("BaseStrokeB")?.Value ?? string.Empty, System.Globalization.CultureInfo.InvariantCulture));
+        });
+
+        var mainWindow = XDocument.Load(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml"));
+        var xamlNamespace = XNamespace.Get("http://schemas.microsoft.com/winfx/2006/xaml");
+        AssertStrokePair(FindNamedElement(mainWindow, xamlNamespace, "DiscordConnectedTrailCanvas").Elements());
+        AssertStrokePair(FindNamedElement(mainWindow, xamlNamespace, "DiscordBrokenTrailCanvas").Elements());
+        AssertStrokePair(mainWindow.Descendants().Where(element =>
+            element.Name.LocalName == "Path"
+            && element.Attribute("Style")?.Value == "{StaticResource NotificationTraceStyle}"));
+
+        return;
+
+        static void AssertStrokePair(IEnumerable<XElement> elements)
+        {
+            var actual = elements
+                .Where(element => element.Name.LocalName == "Path")
+                .Select(element => double.Parse(
+                    element.Attribute("StrokeThickness")?.Value ?? string.Empty,
+                    System.Globalization.CultureInfo.InvariantCulture))
+                .ToArray();
+            Assert.Equal(StandardStrokePair, actual);
+        }
+
+        static XElement FindNamedElement(XDocument document, XNamespace xamlNamespace, string name) =>
+            document.Descendants().Single(element => element.Attribute(xamlNamespace + "Name")?.Value == name);
+    }
+
     [Fact]
     public void ReusableTrace_RendersParticlesAndCrossfadesBetweenRegions()
     {

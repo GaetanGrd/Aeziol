@@ -307,32 +307,91 @@
                     <Grid x:Name="DiscordView">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="70" />
-                            <RowDefinition Height="46" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <Grid x:Name="DiscordHeading" Grid.Row="0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <TextBlock x:Name="DiscordTitleText" Style="{StaticResource PageTitle}" />
-                            <TextBlock x:Name="DiscordSubtitleText" Grid.Row="1" Margin="0,5,0,0"
-                                       Style="{StaticResource PageSubtitle}" />
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Top">
+                                <TextBlock x:Name="DiscordTitleText" Style="{StaticResource PageTitle}" />
+                                <TextBlock x:Name="DiscordSubtitleText" Margin="0,5,0,0"
+                                           Style="{StaticResource PageSubtitle}" />
+                            </StackPanel>
+                            <ToggleButton x:Name="DiscordSettingsToggleButton"
+                                          Grid.Column="1"
+                                          Width="42" Height="42"
+                                          VerticalAlignment="Top"
+                                          Foreground="{DynamicResource AeziolGold}"
+                                          Cursor="Hand"
+                                          Checked="OnDiscordSettingsToggled"
+                                          Unchecked="OnDiscordSettingsToggled">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="SettingsToggleSurface"
+                                                CornerRadius="12"
+                                                Background="{DynamicResource AeziolGoldWash}"
+                                                BorderBrush="{DynamicResource AeziolGoldLine}"
+                                                BorderThickness="1">
+                                            <Grid>
+                                                <TextBlock x:Name="DiscordSettingsGearGlyph"
+                                                           Text="&#xE713;"
+                                                           FontFamily="Segoe Fluent Icons"
+                                                           FontSize="19"
+                                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center" />
+                                                <Viewbox x:Name="DiscordSettingsCloseGlyph"
+                                                         Width="18" Height="18"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"
+                                                         Visibility="Collapsed">
+                                                    <Canvas Width="20" Height="20">
+                                                        <Path x:Name="DiscordSettingsClosePath"
+                                                              Data="M 5,5 L 15,15 M 15,5 L 5,15"
+                                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                                              StrokeThickness="1.8"
+                                                              StrokeStartLineCap="Round"
+                                                              StrokeEndLineCap="Round" />
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="DiscordSettingsGearGlyph" Property="Visibility" Value="Collapsed" />
+                                                <Setter TargetName="DiscordSettingsCloseGlyph" Property="Visibility" Value="Visible" />
+                                                <Setter TargetName="SettingsToggleSurface" Property="Background"
+                                                        Value="{DynamicResource AeziolGoldWash}" />
+                                                <Setter TargetName="SettingsToggleSurface" Property="BorderBrush"
+                                                        Value="{DynamicResource AeziolGoldLine}" />
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="SettingsToggleSurface" Property="Background"
+                                                        Value="{DynamicResource AeziolSecondary}" />
+                                                <Setter TargetName="SettingsToggleSurface" Property="BorderBrush"
+                                                        Value="{DynamicResource AeziolGoldLine}" />
+                                                <Setter TargetName="DiscordSettingsGearGlyph" Property="Foreground"
+                                                        Value="{DynamicResource AeziolOnSecondary}" />
+                                                <Setter TargetName="DiscordSettingsClosePath" Property="Stroke"
+                                                        Value="{DynamicResource AeziolOnSecondary}" />
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter TargetName="SettingsToggleSurface" Property="Background"
+                                                        Value="{DynamicResource AeziolSecondary}" />
+                                                <Setter TargetName="DiscordSettingsGearGlyph" Property="Foreground"
+                                                        Value="{DynamicResource AeziolOnSecondary}" />
+                                                <Setter TargetName="DiscordSettingsClosePath" Property="Stroke"
+                                                        Value="{DynamicResource AeziolOnSecondary}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
                         </Grid>
 
-                        <Border Grid.Row="1" Margin="0,0,0,7"
-                                BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="0,0,0,1">
-                            <StackPanel Orientation="Horizontal">
-                                <RadioButton x:Name="DiscordOverviewTab" GroupName="DiscordSections"
-                                             Style="{StaticResource SettingsSectionTab}" IsChecked="True"
-                                             Checked="OnDiscordSectionChanged" />
-                                <RadioButton x:Name="DiscordRulesTab" GroupName="DiscordSections"
-                                             Style="{StaticResource SettingsSectionTab}"
-                                             Checked="OnDiscordSectionChanged" />
-                            </StackPanel>
-                        </Border>
-
-                        <Grid Grid.Row="2">
+                        <Grid Grid.Row="1">
                         <Border x:Name="PassageAutomationContent" CornerRadius="24"
                                 BorderBrush="{DynamicResource AeziolTraceBorder}" BorderThickness="1">
                             <Border.Background>
@@ -348,14 +407,15 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <Grid Margin="4,12,4,14">
+                                <Grid x:Name="PassageRouteGrid" Margin="4,12,4,14">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="165" />
+                                        <ColumnDefinition Width="207.5" />
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="250" />
+                                        <ColumnDefinition Width="207.5" />
                                     </Grid.ColumnDefinitions>
 
-                                    <StackPanel x:Name="PassageSourcePanel" Grid.Column="0" VerticalAlignment="Center"
+                                    <StackPanel x:Name="PassageSourcePanel" Grid.Column="0" Width="250"
+                                                HorizontalAlignment="Left" VerticalAlignment="Center"
                                                 MouseEnter="OnPassageJourneySourceEnter"
                                                 MouseLeave="OnPassageJourneyLeave">
                                         <TextBlock x:Name="SourceLabelText" Style="{StaticResource SectionLabel}" HorizontalAlignment="Center" />
@@ -390,7 +450,7 @@
                                                                    Orientation="Horizontal"
                                                                    ProgressMode="SymmetricFromCenter"
                                                                    EdgeFade="0.06" HighlightFade="0.14" HighlightRadius="12"
-                                                                   BaseStrokeA="1.2" BaseStrokeB="0.9"
+                                                                   BaseStrokeA="0.9" BaseStrokeB="0.75"
                                                                    BaseOpacityA="1" BaseOpacityB="0.44"
                                                                    HighlightStroke="1.7" GlowStroke="5"
                                                                    TraceA="M 0,35 C 22,8 48,7 75,26 C 88,35 94,39 103,38 C 130,59 166,58 200,31"
@@ -502,17 +562,31 @@
                                         </Button>
                                     </Grid>
 
-                                    <StackPanel x:Name="PassageTargetPanel" Grid.Column="2" VerticalAlignment="Center"
-                                                MouseEnter="OnPassageJourneyTargetEnter"
-                                                MouseLeave="OnPassageJourneyLeave">
-                                        <TextBlock x:Name="TargetLabelText" Style="{StaticResource SectionLabel}" />
-                                        <Grid Margin="0,9,0,0">
+                                    <Grid x:Name="PassageTargetPanel" Grid.Column="2" VerticalAlignment="Center"
+                                          MouseEnter="OnPassageJourneyTargetEnter"
+                                          MouseLeave="OnPassageJourneyLeave">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock x:Name="TargetLabelText" Margin="2,0,0,0"
+                                                   Style="{StaticResource SectionLabel}" />
+                                        <Grid x:Name="PassageTargetSelectorHost" Grid.Row="1" Margin="0,8,0,0">
                                             <ComboBox x:Name="PassageDestinationCombo"
-                                                      DisplayMemberPath="DisplayName" SelectedValuePath="Id"
+                                                      MinHeight="38" Padding="10,6"
+                                                      SelectedValuePath="Id"
                                                       SelectionChanged="OnDestinationChanged"
-                                                      FlowDirection="LeftToRight" />
+                                                      FlowDirection="LeftToRight">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding DisplayName}" TextWrapping="NoWrap"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
                                             <TextBlock x:Name="PassageDestinationPlaceholderText"
-                                                       Margin="13,0,36,0" VerticalAlignment="Center"
+                                                       Margin="11,0,32,0" VerticalAlignment="Center"
                                                        Foreground="{DynamicResource AeziolMuted}"
                                                        TextTrimming="CharacterEllipsis"
                                                        IsHitTestVisible="False">
@@ -529,36 +603,56 @@
                                                 </TextBlock.Style>
                                             </TextBlock>
                                         </Grid>
-                                        <TextBlock x:Name="TargetHelpText" Margin="2,7,0,0" Style="{StaticResource BodyMuted}"
-                                                   TextWrapping="Wrap" />
-                                    </StackPanel>
+                                        <TextBlock x:Name="TargetHelpText" Grid.Row="2" Margin="2,6,2,0"
+                                                   MaxHeight="30" FontSize="10" LineHeight="14"
+                                                   Style="{StaticResource BodyMuted}"
+                                                   TextWrapping="Wrap" TextTrimming="CharacterEllipsis" />
+                                    </Grid>
                                 </Grid>
 
-                                <Border x:Name="PassageOutputPanel" Grid.Row="1" Padding="14,11" CornerRadius="12"
-                                        Background="{DynamicResource AeziolSurface}" BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="1">
-                                    <StackPanel>
-                                        <TextBlock x:Name="CurrentOutputLabelText" Style="{StaticResource SectionLabel}" />
-                                        <ComboBox x:Name="CurrentOutputCombo" Margin="-6,2,0,-3" MinHeight="30"
-                                                  Padding="6,2" Background="Transparent" BorderBrush="Transparent"
-                                                  MaxWidth="320"
-                                                  Style="{StaticResource CompactComboBox}" SelectedValuePath="Id"
-                                                  SelectionChanged="OnCurrentOutputChanged"
-                                                  FlowDirection="LeftToRight">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding DisplayName}" TextWrapping="NoWrap"
-                                                               TextTrimming="CharacterEllipsis" />
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
-                                        <TextBlock x:Name="RestoreOutputText" Margin="0,6,0,0" FontSize="12"
+                                <Border x:Name="PassageOutputPanel" Grid.Row="1"
+                                        Width="420" Padding="14,10" CornerRadius="12"
+                                        HorizontalAlignment="Center"
+                                        Background="{DynamicResource AeziolSurface}" BorderBrush="{DynamicResource AeziolGoldLine}" BorderThickness="1">
+                                    <Grid x:Name="PassageOutputLayout">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="230" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="CurrentOutputLabelText" Margin="0,0,12,0"
+                                                   Style="{StaticResource SectionLabel}"
+                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                        <Border x:Name="CurrentOutputSelectorHost" Grid.Column="1" Grid.ColumnSpan="2">
+                                            <ComboBox x:Name="CurrentOutputCombo" Width="230" MinHeight="30"
+                                                      Padding="6,2" Background="Transparent" BorderBrush="Transparent"
+                                                      MaxWidth="230" HorizontalAlignment="Stretch"
+                                                      Style="{StaticResource CompactComboBox}" SelectedValuePath="Id"
+                                                      SelectionChanged="OnCurrentOutputChanged"
+                                                      FlowDirection="LeftToRight">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding DisplayName}" TextWrapping="NoWrap"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                        </Border>
+                                        <TextBlock x:Name="RestoreOutputText" Grid.Row="1" Grid.ColumnSpan="3"
+                                                   Margin="0,7,0,0" FontSize="12"
                                                    TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                                                    Visibility="Collapsed" />
-                                        <Button x:Name="ForceRestoreButton" Margin="0,8,0,0" Padding="10,5"
+                                        <Button x:Name="ForceRestoreButton" Grid.Row="2" Grid.ColumnSpan="3"
+                                                Margin="0,8,0,0" Padding="10,5"
                                                 MinHeight="30" HorizontalAlignment="Left" FontSize="10"
                                                 Style="{StaticResource ActionButton}" Visibility="Collapsed"
                                                 Click="OnForceRestore" />
-                                    </StackPanel>
+                                    </Grid>
                                 </Border>
 
                             </Grid>
@@ -566,17 +660,10 @@
 
                     <Grid x:Name="RulesView" Visibility="Collapsed">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="70" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <StackPanel>
-                            <TextBlock x:Name="RulesTitleText" Style="{StaticResource PageTitle}" />
-                            <TextBlock x:Name="RulesSubtitleText" Margin="0,5,0,0" Style="{StaticResource PageSubtitle}" />
-                        </StackPanel>
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
-                            <StackPanel Margin="0,0,8,2">
-                                <Grid Height="390">
+                        <Grid x:Name="DiscordSettingsViewport" Margin="0,0,0,2">
+                                <Grid x:Name="LegacyDiscordRulesLayout" Height="390" Visibility="Collapsed">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="1*" />
                                 <ColumnDefinition Width="24" />
@@ -634,10 +721,15 @@
                                             <TextBlock x:Name="ExclusionsTitleText" FontSize="14" FontWeight="SemiBold" />
                                             <TextBlock x:Name="ExclusionsHelpText" Margin="0,4,0,0" Style="{StaticResource BodyMuted}" />
                                         </StackPanel>
-                                        <Grid x:Name="ExclusionsJourneyHost" Grid.Row="1">
-                                            <Viewbox Width="19" Margin="1,5,0,5"
-                                                     HorizontalAlignment="Left" Stretch="Fill"
-                                                     IsHitTestVisible="False">
+                                        <Grid x:Name="ExclusionsJourneyHost"
+                                              Grid.Row="1">
+                                            <Canvas x:Name="ExclusionsJourneyTraceCanvas"
+                                                    Width="19" Margin="1,5,0,5"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Stretch"
+                                                    ClipToBounds="True"
+                                                    SizeChanged="OnExclusionsJourneyTraceCanvasSizeChanged"
+                                                    IsHitTestVisible="False">
                                                 <controls:JourneyTrace x:Name="ExclusionsJourneyTrace"
                                                                        Width="19" Height="200"
                                                                        Orientation="Vertical"
@@ -656,8 +748,9 @@
                                                                                   HighlightSize="3" HighlightOpacity="0.88" Tone="Primary" />
                                                     </controls:JourneyTrace.Particles>
                                                 </controls:JourneyTrace>
-                                            </Viewbox>
-                                            <ScrollViewer Margin="24,0,0,0"
+                                            </Canvas>
+                                            <ScrollViewer x:Name="ExclusionsScrollViewer"
+                                                          Margin="24,0,0,0"
                                                           VerticalScrollBarVisibility="Auto"
                                                           HorizontalScrollBarVisibility="Disabled">
                                                 <ItemsControl x:Name="ExclusionsList"
@@ -694,10 +787,10 @@
                                 </Border>
                             </Grid>
                                 </Grid>
-                                <ContentControl x:Name="DiscordSettingsHost" Margin="0,24,0,0"
-                                                HorizontalContentAlignment="Stretch" />
-                            </StackPanel>
-                        </ScrollViewer>
+                            <ContentControl x:Name="DiscordSettingsHost" Margin="0"
+                                            HorizontalContentAlignment="Stretch"
+                                            VerticalContentAlignment="Stretch" />
+                        </Grid>
                     </Grid>
                         </Grid>
                     </Grid>
@@ -1065,29 +1158,6 @@
                                                                    Margin="2,7,0,0" FontSize="10"
                                                                    Foreground="{DynamicResource AeziolDim}"
                                                                    TextWrapping="Wrap" />
-                                                        <Border Margin="0,16,0,0" Padding="0,14,0,0"
-                                                                BorderBrush="{DynamicResource AeziolBorderSoft}"
-                                                                BorderThickness="0,1,0,0">
-                                                            <StackPanel>
-                                                                <Grid Margin="0,0,0,7">
-                                                                    <TextBlock x:Name="GracePeriodLabelText"
-                                                                               Style="{StaticResource SectionLabel}" />
-                                                                    <Button HorizontalAlignment="Right"
-                                                                            Style="{StaticResource SettingsHoverResetButton}"
-                                                                            Tag="GracePeriod" Click="OnResetSetting" />
-                                                                </Grid>
-                                                                <ComboBox x:Name="GracePeriodCombo"
-                                                                          SelectionChanged="OnGracePeriodChanged">
-                                                                    <ComboBoxItem Tag="0" />
-                                                                    <ComboBoxItem Tag="1" />
-                                                                    <ComboBoxItem Tag="2" />
-                                                                </ComboBox>
-                                                                <TextBlock x:Name="GracePeriodHelpText"
-                                                                           Margin="2,7,0,0" FontSize="10"
-                                                                           Foreground="{DynamicResource AeziolDim}"
-                                                                           TextWrapping="Wrap" />
-                                                            </StackPanel>
-                                                        </Border>
                                                     </StackPanel>
 
                                                     <StackPanel x:Name="MusicEditorPanel" Visibility="Collapsed">
@@ -1324,8 +1394,8 @@
                                 <ScrollViewer x:Name="SettingsDiscordScrollViewer"
                                               VerticalScrollBarVisibility="Auto"
                                               HorizontalScrollBarVisibility="Disabled">
-                                    <Border x:Name="DiscordSettingsCard" Margin="0,0,8,8"
-                                            Padding="24" CornerRadius="13"
+                                    <Border x:Name="DiscordSettingsCard" Margin="0"
+                                            Padding="14" CornerRadius="13"
                                             VerticalAlignment="Top"
                                             Background="{DynamicResource AeziolSurface}"
                                             BorderBrush="{DynamicResource AeziolTraceBorder}"
@@ -1337,8 +1407,30 @@
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel VerticalAlignment="Center">
-                                                    <TextBlock x:Name="DiscordSettingsTitleText"
-                                                               FontSize="15" FontWeight="SemiBold" />
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock x:Name="DiscordSettingsTitleText"
+                                                                   FontSize="15" FontWeight="SemiBold"
+                                                                   VerticalAlignment="Center" />
+                                                        <Border x:Name="DiscordAuthorizationStateTag"
+                                                                Margin="8,0,0,0" Padding="8,3"
+                                                                CornerRadius="8"
+                                                                VerticalAlignment="Center"
+                                                                Background="{DynamicResource AeziolRaised}"
+                                                                BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                                                BorderThickness="1">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Ellipse x:Name="DiscordRouteStateDot"
+                                                                         Width="5" Height="5"
+                                                                         Margin="0,0,6,0"
+                                                                         Fill="{DynamicResource AeziolDim}"
+                                                                         VerticalAlignment="Center" />
+                                                                <TextBlock x:Name="DiscordAuthorizationStateText"
+                                                                           FontSize="9"
+                                                                           Foreground="{DynamicResource AeziolMuted}"
+                                                                           VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </StackPanel>
                                                     <TextBlock x:Name="DiscordRouteCaptionText"
                                                                Margin="0,3,0,0" FontSize="10"
                                                                Foreground="{DynamicResource AeziolDim}" />
@@ -1349,33 +1441,36 @@
                                                             Style="{StaticResource PrimaryButton}"
                                                             Click="OnAuthorizeDiscord" />
                                                     <Button x:Name="RevokeDiscordButton"
+                                                            Tag="DiscordSetting:7"
                                                             Style="{StaticResource DangerButton}"
                                                             Visibility="Collapsed"
                                                             Click="OnRequestRevokeDiscord" />
                                                 </StackPanel>
                                             </Grid>
 
-                                            <Grid Margin="0,16,0,4" Height="104">
+                                            <Grid x:Name="DiscordConnectionRouteGrid"
+                                                  Margin="0,7,0,0" Height="70">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="72" />
+                                                    <ColumnDefinition Width="66" />
                                                     <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="72" />
+                                                    <ColumnDefinition Width="66" />
                                                 </Grid.ColumnDefinitions>
 
                                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                    <Border Width="54" Height="54" CornerRadius="16"
+                                                    <Border x:Name="DiscordConnectionEndpointIcon"
+                                                            Width="52" Height="52" CornerRadius="16"
                                                             Background="{DynamicResource AeziolRaised}">
-                                                        <Path Width="29" Height="22" Stretch="Uniform"
+                                                        <Path Width="28" Height="22" Stretch="Uniform"
                                                               Data="{StaticResource DiscordSymbolGeometry}"
                                                               Fill="#5865F2" />
                                                     </Border>
-                                                    <TextBlock Margin="0,5,0,0" Text="Discord" FontSize="9"
+                                                    <TextBlock Margin="0,4,0,0" Text="Discord" FontSize="9"
                                                                Foreground="{DynamicResource AeziolMuted}"
                                                                HorizontalAlignment="Center" />
                                                 </StackPanel>
 
                                                 <Grid x:Name="DiscordConnectionTrail" Grid.Column="1" Margin="12,0">
-                                                    <Viewbox Height="58" Stretch="Fill" VerticalAlignment="Top">
+                                                    <Viewbox Height="58" Stretch="Fill" VerticalAlignment="Center">
                                                         <Grid Width="440" Height="58" IsHitTestVisible="False">
                                                             <Grid.OpacityMask>
                                                                 <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
@@ -1388,14 +1483,25 @@
 
                                                             <Canvas x:Name="DiscordConnectedTrailCanvas" Width="440" Height="58"
                                                                     Visibility="Collapsed">
+                                                                <Canvas x:Name="DiscordConnectedTrailGlowLayer"
+                                                                        Width="440" Height="58" Opacity="0.82">
+                                                                    <Path Data="M 0,31 C 65,4 116,51 188,26 C 258,1 315,51 440,21"
+                                                                          Stroke="{DynamicResource AeziolPrimary}"
+                                                                          StrokeThickness="4.8" StrokeStartLineCap="Round"
+                                                                          StrokeEndLineCap="Round" Opacity="0.22" />
+                                                                    <Path Data="M 0,36 C 72,13 121,46 193,29 C 266,10 327,43 440,27"
+                                                                          Stroke="{DynamicResource AeziolSecondary}"
+                                                                          StrokeThickness="4.2" StrokeStartLineCap="Round"
+                                                                          StrokeEndLineCap="Round" Opacity="0.16" />
+                                                                </Canvas>
                                                                 <Path Data="M 0,31 C 65,4 116,51 188,26 C 258,1 315,51 440,21"
                                                                       Stroke="{DynamicResource AeziolPrimary}"
-                                                                      StrokeThickness="1.15" StrokeStartLineCap="Round"
-                                                                      StrokeEndLineCap="Round" Opacity="0.74" />
+                                                                      StrokeThickness="0.9" StrokeStartLineCap="Round"
+                                                                      StrokeEndLineCap="Round" Opacity="0.72" />
                                                                 <Path Data="M 0,36 C 72,13 121,46 193,29 C 266,10 327,43 440,27"
                                                                       Stroke="{DynamicResource AeziolSecondary}"
-                                                                      StrokeThickness="0.85" StrokeStartLineCap="Round"
-                                                                      StrokeEndLineCap="Round" Opacity="0.52" />
+                                                                      StrokeThickness="0.75" StrokeStartLineCap="Round"
+                                                                      StrokeEndLineCap="Round" Opacity="0.42" />
                                                                 <Ellipse Width="3.8" Height="3.8" Canvas.Left="69" Canvas.Top="12"
                                                                          Fill="{DynamicResource AeziolPrimary}" Opacity="0.74" />
                                                                 <Ellipse Width="2.2" Height="2.2" Canvas.Left="139" Canvas.Top="35"
@@ -1445,11 +1551,11 @@
                                                                 </Canvas.Resources>
                                                                 <Path Data="M 0,31 C 65,4 116,51 188,26 C 258,1 315,51 440,21"
                                                                       Stroke="{StaticResource DiscordBrokenPrimaryStroke}"
-                                                                      StrokeThickness="1.15" StrokeStartLineCap="Round"
+                                                                      StrokeThickness="0.9" StrokeStartLineCap="Round"
                                                                       StrokeEndLineCap="Round" />
                                                                 <Path Data="M 0,36 C 72,13 121,46 193,29 C 266,10 327,43 440,27"
                                                                       Stroke="{StaticResource DiscordBrokenSecondaryStroke}"
-                                                                      StrokeThickness="0.85" StrokeStartLineCap="Round"
+                                                                      StrokeThickness="0.75" StrokeStartLineCap="Round"
                                                                       StrokeEndLineCap="Round" Opacity="0.72" />
 
                                                                 <Canvas x:Name="DiscordRuptureGlints" Width="440" Height="58"
@@ -1519,44 +1625,58 @@
                                                             </Canvas>
                                                         </Grid>
                                                     </Viewbox>
-                                                    <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                                                        <Ellipse x:Name="DiscordRouteStateDot" Width="6" Height="6"
-                                                                 Fill="{DynamicResource AeziolDim}"
-                                                                 HorizontalAlignment="Center" />
-                                                        <TextBlock x:Name="DiscordAuthorizationStateText"
-                                                                   Margin="0,4,0,0" FontSize="10"
-                                                                   Foreground="{DynamicResource AeziolMuted}"
-                                                                   HorizontalAlignment="Center" />
-                                                    </StackPanel>
                                                 </Grid>
 
                                                 <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                    <Image Width="54" Height="54"
+                                                    <Image x:Name="AeziolConnectionEndpointIcon"
+                                                           Width="52" Height="52"
                                                            Source="{DynamicResource AeziolCicadaDrawing}" />
-                                                    <TextBlock Margin="0,5,0,0" Text="AEZIOL" FontSize="9" FontWeight="SemiBold"
+                                                    <TextBlock Margin="0,4,0,0" Text="AEZIOL" FontSize="9" FontWeight="SemiBold"
                                                                Foreground="{DynamicResource AeziolGoldBright}"
                                                                HorizontalAlignment="Center" />
                                                 </StackPanel>
                                             </Grid>
 
                                             <ToggleButton x:Name="DiscordFallbackToggle"
-                                                          Margin="0,14,0,0" Padding="0"
+                                                          Tag="DiscordSetting:8"
+                                                          Margin="0,6,0,0" Padding="0"
                                                           Background="Transparent" BorderThickness="0"
                                                           Cursor="Hand" FocusVisualStyle="{x:Null}">
                                                 <ToggleButton.Content>
-                                                    <StackPanel>
-                                                        <TextBlock x:Name="DiscordFallbackTitleText"
-                                                                   FontSize="11" FontWeight="SemiBold" />
-                                                        <TextBlock x:Name="DiscordFallbackHintText"
-                                                                   Margin="0,3,20,0" FontSize="9"
-                                                                   Foreground="{DynamicResource AeziolDim}"
-                                                                   TextWrapping="Wrap" />
-                                                    </StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="28" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Width="24" Height="24" CornerRadius="7"
+                                                                HorizontalAlignment="Left"
+                                                                Background="{DynamicResource AeziolGoldWash}">
+                                                            <Path Width="13" Height="13"
+                                                                  Stretch="Uniform"
+                                                                  Stroke="{DynamicResource AeziolGold}"
+                                                                  StrokeThickness="1.4"
+                                                                  StrokeStartLineCap="Round"
+                                                                  StrokeEndLineCap="Round"
+                                                                  StrokeLineJoin="Round"
+                                                                  Data="M 2,3 L 12,3 L 12,13 L 2,13 Z M 4,6 L 10,6 M 4,9 L 8,9" />
+                                                        </Border>
+                                                        <StackPanel Grid.Column="1" Margin="7,0,0,0"
+                                                                    VerticalAlignment="Center">
+                                                            <TextBlock x:Name="DiscordFallbackTitleText"
+                                                                       FontSize="10" FontWeight="SemiBold" />
+                                                            <TextBlock x:Name="DiscordFallbackHintText"
+                                                                       Margin="0,2,20,0" FontSize="9"
+                                                                       Foreground="{DynamicResource AeziolDim}"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                        </StackPanel>
+                                                    </Grid>
                                                 </ToggleButton.Content>
                                                 <ToggleButton.Template>
                                                     <ControlTemplate TargetType="ToggleButton">
-                                                        <Border x:Name="DisclosureSurface" Padding="12,10" CornerRadius="10"
-                                                                Background="Transparent">
+                                                        <Border x:Name="DisclosureSurface" Padding="9,7" CornerRadius="9"
+                                                                Background="{DynamicResource AeziolRaised}"
+                                                                BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                                                BorderThickness="1">
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
@@ -1598,7 +1718,7 @@
                                                 </ToggleButton.Template>
                                             </ToggleButton>
 
-                                            <Border x:Name="DiscordFallbackPanel" Margin="0,8,0,0" Padding="14"
+                                            <Border x:Name="DiscordFallbackPanel" Margin="0,6,0,0" Padding="12"
                                                     CornerRadius="11" Background="{DynamicResource AeziolRaised}">
                                                 <Border.Style>
                                                     <Style TargetType="Border">
@@ -1751,7 +1871,7 @@
                                         </Canvas.OpacityMask>
                                         <Path Data="M 8,1 C 3,10 11,17 7,26 C 4,33 9,38 7,45"
                                               Style="{StaticResource NotificationTraceStyle}"
-                                              StrokeThickness="1.15" StrokeStartLineCap="Round"
+                                              StrokeThickness="0.9" StrokeStartLineCap="Round"
                                               StrokeEndLineCap="Round" Opacity="0.82" />
                                         <Path Data="M 12,2 C 8,11 13,18 10,25 C 7,31 12,37 10,44"
                                               Style="{StaticResource NotificationTraceStyle}"

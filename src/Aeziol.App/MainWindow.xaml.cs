@@ -43,6 +43,7 @@ public partial class MainWindow : Window
     private readonly AppPaths _paths;
     private readonly Task _runtimeInitialization;
     private readonly AppUpdateService _updateService;
+    private readonly DiscordSettingsV4.DiscordSettingsV4Concept2 _discordSettings;
     private readonly SemaphoreSlim _settingsGate = new(1, 1);
     private readonly NotificationCenter _notifications = new();
     private List<EndpointChoice> _endpointChoices = [];
@@ -84,8 +85,19 @@ public partial class MainWindow : Window
         _runtimeInitialization = runtimeInitialization;
         _updateService = new AppUpdateService(UpdateHttpClient, paths.UpdatesDirectory);
         InitializeComponent();
+        _discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();
+        _discordSettings.SetRestoreDelaySeconds(runtime.Settings.ExitGracePeriodSeconds);
+        _discordSettings.RestoreDelayChanged += OnDiscordRestoreDelayChanged;
+        if (ExclusionsJourneyHost.Parent is System.Windows.Controls.Panel exclusionsParent)
+        {
+            exclusionsParent.Children.Remove(ExclusionsJourneyHost);
+        }
         SettingsDiscordScrollViewer.Content = null;
-        DiscordSettingsHost.Content = DiscordSettingsCard;
+        _discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;
+        _discordSettings.ExcludedOutputsHost.Content = ExclusionsJourneyHost;
+        DiscordSettingsHost.Content = _discordSettings;
+        RulesView.SizeChanged += (_, _) => UpdateDiscordSettingsAvailableHeight();
+        DiscordSettingsHost.Loaded += (_, _) => UpdateDiscordSettingsAvailableHeight();
         CloseActionsMenu.LayoutTransform = _closeActionsMenuScale;
         NotificationItems.ItemsSource = _notifications.Items;
         MotionAssist.SetIsReduced(this, runtime.Settings.ReduceAnimations);
@@ -156,7 +168,7 @@ public partial class MainWindow : Window
             RefreshLanguageChoices(settings.Language);
             SelectByTag(ThemeCombo, settings.Theme.ToString());
             SelectByTag(CloseBehaviorCombo, settings.CloseBehavior.ToString());
-            SelectByTag(GracePeriodCombo, settings.ExitGracePeriodSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            _discordSettings.SetRestoreDelaySeconds(settings.ExitGracePeriodSeconds);
             AmbientMusicVolumeSlider.Value = Math.Clamp(settings.AmbientMusicVolumePercent, 0, 100);
             UpdateDiscordExecutableControls();
             UpdateCloseBehaviorPreview();
@@ -1325,7 +1337,6 @@ public partial class MainWindow : Window
             "EnhanceContrast" => current => current with { EnhanceContrast = defaults.EnhanceContrast },
             "ReduceAnimations" => current => current with { ReduceAnimations = defaults.ReduceAnimations },
             "CloseBehavior" => current => current with { CloseBehavior = defaults.CloseBehavior },
-            "GracePeriod" => current => current with { ExitGracePeriodSeconds = defaults.ExitGracePeriodSeconds },
             "Autostart" => current => current with
             {
                 StartWithWindows = defaults.StartWithWindows,
@@ -1559,10 +1570,9 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void OnGracePeriodChanged(object sender, SelectionChangedEventArgs eventArgs)
+    private async void OnDiscordRestoreDelayChanged(int seconds)
     {
-        if (_initializing || _syncingControls
-            || !int.TryParse(SelectedTag(GracePeriodCombo), out var seconds))
+        if (_initializing || _syncingControls)
         {
             return;
         }
@@ -2101,13 +2111,37 @@ public partial class MainWindow : Window
         DiscordAuthorizationStateText.Text = authorizationText;
         DiscordAuthorizationStateText.Foreground = authorizationBrush;
         DiscordRouteStateDot.Fill = authorizationBrush;
+        DiscordAuthorizationStateTag.BorderBrush = authorizationBrush;
+        DiscordAuthorizationStateTag.Opacity = isAuthorized ? 1 : 0.76;
+        System.Windows.Automation.AutomationProperties.SetName(
+            DiscordAuthorizationStateTag,
+            authorizationText);
         DiscordConnectedTrailCanvas.Visibility = isAuthorized ? Visibility.Visible : Visibility.Collapsed;
         DiscordBrokenTrailCanvas.Visibility = isAuthorized ? Visibility.Collapsed : Visibility.Visible;
         DiscordConnectedTrailCanvas.BeginAnimation(OpacityProperty, null);
         DiscordBrokenTrailCanvas.BeginAnimation(OpacityProperty, null);
         DiscordRuptureGlints.BeginAnimation(OpacityProperty, null);
+        DiscordConnectedTrailGlowLayer.BeginAnimation(OpacityProperty, null);
+        DiscordConnectedTrailGlowLayer.Opacity = isAuthorized ? 0.82 : 0;
         DiscordBrokenTrailCanvas.Opacity = 0.76;
         DiscordRuptureGlints.Opacity = 0.76;
+
+        if (isAuthorized
+            && _lastDiscordAuthorizationState is false
+            && !_runtime.Settings.ReduceAnimations)
+        {
+            var authorizationGlow = new DoubleAnimationUsingKeyFrames();
+            authorizationGlow.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+            authorizationGlow.KeyFrames.Add(new EasingDoubleKeyFrame(1, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(180)))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
+            });
+            authorizationGlow.KeyFrames.Add(new EasingDoubleKeyFrame(0.82, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(520)))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut },
+            });
+            DiscordConnectedTrailGlowLayer.BeginAnimation(OpacityProperty, authorizationGlow);
+        }
 
         if (!isAuthorized
             && _lastDiscordAuthorizationState is true
@@ -2180,8 +2214,7 @@ public partial class MainWindow : Window
         System.Windows.Automation.AutomationProperties.SetName(SettingsNav, settingsLabel);
         DiscordTitleText.Text = _localization.Get("page-discord-title", register);
         DiscordSubtitleText.Text = _localization.Get("page-discord-subtitle", register);
-        DiscordOverviewTab.Content = _localization.Get("discord-section-overview", register);
-        DiscordRulesTab.Content = _localization.Get("discord-section-rule", register);
+        UpdateDiscordSettingsTogglePresentation();
         UpdateAutomationPresentation(_runtime.Settings.AutomationEnabled, animate: false);
         SourceLabelText.Text = _localization.Get("source", register);
         TargetLabelText.Text = _localization.Get("destination", register);
@@ -2189,8 +2222,6 @@ public partial class MainWindow : Window
         TargetHelpText.Text = _localization.Get("target-help", register);
         ForceRestoreButton.Content = _localization.Get("force-restore", register);
 
-        RulesTitleText.Text = _localization.Get("page-rules-title", register);
-        RulesSubtitleText.Text = _localization.Get("page-rules-subtitle", register);
         RuleTriggerLabelText.Text = _localization.Get("rule-trigger", register);
         RuleNameText.Text = _localization.Get("rule-name", register);
         RuleWhenLabelText.Text = _localization.Get("rule-when-label", register);
@@ -2263,16 +2294,6 @@ public partial class MainWindow : Window
         ((ComboBoxItem)CloseBehaviorCombo.Items[0]).Content = _localization.Get("close-choice-ask", register);
         ((ComboBoxItem)CloseBehaviorCombo.Items[1]).Content = _localization.Get("close-choice-tray", register);
         ((ComboBoxItem)CloseBehaviorCombo.Items[2]).Content = _localization.Get("close-choice-quit", register);
-        GracePeriodLabelText.Text = _localization.Get("grace-period", register);
-        GracePeriodHelpText.Text = _localization.Get("grace-period-help", register);
-        for (var index = 0; index < GracePeriodCombo.Items.Count; index++)
-        {
-            if (GracePeriodCombo.Items[index] is ComboBoxItem item && item.Tag is { } tag)
-            {
-                item.Content = _localization.Get("grace-" + tag, register);
-            }
-        }
-
         ReplayOnboardingButton.Content = _localization.Get("replay-onboarding", register);
         OpenLogsButton.Content = _localization.Get("logs", register);
         ResetApplicationSettingsButton.Content = _localization.Get("reset-application", register);
@@ -2338,17 +2359,35 @@ public partial class MainWindow : Window
         UpdateNavigationContext();
     }
 
-    private void OnDiscordSectionChanged(object sender, RoutedEventArgs eventArgs)
+    private void OnDiscordSettingsToggled(object sender, RoutedEventArgs eventArgs)
     {
         if (!IsInitialized)
         {
             return;
         }
 
-        var showRules = ReferenceEquals(sender, DiscordRulesTab);
-        PassageAutomationContent.Visibility = showRules ? Visibility.Collapsed : Visibility.Visible;
-        RulesView.Visibility = showRules ? Visibility.Visible : Visibility.Collapsed;
-        AnimateSettingsPanel(showRules ? RulesView : PassageAutomationContent);
+        var showSettings = DiscordSettingsToggleButton.IsChecked == true;
+        PassageAutomationContent.Visibility = showSettings ? Visibility.Collapsed : Visibility.Visible;
+        RulesView.Visibility = showSettings ? Visibility.Visible : Visibility.Collapsed;
+        UpdateDiscordSettingsTogglePresentation();
+        AnimateSettingsPanel(showSettings ? RulesView : PassageAutomationContent);
+    }
+
+    private void UpdateDiscordSettingsTogglePresentation()
+    {
+        var settingsAreOpen = DiscordSettingsToggleButton.IsChecked == true;
+        var actionLabel = _localization.Get(
+            settingsAreOpen
+                ? "discord-section-overview"
+                : "discord-section-rule",
+            SelectedRegister);
+        DiscordSettingsToggleButton.ToolTip = actionLabel;
+        System.Windows.Automation.AutomationProperties.SetName(
+            DiscordSettingsToggleButton,
+            actionLabel);
+        System.Windows.Automation.AutomationProperties.SetHelpText(
+            DiscordSettingsToggleButton,
+            actionLabel);
     }
 
     private void OnNavigateSettings(object sender, RoutedEventArgs eventArgs)
@@ -2441,17 +2480,18 @@ public partial class MainWindow : Window
     {
         if (sender is not FrameworkElement row
             || row.ActualHeight <= 0
-            || ExclusionsJourneyHost.ActualHeight <= 0)
+            || ExclusionsJourneyTraceCanvas.ActualHeight <= 0)
         {
             return;
         }
 
-        var scale = ExclusionsJourneyTrace.Height / ExclusionsJourneyHost.ActualHeight;
-        var rowTop = row.TranslatePoint(new System.Windows.Point(0, 0), ExclusionsJourneyHost).Y * scale;
+        var rowTop = row.TranslatePoint(
+            new System.Windows.Point(0, 0),
+            ExclusionsJourneyTraceCanvas).Y;
         var fadeTop = Math.Max(0, rowTop - 5);
         var fadeBottom = Math.Min(
             ExclusionsJourneyTrace.Height,
-            rowTop + (row.ActualHeight * scale) + 5);
+            rowTop + row.ActualHeight + 5);
         if (fadeBottom <= fadeTop)
         {
             return;
@@ -2467,6 +2507,95 @@ public partial class MainWindow : Window
         object sender,
         System.Windows.Input.MouseEventArgs eventArgs) =>
         ExclusionsJourneyTrace.HideHighlight(sender, MotionAssist.GetIsReduced(this));
+
+    private void OnExclusionsJourneyTraceCanvasSizeChanged(object sender, SizeChangedEventArgs eventArgs)
+    {
+        var height = ExclusionsJourneyTraceCanvas.ActualHeight;
+        ExclusionsJourneyTrace.Visibility = height > 1 ? Visibility.Visible : Visibility.Collapsed;
+        if (height <= 1 || Math.Abs(ExclusionsJourneyTrace.Height - height) < 0.1)
+        {
+            return;
+        }
+
+        ExclusionsJourneyTrace.Height = height;
+        ExclusionsJourneyTrace.TraceA = CreateExclusionsJourneyGeometry(
+            height,
+            7, 4, 0.225, 14, 0.34, 12, 0.575,
+            10, 0.765, 5, 0.885, 9);
+        ExclusionsJourneyTrace.TraceB = CreateExclusionsJourneyGeometry(
+            height,
+            11, 7, 0.23, 16, 0.35, 10, 0.585,
+            8, 0.775, 8, 0.875, 12);
+
+        ExclusionsJourneyTrace.Particles.Clear();
+        ExclusionsJourneyTrace.Particles.Add(new Controls.JourneyParticle
+        {
+            X = 3,
+            Y = height * 0.24,
+            Size = 2,
+            Opacity = 0.42,
+            HighlightSize = 3,
+            HighlightOpacity = 0.92,
+            Tone = Controls.JourneyParticleTone.Primary,
+        });
+        ExclusionsJourneyTrace.Particles.Add(new Controls.JourneyParticle
+        {
+            X = 15,
+            Y = height * 0.52,
+            Size = 1.5,
+            Opacity = 0.45,
+            HighlightSize = 2.5,
+            HighlightOpacity = 0.9,
+            Tone = Controls.JourneyParticleTone.Secondary,
+        });
+        ExclusionsJourneyTrace.Particles.Add(new Controls.JourneyParticle
+        {
+            X = 4,
+            Y = height * 0.815,
+            Size = 2,
+            Opacity = 0.38,
+            HighlightSize = 3,
+            HighlightOpacity = 0.88,
+            Tone = Controls.JourneyParticleTone.Primary,
+        });
+    }
+
+    private static StreamGeometry CreateExclusionsJourneyGeometry(
+        double height,
+        double startX,
+        double firstControlX,
+        double firstControlY,
+        double secondControlX,
+        double secondControlY,
+        double midpointX,
+        double midpointY,
+        double thirdControlX,
+        double thirdControlY,
+        double fourthControlX,
+        double fourthControlY,
+        double endX)
+    {
+        var geometry = new StreamGeometry();
+        using (var context = geometry.Open())
+        {
+            context.BeginFigure(new System.Windows.Point(startX, 0), isFilled: false, isClosed: false);
+            context.BezierTo(
+                new System.Windows.Point(firstControlX, height * firstControlY),
+                new System.Windows.Point(secondControlX, height * secondControlY),
+                new System.Windows.Point(midpointX, height * midpointY),
+                isStroked: true,
+                isSmoothJoin: false);
+            context.BezierTo(
+                new System.Windows.Point(thirdControlX, height * thirdControlY),
+                new System.Windows.Point(fourthControlX, height * fourthControlY),
+                new System.Windows.Point(endX, height),
+                isStroked: true,
+                isSmoothJoin: false);
+        }
+
+        geometry.Freeze();
+        return geometry;
+    }
 
     private void OnOpenSettingsEditor(object sender, RoutedEventArgs eventArgs)
     {
@@ -2579,9 +2708,7 @@ public partial class MainWindow : Window
 
         var closeBehavior = (CloseBehaviorCombo.SelectedItem as ComboBoxItem)?.Content?.ToString()
             ?? _runtime.Settings.CloseBehavior.ToString();
-        var gracePeriod = (GracePeriodCombo.SelectedItem as ComboBoxItem)?.Content?.ToString()
-            ?? $"{_runtime.Settings.ExitGracePeriodSeconds} s";
-        BehaviorSummaryText.Text = $"{closeBehavior} · {gracePeriod}";
+        BehaviorSummaryText.Text = closeBehavior;
 
         var musicEnabled = AmbientMusicToggle.IsChecked == true;
         var volume = Math.Clamp((int)Math.Round(AmbientMusicVolumeSlider.Value), 0, 100);
@@ -2872,6 +2999,23 @@ public partial class MainWindow : Window
     }
 
     private void OnWindowSizeChanged(object sender, SizeChangedEventArgs eventArgs) => UpdateResponsiveScale();
+
+    private void UpdateDiscordSettingsAvailableHeight()
+    {
+        if (!DiscordSettingsHost.IsLoaded || RulesView.ActualHeight <= 0)
+        {
+            return;
+        }
+
+        var contentTop = DiscordSettingsHost.TranslatePoint(
+            new System.Windows.Point(0, 0),
+            RulesView).Y;
+        var availableHeight = RulesView.ActualHeight - Math.Max(0, contentTop);
+        if (availableHeight > 0)
+        {
+            _discordSettings.Height = availableHeight;
+        }
+    }
 
     private void UpdateResponsiveScale()
     {
