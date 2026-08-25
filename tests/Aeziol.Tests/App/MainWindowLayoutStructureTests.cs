@@ -63,6 +63,7 @@ public sealed class MainWindowLayoutStructureTests
         var windowDocument = XDocument.Load(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml"));
         var windowSource = File.ReadAllText(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml.cs"));
         var actionButton = FindNamedElement(windowDocument, "AutomationActionButton");
+        var passageRouteGrid = FindNamedElement(windowDocument, "PassageRouteGrid");
         var controlSurface = FindNamedElement(windowDocument, "AutomationControlSurface");
         var cicada = FindNamedElement(windowDocument, "AutomationCicadaImage");
         var cicadaRotation = FindNamedElement(windowDocument, "AutomationCicadaRotation");
@@ -81,6 +82,10 @@ public sealed class MainWindowLayoutStructureTests
             .ToArray();
 
         Assert.Equal("Button", actionButton.Name.LocalName);
+        Assert.Equal(
+            ["250", "*", "250"],
+            passageRouteGrid.Elements().Single(element => element.Name.LocalName == "Grid.ColumnDefinitions")
+                .Elements().Select(element => element.Attribute("Width")?.Value));
         Assert.Equal("82", actionButton.Attribute("Width")?.Value);
         Assert.Equal("82", actionButton.Attribute("Height")?.Value);
         Assert.Equal("False", actionButton.Attribute("Focusable")?.Value);

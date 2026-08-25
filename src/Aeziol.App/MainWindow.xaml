@@ -384,9 +384,9 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <Grid Margin="4,12,4,14">
+                                <Grid x:Name="PassageRouteGrid" Margin="4,12,4,14">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="165" />
+                                        <ColumnDefinition Width="250" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="250" />
                                     </Grid.ColumnDefinitions>
