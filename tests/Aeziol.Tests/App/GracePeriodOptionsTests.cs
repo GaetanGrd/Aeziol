@@ -8,6 +8,10 @@ public sealed class GracePeriodOptionsTests
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(5)]
+    [InlineData(10)]
+    [InlineData(30)]
     public void SupportedValuesArePreserved(int seconds)
     {
         Assert.Equal(seconds, GracePeriodOptions.Normalize(seconds));
@@ -15,10 +19,8 @@ public sealed class GracePeriodOptionsTests
 
     [Theory]
     [InlineData(-1)]
-    [InlineData(4)]
-    [InlineData(6)]
-    [InlineData(10)]
-    [InlineData(30)]
+    [InlineData(31)]
+    [InlineData(100)]
     public void LegacyOrInvalidValuesMigrateToRecommendedDelay(int seconds)
     {
         Assert.Equal(1, GracePeriodOptions.Normalize(seconds));

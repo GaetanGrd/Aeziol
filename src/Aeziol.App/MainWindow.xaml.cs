@@ -43,6 +43,7 @@ public partial class MainWindow : Window
     private readonly AppPaths _paths;
     private readonly Task _runtimeInitialization;
     private readonly AppUpdateService _updateService;
+    private readonly DiscordSettingsV4.DiscordSettingsV4Concept2 _discordSettings;
     private readonly SemaphoreSlim _settingsGate = new(1, 1);
     private readonly NotificationCenter _notifications = new();
     private List<EndpointChoice> _endpointChoices = [];
@@ -84,7 +85,9 @@ public partial class MainWindow : Window
         _runtimeInitialization = runtimeInitialization;
         _updateService = new AppUpdateService(UpdateHttpClient, paths.UpdatesDirectory);
         InitializeComponent();
-        var discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();
+        _discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();
+        _discordSettings.SetRestoreDelaySeconds(runtime.Settings.ExitGracePeriodSeconds);
+        _discordSettings.RestoreDelayChanged += OnDiscordRestoreDelayChanged;
         if (DiscordFallbackToggle.Parent is System.Windows.Controls.Panel fallbackParent)
         {
             fallbackParent.Children.Remove(DiscordFallbackToggle);
@@ -95,17 +98,17 @@ public partial class MainWindow : Window
             exclusionsParent.Children.Remove(ExclusionsJourneyHost);
         }
         SettingsDiscordScrollViewer.Content = null;
-        discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;
-        discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackToggle);
-        discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackPanel);
+        _discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;
+        _discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackToggle);
+        _discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackPanel);
         DiscordFallbackToggle.IsChecked = true;
         DiscordFallbackToggle.Visibility = Visibility.Collapsed;
         DiscordFallbackPanel.Margin = new Thickness(0);
-        discordSettings.ExcludedOutputsHost.Content = ExclusionsJourneyHost;
-        discordSettings.ConceptRoot.Children.Remove(discordSettings.SettingsModalLayer);
-        RulesView.Children.Add(discordSettings.SettingsModalLayer);
-        System.Windows.Controls.Panel.SetZIndex(discordSettings.SettingsModalLayer, 20);
-        DiscordSettingsHost.Content = discordSettings;
+        _discordSettings.ExcludedOutputsHost.Content = ExclusionsJourneyHost;
+        _discordSettings.ConceptRoot.Children.Remove(_discordSettings.SettingsModalLayer);
+        RulesView.Children.Add(_discordSettings.SettingsModalLayer);
+        System.Windows.Controls.Panel.SetZIndex(_discordSettings.SettingsModalLayer, 20);
+        DiscordSettingsHost.Content = _discordSettings;
         CloseActionsMenu.LayoutTransform = _closeActionsMenuScale;
         NotificationItems.ItemsSource = _notifications.Items;
         MotionAssist.SetIsReduced(this, runtime.Settings.ReduceAnimations);
@@ -176,7 +179,7 @@ public partial class MainWindow : Window
             RefreshLanguageChoices(settings.Language);
             SelectByTag(ThemeCombo, settings.Theme.ToString());
             SelectByTag(CloseBehaviorCombo, settings.CloseBehavior.ToString());
-            SelectByTag(GracePeriodCombo, settings.ExitGracePeriodSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            _discordSettings.SetRestoreDelaySeconds(settings.ExitGracePeriodSeconds);
             AmbientMusicVolumeSlider.Value = Math.Clamp(settings.AmbientMusicVolumePercent, 0, 100);
             UpdateDiscordExecutableControls();
             UpdateCloseBehaviorPreview();
@@ -1345,7 +1348,6 @@ public partial class MainWindow : Window
             "EnhanceContrast" => current => current with { EnhanceContrast = defaults.EnhanceContrast },
             "ReduceAnimations" => current => current with { ReduceAnimations = defaults.ReduceAnimations },
             "CloseBehavior" => current => current with { CloseBehavior = defaults.CloseBehavior },
-            "GracePeriod" => current => current with { ExitGracePeriodSeconds = defaults.ExitGracePeriodSeconds },
             "Autostart" => current => current with
             {
                 StartWithWindows = defaults.StartWithWindows,
@@ -1579,10 +1581,9 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void OnGracePeriodChanged(object sender, SelectionChangedEventArgs eventArgs)
+    private async void OnDiscordRestoreDelayChanged(int seconds)
     {
-        if (_initializing || _syncingControls
-            || !int.TryParse(SelectedTag(GracePeriodCombo), out var seconds))
+        if (_initializing || _syncingControls)
         {
             return;
         }
@@ -2300,16 +2301,6 @@ public partial class MainWindow : Window
         ((ComboBoxItem)CloseBehaviorCombo.Items[0]).Content = _localization.Get("close-choice-ask", register);
         ((ComboBoxItem)CloseBehaviorCombo.Items[1]).Content = _localization.Get("close-choice-tray", register);
         ((ComboBoxItem)CloseBehaviorCombo.Items[2]).Content = _localization.Get("close-choice-quit", register);
-        GracePeriodLabelText.Text = _localization.Get("grace-period", register);
-        GracePeriodHelpText.Text = _localization.Get("grace-period-help", register);
-        for (var index = 0; index < GracePeriodCombo.Items.Count; index++)
-        {
-            if (GracePeriodCombo.Items[index] is ComboBoxItem item && item.Tag is { } tag)
-            {
-                item.Content = _localization.Get("grace-" + tag, register);
-            }
-        }
-
         ReplayOnboardingButton.Content = _localization.Get("replay-onboarding", register);
         OpenLogsButton.Content = _localization.Get("logs", register);
         ResetApplicationSettingsButton.Content = _localization.Get("reset-application", register);
@@ -2616,9 +2607,7 @@ public partial class MainWindow : Window
 
         var closeBehavior = (CloseBehaviorCombo.SelectedItem as ComboBoxItem)?.Content?.ToString()
             ?? _runtime.Settings.CloseBehavior.ToString();
-        var gracePeriod = (GracePeriodCombo.SelectedItem as ComboBoxItem)?.Content?.ToString()
-            ?? $"{_runtime.Settings.ExitGracePeriodSeconds} s";
-        BehaviorSummaryText.Text = $"{closeBehavior} · {gracePeriod}";
+        BehaviorSummaryText.Text = closeBehavior;
 
         var musicEnabled = AmbientMusicToggle.IsChecked == true;
         var volume = Math.Clamp((int)Math.Round(AmbientMusicVolumeSlider.Value), 0, 100);

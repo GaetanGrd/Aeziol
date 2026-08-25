@@ -164,6 +164,10 @@
                                             Tag="DiscordSetting:2"
                                             Style="{StaticResource ConceptSettingRow}">
                                         <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="140" />
@@ -178,12 +182,42 @@
                                                       Grid.Column="1"
                                                       MinHeight="32"
                                                       SelectedIndex="1"
+                                                      SelectionChanged="OnRestoreDelaySelectionChanged"
                                                       automation:AutomationProperties.Name="Délai avant restauration de la sortie">
-                                                <ComboBoxItem Content="Immédiatement" />
-                                                <ComboBoxItem Content="5 secondes" />
-                                                <ComboBoxItem Content="10 secondes" />
-                                                <ComboBoxItem Content="30 secondes" />
+                                                <ComboBoxItem Tag="0" Content="Immédiatement" />
+                                                <ComboBoxItem Tag="1" Content="1 seconde" />
+                                                <ComboBoxItem Tag="2" Content="2 secondes" />
+                                                <ComboBoxItem Tag="3" Content="3 secondes" />
+                                                <ComboBoxItem Tag="Custom" Content="Personnaliser" />
                                             </ComboBox>
+
+                                            <StackPanel x:Name="CustomRestoreDelayPanel"
+                                                        Grid.Row="1"
+                                                        Grid.ColumnSpan="2"
+                                                        Margin="0,10,0,0"
+                                                        HorizontalAlignment="Right"
+                                                        Orientation="Horizontal"
+                                                        Visibility="Collapsed">
+                                                <TextBlock Margin="0,0,8,0"
+                                                           VerticalAlignment="Center"
+                                                           Style="{StaticResource ConceptSettingHelp}"
+                                                           Text="Durée personnalisée" />
+                                                <TextBox x:Name="CustomRestoreDelayTextBox"
+                                                         Width="62"
+                                                         MinHeight="32"
+                                                         Padding="8,4"
+                                                         MaxLength="2"
+                                                         Text="5"
+                                                         TextAlignment="Center"
+                                                         VerticalContentAlignment="Center"
+                                                         PreviewTextInput="OnCustomRestoreDelayPreviewTextInput"
+                                                         TextChanged="OnCustomRestoreDelayTextChanged"
+                                                         automation:AutomationProperties.Name="Durée personnalisée en secondes" />
+                                                <TextBlock Margin="8,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Style="{StaticResource ConceptSettingHelp}"
+                                                           Text="secondes" />
+                                            </StackPanel>
                                         </Grid>
                                     </Border>
 

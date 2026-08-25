@@ -137,6 +137,16 @@ public sealed class DiscordSettingsV4Concept2StructureTests
         Assert.Null(FindNamedElement(document, "SettingsModalScrollViewer").Attribute("MaxHeight"));
         Assert.Equal("1", FindNamedElement(document, "RestoreDelayComboBox").Attribute("Grid.Column")?.Value);
         Assert.Equal("32", FindNamedElement(document, "RestoreDelayComboBox").Attribute("MinHeight")?.Value);
+        Assert.Equal(
+            ["Immédiatement", "1 seconde", "2 secondes", "3 secondes", "Personnaliser"],
+            FindNamedElement(document, "RestoreDelayComboBox").Elements()
+                .Select(element => element.Attribute("Content")?.Value));
+        Assert.Equal(
+            ["0", "1", "2", "3", "Custom"],
+            FindNamedElement(document, "RestoreDelayComboBox").Elements()
+                .Select(element => element.Attribute("Tag")?.Value));
+        Assert.Equal("Collapsed", FindNamedElement(document, "CustomRestoreDelayPanel").Attribute("Visibility")?.Value);
+        Assert.Equal("2", FindNamedElement(document, "CustomRestoreDelayTextBox").Attribute("MaxLength")?.Value);
         Assert.Equal("300", FindNamedElement(document, "ExcludedOutputsHost").Attribute("MinHeight")?.Value);
         foreach (var panelName in new[] { "GlobalSettingsPanel", "ExcludedOutputsSetting", "FallbackSettingsPanel" })
         {
@@ -218,6 +228,32 @@ public sealed class DiscordSettingsV4Concept2WpfTests
 
             Assert.Equal(1, clickCount);
             Assert.IsType<JourneyTrace>(card.FindName("CardJourneyTrace"));
+        });
+    }
+
+    [Fact]
+    public void CustomRestoreDelayIsOnlyShownForTheCustomChoice()
+    {
+        WpfTestHost.Run(() =>
+        {
+            var concept = new DiscordSettingsV4Concept2();
+            var comboBox = Assert.IsType<System.Windows.Controls.ComboBox>(
+                concept.FindName("RestoreDelayComboBox"));
+            var customPanel = Assert.IsType<StackPanel>(concept.FindName("CustomRestoreDelayPanel"));
+            var customTextBox = Assert.IsType<System.Windows.Controls.TextBox>(
+                concept.FindName("CustomRestoreDelayTextBox"));
+
+            concept.SetRestoreDelaySeconds(12);
+
+            Assert.Equal(4, comboBox.SelectedIndex);
+            Assert.Equal(Visibility.Visible, customPanel.Visibility);
+            Assert.Equal("12", customTextBox.Text);
+            Assert.Equal(12, concept.RestoreDelaySeconds);
+
+            comboBox.SelectedIndex = 2;
+
+            Assert.Equal(Visibility.Collapsed, customPanel.Visibility);
+            Assert.Equal(2, concept.RestoreDelaySeconds);
         });
     }
 }
