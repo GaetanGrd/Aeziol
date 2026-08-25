@@ -1320,7 +1320,7 @@
                                               VerticalScrollBarVisibility="Auto"
                                               HorizontalScrollBarVisibility="Disabled">
                                     <Border x:Name="DiscordSettingsCard" Margin="0,0,8,8"
-                                            Padding="12" CornerRadius="13"
+                                            Padding="16" CornerRadius="13"
                                             VerticalAlignment="Top"
                                             Background="{DynamicResource AeziolSurface}"
                                             BorderBrush="{DynamicResource AeziolTraceBorder}"
@@ -1350,21 +1350,22 @@
                                                 </StackPanel>
                                             </Grid>
 
-                                            <Grid Margin="0,6,0,0" Height="64">
+                                            <Grid Margin="0,10,0,2" Height="88">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="54" />
+                                                    <ColumnDefinition Width="66" />
                                                     <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="54" />
+                                                    <ColumnDefinition Width="66" />
                                                 </Grid.ColumnDefinitions>
 
                                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                    <Border Width="40" Height="40" CornerRadius="13"
+                                                    <Border x:Name="DiscordConnectionEndpointIcon"
+                                                            Width="52" Height="52" CornerRadius="16"
                                                             Background="{DynamicResource AeziolRaised}">
-                                                        <Path Width="22" Height="17" Stretch="Uniform"
+                                                        <Path Width="28" Height="22" Stretch="Uniform"
                                                               Data="{StaticResource DiscordSymbolGeometry}"
                                                               Fill="#5865F2" />
                                                     </Border>
-                                                    <TextBlock Margin="0,3,0,0" Text="Discord" FontSize="8"
+                                                    <TextBlock Margin="0,4,0,0" Text="Discord" FontSize="9"
                                                                Foreground="{DynamicResource AeziolMuted}"
                                                                HorizontalAlignment="Center" />
                                                 </StackPanel>
@@ -1526,9 +1527,10 @@
                                                 </Grid>
 
                                                 <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                    <Image Width="40" Height="40"
+                                                    <Image x:Name="AeziolConnectionEndpointIcon"
+                                                           Width="52" Height="52"
                                                            Source="{DynamicResource AeziolCicadaDrawing}" />
-                                                    <TextBlock Margin="0,3,0,0" Text="AEZIOL" FontSize="8" FontWeight="SemiBold"
+                                                    <TextBlock Margin="0,4,0,0" Text="AEZIOL" FontSize="9" FontWeight="SemiBold"
                                                                Foreground="{DynamicResource AeziolGoldBright}"
                                                                HorizontalAlignment="Center" />
                                                 </StackPanel>

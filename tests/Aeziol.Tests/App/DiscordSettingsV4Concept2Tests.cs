@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Linq;
+using Aeziol.App.Controls;
 using Aeziol.App.DiscordSettingsV4;
 
 namespace Aeziol.Tests.App;
@@ -8,6 +9,8 @@ namespace Aeziol.Tests.App;
 public sealed class DiscordSettingsV4Concept2StructureTests
 {
     private static readonly XNamespace Xaml = "http://schemas.microsoft.com/winfx/2006/xaml";
+    private static readonly string[] LauncherNames =
+        ["OpenGlobalSettingsButton", "OpenOutputDevicesButton", "OpenFallbackSettingsButton"];
 
     [Fact]
     public void ConceptContainsTheFourSettingsNotOwnedByTheOriginalConnectionCard()
@@ -99,18 +102,24 @@ public sealed class DiscordSettingsV4Concept2StructureTests
     public void ConceptUsesThreeCompactLaunchersAndModalSections()
     {
         var document = LoadConcept();
-        var launcherStyle = document.Descendants().Single(element =>
-            element.Name.LocalName == "Style"
-            && element.Attribute(Xaml + "Key")?.Value == "ConceptLauncherButton");
-        var launcherSurface = launcherStyle.Descendants().Single(element =>
-            element.Attribute(Xaml + "Name")?.Value == "LauncherSurface");
+        var component = XDocument.Load(FindSourceFile(
+            "src", "Aeziol.App", "Controls", "SettingsSectionCard.xaml"));
+        var launcherSurface = component.Descendants().Single(element =>
+            element.Attribute(Xaml + "Name")?.Value == "CardSurface");
+        var journeyTrace = component.Descendants().Single(element =>
+            element.Attribute(Xaml + "Name")?.Value == "CardJourneyTrace");
+        var iconSurface = FindNamedElement(component, "SectionIconSurface");
 
-        Assert.Null(launcherStyle.Attribute("BasedOn"));
-        Assert.Contains(launcherStyle.Elements(), element =>
-            element.Name.LocalName == "Setter"
-            && element.Attribute("Property")?.Value == "MinHeight"
-            && element.Attribute("Value")?.Value == "168");
+        Assert.Equal("168", component.Root?.Attribute("MinHeight")?.Value);
         Assert.Equal("16", launcherSurface.Attribute("CornerRadius")?.Value);
+        Assert.Equal("JourneyTrace", journeyTrace.Name.LocalName);
+        Assert.Equal("52", iconSurface.Attribute("Width")?.Value);
+        Assert.Equal("52", iconSurface.Attribute("Height")?.Value);
+        Assert.Equal("OnCardMouseEnter", FindNamedElement(component, "SectionButton").Attribute("MouseEnter")?.Value);
+        Assert.Equal("OnCardMouseLeave", FindNamedElement(component, "SectionButton").Attribute("MouseLeave")?.Value);
+        Assert.All(
+            LauncherNames,
+            name => Assert.Equal("SettingsSectionCard", FindNamedElement(document, name).Name.LocalName));
         Assert.Equal("0", FindNamedElement(document, "OpenGlobalSettingsButton").Attribute("Grid.Column")?.Value);
         Assert.Equal("2", FindNamedElement(document, "OpenOutputDevicesButton").Attribute("Grid.Column")?.Value);
         Assert.Equal("4", FindNamedElement(document, "OpenFallbackSettingsButton").Attribute("Grid.Column")?.Value);
@@ -172,15 +181,38 @@ public sealed class DiscordSettingsV4Concept2WpfTests
             Assert.IsType<StackPanel>(concept.FindName("DiscordFallbackHost"));
             Assert.IsType<ContentControl>(concept.FindName("ExcludedOutputsHost"));
 
-            var outputsButton = Assert.IsType<System.Windows.Controls.Button>(
+            var outputsButton = Assert.IsType<SettingsSectionCard>(
                 concept.FindName("OpenOutputDevicesButton"));
-            outputsButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            outputsButton.RaiseEvent(new RoutedEventArgs(SettingsSectionCard.ClickEvent));
 
             Assert.Equal(Visibility.Visible, Assert.IsType<Grid>(concept.FindName("SettingsModalLayer")).Visibility);
             Assert.Equal(Visibility.Visible, Assert.IsType<Border>(concept.FindName("ExcludedOutputsSetting")).Visibility);
             Assert.Equal(
                 "Périphériques de sortie",
                 Assert.IsType<TextBlock>(concept.FindName("SettingsModalTitleText")).Text);
+        });
+    }
+
+    [Fact]
+    public void ReusableSectionCardForwardsClicksFromItsInternalButton()
+    {
+        WpfTestHost.Run(() =>
+        {
+            var card = new SettingsSectionCard
+            {
+                Title = "Section",
+                Description = "Description",
+                IconData = System.Windows.Media.Geometry.Parse("M 0,0 L 10,10"),
+            };
+            var clickCount = 0;
+            card.Click += (_, _) => clickCount++;
+            card.ApplyTemplate();
+
+            var button = Assert.IsType<System.Windows.Controls.Button>(card.FindName("SectionButton"));
+            button.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+
+            Assert.Equal(1, clickCount);
+            Assert.IsType<JourneyTrace>(card.FindName("CardJourneyTrace"));
         });
     }
 }

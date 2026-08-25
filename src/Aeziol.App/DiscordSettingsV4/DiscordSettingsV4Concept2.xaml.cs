@@ -12,7 +12,7 @@ public partial class DiscordSettingsV4Concept2 : System.Windows.Controls.UserCon
 
     private void OnOpenSettingsModal(object sender, RoutedEventArgs eventArgs)
     {
-        if (sender is not System.Windows.Controls.Button { Tag: string section })
+        if (sender is not Aeziol.App.Controls.SettingsSectionCard { Tag: string section })
         {
             return;
         }
