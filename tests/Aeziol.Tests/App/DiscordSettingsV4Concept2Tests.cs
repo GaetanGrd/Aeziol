@@ -67,13 +67,15 @@ public sealed class DiscordSettingsV4Concept2StructureTests
         var comboBox = FindNamedElement(document, "RestoreDelayComboBox");
 
         Assert.Equal("1", comboBox.Attribute("Grid.Column")?.Value);
-        Assert.Equal("32", comboBox.Attribute("MinHeight")?.Value);
         Assert.Equal(
             ["Immédiatement", "1 seconde", "2 secondes", "3 secondes", "Personnaliser"],
             comboBox.Elements().Select(element => element.Attribute("Content")?.Value));
         Assert.Equal(
             ["0", "1", "2", "3", "Custom"],
             comboBox.Elements().Select(element => element.Attribute("Tag")?.Value));
+        Assert.Equal("132", comboBox.Attribute("Width")?.Value);
+        Assert.Equal("36", comboBox.Attribute("Height")?.Value);
+        Assert.Equal("Center", comboBox.Attribute("VerticalAlignment")?.Value);
         Assert.Equal("Collapsed", FindNamedElement(document, "CustomRestoreDelayPanel")
             .Attribute("Visibility")?.Value);
         Assert.Equal("2", FindNamedElement(document, "CustomRestoreDelayTextBox")
