@@ -350,17 +350,25 @@ public sealed class MainWindowLayoutStructureTests
         var aeziolEndpointIcon = FindNamedElement(document, "AeziolConnectionEndpointIcon");
         var connectedTrail = FindNamedElement(document, "DiscordConnectedTrailCanvas");
         var connectedGlow = FindNamedElement(document, "DiscordConnectedTrailGlowLayer");
+        var authorizationTag = FindNamedElement(document, "DiscordAuthorizationStateTag");
+        var authorizationText = FindNamedElement(document, "DiscordAuthorizationStateText");
+        var authorizationDot = FindNamedElement(document, "DiscordRouteStateDot");
         var fallbackToggle = FindNamedElement(document, "DiscordFallbackToggle");
         var fallbackPanel = FindNamedElement(document, "DiscordFallbackPanel");
-        Assert.Equal("16", connectionCard.Attribute("Padding")?.Value);
+        Assert.Equal("14", connectionCard.Attribute("Padding")?.Value);
         Assert.Equal("0", connectionCard.Attribute("Margin")?.Value);
-        Assert.Equal("88", connectionRoute.Attribute("Height")?.Value);
+        Assert.Equal("70", connectionRoute.Attribute("Height")?.Value);
         Assert.Equal("52", discordEndpointIcon.Attribute("Width")?.Value);
         Assert.Equal("52", discordEndpointIcon.Attribute("Height")?.Value);
         Assert.Equal("52", aeziolEndpointIcon.Attribute("Width")?.Value);
         Assert.Equal("52", aeziolEndpointIcon.Attribute("Height")?.Value);
+        Assert.Contains(authorizationTag.Descendants(), element => ReferenceEquals(element, authorizationText));
+        Assert.Contains(authorizationTag.Descendants(), element => ReferenceEquals(element, authorizationDot));
+        Assert.DoesNotContain(FindNamedElement(document, "DiscordConnectionTrail").Descendants(), element =>
+            element.Attribute(Xaml + "Name")?.Value is "DiscordAuthorizationStateText" or "DiscordRouteStateDot");
+        Assert.Contains("DiscordAuthorizationStateTag.BorderBrush = authorizationBrush;", source, StringComparison.Ordinal);
         Assert.Equal("DiscordSetting:8", fallbackToggle.Attribute("Tag")?.Value);
-        Assert.Equal("0,8,0,0", fallbackToggle.Attribute("Margin")?.Value);
+        Assert.Equal("0,6,0,0", fallbackToggle.Attribute("Margin")?.Value);
         Assert.Equal("0,6,0,0", fallbackPanel.Attribute("Margin")?.Value);
         Assert.Equal(["0.9", "0.75"], connectedTrail.Elements()
             .Where(element => element.Name.LocalName == "Path")

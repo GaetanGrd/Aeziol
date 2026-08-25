@@ -1303,7 +1303,7 @@
                                               VerticalScrollBarVisibility="Auto"
                                               HorizontalScrollBarVisibility="Disabled">
                                     <Border x:Name="DiscordSettingsCard" Margin="0"
-                                            Padding="16" CornerRadius="13"
+                                            Padding="14" CornerRadius="13"
                                             VerticalAlignment="Top"
                                             Background="{DynamicResource AeziolSurface}"
                                             BorderBrush="{DynamicResource AeziolTraceBorder}"
@@ -1315,8 +1315,30 @@
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel VerticalAlignment="Center">
-                                                    <TextBlock x:Name="DiscordSettingsTitleText"
-                                                               FontSize="15" FontWeight="SemiBold" />
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock x:Name="DiscordSettingsTitleText"
+                                                                   FontSize="15" FontWeight="SemiBold"
+                                                                   VerticalAlignment="Center" />
+                                                        <Border x:Name="DiscordAuthorizationStateTag"
+                                                                Margin="8,0,0,0" Padding="8,3"
+                                                                CornerRadius="8"
+                                                                VerticalAlignment="Center"
+                                                                Background="{DynamicResource AeziolRaised}"
+                                                                BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                                                BorderThickness="1">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Ellipse x:Name="DiscordRouteStateDot"
+                                                                         Width="5" Height="5"
+                                                                         Margin="0,0,6,0"
+                                                                         Fill="{DynamicResource AeziolDim}"
+                                                                         VerticalAlignment="Center" />
+                                                                <TextBlock x:Name="DiscordAuthorizationStateText"
+                                                                           FontSize="9"
+                                                                           Foreground="{DynamicResource AeziolMuted}"
+                                                                           VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </StackPanel>
                                                     <TextBlock x:Name="DiscordRouteCaptionText"
                                                                Margin="0,3,0,0" FontSize="10"
                                                                Foreground="{DynamicResource AeziolDim}" />
@@ -1335,7 +1357,7 @@
                                             </Grid>
 
                                             <Grid x:Name="DiscordConnectionRouteGrid"
-                                                  Margin="0,10,0,2" Height="88">
+                                                  Margin="0,7,0,0" Height="70">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="66" />
                                                     <ColumnDefinition Width="*" />
@@ -1356,10 +1378,6 @@
                                                 </StackPanel>
 
                                                 <Grid x:Name="DiscordConnectionTrail" Grid.Column="1" Margin="12,0">
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="*" />
-                                                        <RowDefinition Height="Auto" />
-                                                    </Grid.RowDefinitions>
                                                     <Viewbox Height="58" Stretch="Fill" VerticalAlignment="Center">
                                                         <Grid Width="440" Height="58" IsHitTestVisible="False">
                                                             <Grid.OpacityMask>
@@ -1515,15 +1533,6 @@
                                                             </Canvas>
                                                         </Grid>
                                                     </Viewbox>
-                                                    <StackPanel Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                                                        <Ellipse x:Name="DiscordRouteStateDot" Width="6" Height="6"
-                                                                 Fill="{DynamicResource AeziolDim}"
-                                                                 HorizontalAlignment="Center" />
-                                                        <TextBlock x:Name="DiscordAuthorizationStateText"
-                                                                   Margin="0,4,0,0" FontSize="10"
-                                                                   Foreground="{DynamicResource AeziolMuted}"
-                                                                   HorizontalAlignment="Center" />
-                                                    </StackPanel>
                                                 </Grid>
 
                                                 <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -1538,7 +1547,7 @@
 
                                             <ToggleButton x:Name="DiscordFallbackToggle"
                                                           Tag="DiscordSetting:8"
-                                                          Margin="0,8,0,0" Padding="0"
+                                                          Margin="0,6,0,0" Padding="0"
                                                           Background="Transparent" BorderThickness="0"
                                                           Cursor="Hand" FocusVisualStyle="{x:Null}">
                                                 <ToggleButton.Content>

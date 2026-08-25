@@ -2111,6 +2111,11 @@ public partial class MainWindow : Window
         DiscordAuthorizationStateText.Text = authorizationText;
         DiscordAuthorizationStateText.Foreground = authorizationBrush;
         DiscordRouteStateDot.Fill = authorizationBrush;
+        DiscordAuthorizationStateTag.BorderBrush = authorizationBrush;
+        DiscordAuthorizationStateTag.Opacity = isAuthorized ? 1 : 0.76;
+        System.Windows.Automation.AutomationProperties.SetName(
+            DiscordAuthorizationStateTag,
+            authorizationText);
         DiscordConnectedTrailCanvas.Visibility = isAuthorized ? Visibility.Visible : Visibility.Collapsed;
         DiscordBrokenTrailCanvas.Visibility = isAuthorized ? Visibility.Collapsed : Visibility.Visible;
         DiscordConnectedTrailCanvas.BeginAnimation(OpacityProperty, null);
