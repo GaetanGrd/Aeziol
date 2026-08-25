@@ -319,8 +319,31 @@
                                 <TextBlock x:Name="DiscordSubtitleText" Margin="0,5,0,0"
                                            Style="{StaticResource PageSubtitle}" />
                             </StackPanel>
-                            <ToggleButton x:Name="DiscordSettingsToggleButton"
-                                          Grid.Column="1"
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                                <StackPanel x:Name="RouteVariantPreviewBar"
+                                            Margin="0,2,7,0" Orientation="Horizontal">
+                                    <RadioButton Width="32" Height="34" Margin="0,0,3,0"
+                                                 Content="1" Tag="1" GroupName="RoutePreviewVariant"
+                                                 ToolTip="Passage tendu"
+                                                 IsChecked="True" Style="{StaticResource SettingsSectionTab}"
+                                                 Checked="OnRouteVariantPreviewChecked" />
+                                    <RadioButton Width="32" Height="34" Margin="0,0,3,0"
+                                                 Content="2" Tag="2" GroupName="RoutePreviewVariant"
+                                                 ToolTip="Fil continu"
+                                                 Style="{StaticResource SettingsSectionTab}"
+                                                 Checked="OnRouteVariantPreviewChecked" />
+                                    <RadioButton Width="32" Height="34" Margin="0,0,3,0"
+                                                 Content="3" Tag="3" GroupName="RoutePreviewVariant"
+                                                 ToolTip="Passerelle centrée"
+                                                 Style="{StaticResource SettingsSectionTab}"
+                                                 Checked="OnRouteVariantPreviewChecked" />
+                                    <RadioButton Width="32" Height="34"
+                                                 Content="4" Tag="4" GroupName="RoutePreviewVariant"
+                                                 ToolTip="Diagonale orbitale"
+                                                 Style="{StaticResource SettingsSectionTab}"
+                                                 Checked="OnRouteVariantPreviewChecked" />
+                                </StackPanel>
+                                <ToggleButton x:Name="DiscordSettingsToggleButton"
                                           Width="42" Height="42"
                                           VerticalAlignment="Top"
                                           Foreground="{DynamicResource AeziolGold}"
@@ -388,7 +411,8 @@
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </ToggleButton.Template>
-                            </ToggleButton>
+                                </ToggleButton>
+                            </StackPanel>
                         </Grid>
 
                         <Grid Grid.Row="1">
@@ -409,12 +433,45 @@
 
                                 <Grid x:Name="PassageRouteGrid" Margin="4,12,4,14">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="250" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="250" />
+                                        <ColumnDefinition x:Name="PassageRouteSourceColumn" Width="176" />
+                                        <ColumnDefinition x:Name="PassageRouteLeftTraceColumn" Width="*" />
+                                        <ColumnDefinition x:Name="PassageRouteCenterColumn" Width="82" />
+                                        <ColumnDefinition x:Name="PassageRouteRightTraceColumn" Width="*" />
+                                        <ColumnDefinition x:Name="PassageRouteTargetColumn" Width="176" />
                                     </Grid.ColumnDefinitions>
 
-                                    <StackPanel x:Name="PassageSourcePanel" Grid.Column="0" VerticalAlignment="Center"
+                                    <Viewbox x:Name="PassageJourneyTraceView"
+                                             Grid.Column="0" Grid.ColumnSpan="5"
+                                             Height="72" Margin="88,0"
+                                             Stretch="Fill" VerticalAlignment="Center"
+                                             IsHitTestVisible="False" Panel.ZIndex="0">
+                                        <Grid x:Name="PassageJourneyTraceLogicalCanvas" Width="600" Height="72">
+                                            <controls:JourneyTrace x:Name="PassageJourneyTrace"
+                                                                   Width="600" Height="72"
+                                                                   Orientation="Horizontal"
+                                                                   ProgressMode="SymmetricFromCenter"
+                                                                   EdgeFade="0.06" HighlightFade="0.14" HighlightRadius="12"
+                                                                   BaseStrokeA="0.9" BaseStrokeB="0.75"
+                                                                   BaseOpacityA="1" BaseOpacityB="0.44"
+                                                                   HighlightStroke="1.7" GlowStroke="5"
+                                                                   TraceA="M 0,38 C 70,9 141,12 218,33 C 254,43 278,44 300,35 C 331,22 367,18 411,29 C 477,45 536,44 600,31"
+                                                                   TraceB="M 0,33 C 72,14 142,16 220,35 C 254,44 280,41 300,32 C 332,20 368,22 413,32 C 479,42 539,40 600,35">
+                                                <controls:JourneyTrace.Particles>
+                                                    <controls:JourneyParticle X="90" Y="15" Size="2.5" Opacity="0.48"
+                                                                              HighlightSize="3.5" HighlightOpacity="0.94" Tone="Primary" />
+                                                    <controls:JourneyParticle X="218" Y="33" Size="1.7" Opacity="0.42"
+                                                                              HighlightSize="2.5" HighlightOpacity="0.9" Tone="Secondary" />
+                                                    <controls:JourneyParticle X="382" Y="25" Size="2" Opacity="0.44"
+                                                                              HighlightSize="3" HighlightOpacity="0.9" Tone="Primary" />
+                                                    <controls:JourneyParticle X="510" Y="42" Size="1.5" Opacity="0.4"
+                                                                              HighlightSize="2.5" HighlightOpacity="0.88" Tone="Secondary" />
+                                                </controls:JourneyTrace.Particles>
+                                            </controls:JourneyTrace>
+                                        </Grid>
+                                    </Viewbox>
+
+                                    <Grid x:Name="PassageSourceHost" Grid.Column="0" Panel.ZIndex="2">
+                                    <StackPanel x:Name="PassageSourcePanel" VerticalAlignment="Center"
                                                 MouseEnter="OnPassageJourneySourceEnter"
                                                 MouseLeave="OnPassageJourneyLeave">
                                         <TextBlock x:Name="SourceLabelText" Style="{StaticResource SectionLabel}" HorizontalAlignment="Center" />
@@ -439,34 +496,10 @@
                                                 Style="{StaticResource PrimaryButton}"
                                                 Click="OnPassageDiscordAction" />
                                     </StackPanel>
+                                    </Grid>
 
-                                    <Grid x:Name="AutomationRouteControlHost" Grid.Column="1" Margin="10,0">
-                                        <Viewbox x:Name="PassageJourneyTraceView" Height="62" Stretch="Fill" VerticalAlignment="Center"
-                                                 IsHitTestVisible="False">
-                                            <Grid Width="200" Height="62">
-                                                <controls:JourneyTrace x:Name="PassageJourneyTrace"
-                                                                   Width="200" Height="62"
-                                                                   Orientation="Horizontal"
-                                                                   ProgressMode="SymmetricFromCenter"
-                                                                   EdgeFade="0.06" HighlightFade="0.14" HighlightRadius="12"
-                                                                   BaseStrokeA="0.9" BaseStrokeB="0.75"
-                                                                   BaseOpacityA="1" BaseOpacityB="0.44"
-                                                                   HighlightStroke="1.7" GlowStroke="5"
-                                                                   TraceA="M 0,35 C 22,8 48,7 75,26 C 88,35 94,39 103,38 C 130,59 166,58 200,31"
-                                                                   TraceB="M 0,31 C 23,12 49,11 76,28 C 88,36 96,36 104,35 C 131,55 165,54 200,35">
-                                                    <controls:JourneyTrace.Particles>
-                                                    <controls:JourneyParticle X="41" Y="13" Size="2.5" Opacity="0.48"
-                                                                              HighlightSize="3.5" HighlightOpacity="0.94" Tone="Primary" />
-                                                    <controls:JourneyParticle X="78" Y="28" Size="1.7" Opacity="0.42"
-                                                                              HighlightSize="2.5" HighlightOpacity="0.9" Tone="Secondary" />
-                                                    <controls:JourneyParticle X="130" Y="49" Size="2" Opacity="0.44"
-                                                                              HighlightSize="3" HighlightOpacity="0.9" Tone="Primary" />
-                                                    <controls:JourneyParticle X="166" Y="48" Size="1.5" Opacity="0.4"
-                                                                              HighlightSize="2.5" HighlightOpacity="0.88" Tone="Secondary" />
-                                                    </controls:JourneyTrace.Particles>
-                                                </controls:JourneyTrace>
-                                            </Grid>
-                                        </Viewbox>
+                                    <Grid x:Name="AutomationRouteControlHost" Grid.Column="2"
+                                          Width="82" Margin="0" Panel.ZIndex="3">
                                         <Button x:Name="AutomationActionButton" Width="82" Height="82"
                                                 HorizontalAlignment="Center" VerticalAlignment="Center"
                                                 Focusable="False" IsTabStop="False"
@@ -561,7 +594,10 @@
                                         </Button>
                                     </Grid>
 
-                                    <StackPanel x:Name="PassageTargetPanel" Grid.Column="2" VerticalAlignment="Center"
+                                    <Border x:Name="PassageTargetSurface" Grid.Column="4"
+                                            Background="Transparent" BorderBrush="Transparent"
+                                            BorderThickness="0" Padding="0" Panel.ZIndex="2">
+                                    <StackPanel x:Name="PassageTargetPanel" VerticalAlignment="Center"
                                                 MouseEnter="OnPassageJourneyTargetEnter"
                                                 MouseLeave="OnPassageJourneyLeave">
                                         <TextBlock x:Name="TargetLabelText" Style="{StaticResource SectionLabel}" />
@@ -591,15 +627,17 @@
                                         <TextBlock x:Name="TargetHelpText" Margin="2,7,0,0" Style="{StaticResource BodyMuted}"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
+                                    </Border>
                                 </Grid>
 
-                                <Border x:Name="PassageOutputPanel" Grid.Row="1" Padding="14,11" CornerRadius="12"
+                                <Border x:Name="PassageOutputPanel" Grid.Row="1" Width="428"
+                                        HorizontalAlignment="Center" Padding="14,11" CornerRadius="12"
                                         Background="{DynamicResource AeziolSurface}" BorderBrush="{DynamicResource AeziolBorderSoft}" BorderThickness="1">
                                     <StackPanel>
                                         <TextBlock x:Name="CurrentOutputLabelText" Style="{StaticResource SectionLabel}" />
                                         <ComboBox x:Name="CurrentOutputCombo" Margin="-6,2,0,-3" MinHeight="30"
                                                   Padding="6,2" Background="Transparent" BorderBrush="Transparent"
-                                                  MaxWidth="320"
+                                                  Width="220" MaxWidth="220"
                                                   Style="{StaticResource CompactComboBox}" SelectedValuePath="Id"
                                                   SelectionChanged="OnCurrentOutputChanged"
                                                   FlowDirection="LeftToRight">

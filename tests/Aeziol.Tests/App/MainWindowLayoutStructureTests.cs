@@ -83,7 +83,7 @@ public sealed class MainWindowLayoutStructureTests
 
         Assert.Equal("Button", actionButton.Name.LocalName);
         Assert.Equal(
-            ["250", "*", "250"],
+            ["176", "*", "82", "*", "176"],
             passageRouteGrid.Elements().Single(element => element.Name.LocalName == "Grid.ColumnDefinitions")
                 .Elements().Select(element => element.Attribute("Width")?.Value));
         Assert.Equal("82", actionButton.Attribute("Width")?.Value);
@@ -283,7 +283,7 @@ public sealed class MainWindowLayoutStructureTests
         Assert.DoesNotContain("IsPassageSourceHighlightSuppressed", source[targetEnterStart..leaveStart], StringComparison.Ordinal);
         Assert.Contains("PassageJourneyTrace.HideHighlight(PassageSourcePanel", availability, StringComparison.Ordinal);
         Assert.Contains("wasAuthorizationRequired && PassageSourcePanel.IsMouseOver", availability, StringComparison.Ordinal);
-        Assert.Contains("ShowPassageJourneyHighlight(PassageSourcePanel, 0, 112);", availability, StringComparison.Ordinal);
+        Assert.Contains("ShowPassageJourneyHighlight(PassageSourcePanel, sourceSide: true);", availability, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -339,6 +339,7 @@ public sealed class MainWindowLayoutStructureTests
         var automationAction = FindNamedElement(document, "AutomationActionButton");
         var discordView = FindNamedElement(document, "DiscordView");
         var discordHeading = FindNamedElement(document, "DiscordHeading");
+        var routeVariantPreviewBar = FindNamedElement(document, "RouteVariantPreviewBar");
         var discordSettingsToggle = FindNamedElement(document, "DiscordSettingsToggleButton");
         var discordSettingsGearGlyph = FindNamedElement(document, "DiscordSettingsGearGlyph");
         var discordSettingsCloseGlyph = FindNamedElement(document, "DiscordSettingsCloseGlyph");
@@ -354,7 +355,17 @@ public sealed class MainWindowLayoutStructureTests
             discordView.Elements().Single(element => element.Name.LocalName == "Grid.RowDefinitions")
                 .Elements().Select(element => element.Attribute("Height")?.Value));
         Assert.Contains(discordSettingsToggle, discordHeading.Descendants());
-        Assert.Equal("1", discordSettingsToggle.Attribute("Grid.Column")?.Value);
+        Assert.Contains(routeVariantPreviewBar, discordHeading.Descendants());
+        var routeVariants = routeVariantPreviewBar.Elements()
+            .Where(element => element.Name.LocalName == "RadioButton")
+            .ToArray();
+        Assert.Equal(["1", "2", "3", "4"], routeVariants.Select(element => element.Attribute("Tag")?.Value));
+        Assert.All(routeVariants, element =>
+        {
+            Assert.Equal("RoutePreviewVariant", element.Attribute("GroupName")?.Value);
+            Assert.Equal("OnRouteVariantPreviewChecked", element.Attribute("Checked")?.Value);
+        });
+        Assert.Equal("True", routeVariants[0].Attribute("IsChecked")?.Value);
         Assert.Equal("42", discordSettingsToggle.Attribute("Width")?.Value);
         Assert.Equal("42", discordSettingsToggle.Attribute("Height")?.Value);
         Assert.Equal("{DynamicResource AeziolGold}", discordSettingsToggle.Attribute("Foreground")?.Value);
@@ -398,6 +409,13 @@ public sealed class MainWindowLayoutStructureTests
         Assert.DoesNotContain(document.Descendants(), element =>
             element.Attribute(Xaml + "Name")?.Value is "DiscordOverviewTab" or "DiscordRulesTab");
         Assert.Contains("UpdateDiscordSettingsTogglePresentation", source, StringComparison.Ordinal);
+        Assert.Contains("ApplyDiscordRoutePreviewVariant(_routePreviewVariant);", source, StringComparison.Ordinal);
+        Assert.Contains("ApplyDiscordRoutePreviewVariant", source, StringComparison.Ordinal);
+        Assert.Contains("ApplyPassageTenduPreview", source, StringComparison.Ordinal);
+        Assert.Contains("ApplyFilContinuPreview", source, StringComparison.Ordinal);
+        Assert.Contains("ApplyPasserellePreview", source, StringComparison.Ordinal);
+        Assert.Contains("ApplyDiagonalePreview", source, StringComparison.Ordinal);
+        Assert.Contains("RouteVariantPreviewBar.Visibility = showSettings ? Visibility.Collapsed : Visibility.Visible;", source, StringComparison.Ordinal);
         Assert.Equal("AutomationRouteControlHost", automationAction.Ancestors().First(element => element.Attribute(Xaml + "Name") is not null).Attribute(Xaml + "Name")?.Value);
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RuleDestinationCombo");
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "SettingsDiscordTab");

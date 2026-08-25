@@ -43,6 +43,7 @@ public partial class MainWindow : Window
     private readonly AppPaths _paths;
     private readonly Task _runtimeInitialization;
     private readonly AppUpdateService _updateService;
+    private int _routePreviewVariant = 1;
     private readonly DiscordSettingsV4.DiscordSettingsV4Concept2 _discordSettings;
     private readonly SemaphoreSlim _settingsGate = new(1, 1);
     private readonly NotificationCenter _notifications = new();
@@ -85,6 +86,7 @@ public partial class MainWindow : Window
         _runtimeInitialization = runtimeInitialization;
         _updateService = new AppUpdateService(UpdateHttpClient, paths.UpdatesDirectory);
         InitializeComponent();
+        ApplyDiscordRoutePreviewVariant(_routePreviewVariant);
         _discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();
         _discordSettings.SetRestoreDelaySeconds(runtime.Settings.ExitGracePeriodSeconds);
         _discordSettings.RestoreDelayChanged += OnDiscordRestoreDelayChanged;
@@ -2367,10 +2369,265 @@ public partial class MainWindow : Window
         }
 
         var showSettings = DiscordSettingsToggleButton.IsChecked == true;
+        RouteVariantPreviewBar.Visibility = showSettings ? Visibility.Collapsed : Visibility.Visible;
         PassageAutomationContent.Visibility = showSettings ? Visibility.Collapsed : Visibility.Visible;
         RulesView.Visibility = showSettings ? Visibility.Visible : Visibility.Collapsed;
         UpdateDiscordSettingsTogglePresentation();
         AnimateSettingsPanel(showSettings ? RulesView : PassageAutomationContent);
+    }
+
+    private void OnRouteVariantPreviewChecked(object sender, RoutedEventArgs eventArgs)
+    {
+        if (!IsInitialized
+            || sender is not System.Windows.Controls.RadioButton { IsChecked: true } option
+            || !int.TryParse(option.Tag?.ToString(), out var variant)
+            || variant is < 1 or > 4)
+        {
+            return;
+        }
+
+        _routePreviewVariant = variant;
+        ApplyDiscordRoutePreviewVariant(variant);
+    }
+
+    private void ApplyDiscordRoutePreviewVariant(int variant)
+    {
+        ResetDiscordRoutePreviewSurface();
+        switch (variant)
+        {
+            case 1:
+                ApplyPassageTenduPreview();
+                break;
+            case 2:
+                ApplyFilContinuPreview();
+                break;
+            case 3:
+                ApplyPasserellePreview();
+                break;
+            default:
+                ApplyDiagonalePreview();
+                break;
+        }
+    }
+
+    private void ResetDiscordRoutePreviewSurface()
+    {
+        PassageRouteGrid.Height = double.NaN;
+        PassageRouteGrid.VerticalAlignment = VerticalAlignment.Stretch;
+        PassageRouteGrid.Margin = new Thickness(4, 10, 4, 12);
+        PassageSourceHost.RenderTransform = Transform.Identity;
+        PassageTargetSurface.RenderTransform = Transform.Identity;
+        PassageTargetSurface.Background = System.Windows.Media.Brushes.Transparent;
+        PassageTargetSurface.BorderBrush = System.Windows.Media.Brushes.Transparent;
+        PassageTargetSurface.BorderThickness = new Thickness(0);
+        PassageTargetSurface.Padding = new Thickness(0);
+        PassageTargetSurface.CornerRadius = new CornerRadius(0);
+        TargetLabelText.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
+        TargetHelpText.TextAlignment = TextAlignment.Left;
+        PassageJourneyTraceView.MaxWidth = double.PositiveInfinity;
+        PassageJourneyTraceView.VerticalAlignment = VerticalAlignment.Center;
+        PassageJourneyTrace.HighlightRadius = 12;
+        PassageJourneyTrace.BaseStrokeA = 0.9;
+        PassageJourneyTrace.BaseStrokeB = 0.75;
+        PassageJourneyTrace.BaseOpacityA = 1;
+        PassageJourneyTrace.BaseOpacityB = 0.44;
+        PassageJourneyTrace.HighlightStroke = 1.7;
+        PassageJourneyTrace.GlowStroke = 5;
+        PassageJourneyTrace.EdgeFade = 0.06;
+        PassageOutputPanel.Margin = new Thickness(0);
+        CurrentOutputCombo.MinWidth = 0;
+    }
+
+    private void ApplyPassageTenduPreview()
+    {
+        SetRouteColumns(176, new GridLength(1, GridUnitType.Star), 82, new GridLength(1, GridUnitType.Star), 176);
+        PlaceRouteEndpoint(PassageSourceHost, 0, 1, System.Windows.HorizontalAlignment.Stretch, double.NaN);
+        PlaceRouteEndpoint(PassageTargetSurface, 4, 1, System.Windows.HorizontalAlignment.Stretch, double.NaN);
+        PlaceRouteCenter(column: 2, columnSpan: 1, fixedWidth: 82);
+        TargetLabelText.HorizontalAlignment = System.Windows.HorizontalAlignment.Center;
+        TargetHelpText.TextAlignment = TextAlignment.Center;
+        SetEndpointSizes(sourceSurface: 72, sourceIconWidth: 33, sourceIconHeight: 25, targetWidth: 176);
+        SetPassageTrace(
+            600, 72, new Thickness(88, 0, 88, 0),
+            "M 0,38 C 70,9 141,12 218,33 C 254,43 278,44 300,35 C 331,22 367,18 411,29 C 477,45 536,44 600,31",
+            "M 0,33 C 72,14 142,16 220,35 C 254,44 280,41 300,32 C 332,20 368,22 413,32 C 479,42 539,40 600,35",
+            (90, 15, 2.5, 0.48, 3.5, 0.94, Controls.JourneyParticleTone.Primary),
+            (218, 33, 1.7, 0.42, 2.5, 0.9, Controls.JourneyParticleTone.Secondary),
+            (382, 25, 2, 0.44, 3, 0.9, Controls.JourneyParticleTone.Primary),
+            (510, 42, 1.5, 0.4, 2.5, 0.88, Controls.JourneyParticleTone.Secondary));
+        SetOutputPreview(width: 428, comboWidth: 220, stretch: false);
+    }
+
+    private void ApplyFilContinuPreview()
+    {
+        PrepareOverlayRoute(sourceWidth: 150, targetWidth: 184);
+        SetEndpointSizes(sourceSurface: 78, sourceIconWidth: 35, sourceIconHeight: 26, targetWidth: 184);
+        SetPassageTrace(
+            360, 62, new Thickness(74, 0, 74, 0),
+            "M 0,34 C 46,10 82,10 124,27 C 148,37 166,38 180,32 C 199,22 220,39 244,43 C 282,51 318,48 360,29",
+            "M 0,30 C 44,14 86,14 126,29 C 150,38 167,36 180,31 C 200,23 220,36 246,40 C 286,47 322,44 360,34",
+            (62, 14, 2.5, 0.48, 3.5, 0.94, Controls.JourneyParticleTone.Primary),
+            (126, 29, 1.7, 0.42, 2.5, 0.9, Controls.JourneyParticleTone.Secondary),
+            (238, 43, 2, 0.44, 3, 0.9, Controls.JourneyParticleTone.Primary),
+            (304, 45, 1.5, 0.4, 2.5, 0.88, Controls.JourneyParticleTone.Secondary));
+        SetOutputPreview(width: 356, comboWidth: 228, stretch: false);
+    }
+
+    private void ApplyPasserellePreview()
+    {
+        PrepareOverlayRoute(sourceWidth: 148, targetWidth: 188);
+        PassageTargetSurface.SetResourceReference(Border.BackgroundProperty, "AeziolSurface");
+        PassageTargetSurface.SetResourceReference(Border.BorderBrushProperty, "AeziolBorderSoft");
+        PassageTargetSurface.BorderThickness = new Thickness(1);
+        PassageTargetSurface.Padding = new Thickness(12, 10, 12, 10);
+        PassageTargetSurface.CornerRadius = new CornerRadius(12);
+        SetEndpointSizes(sourceSurface: 78, sourceIconWidth: 35, sourceIconHeight: 26, targetWidth: 164);
+        PassageJourneyTraceView.MaxWidth = 520;
+        SetPassageTrace(
+            440, 62, new Thickness(112, 0, 112, 0),
+            "M 0,35 C 48,8 106,7 165,26 C 194,35 207,39 227,38 C 286,59 365,58 440,31",
+            "M 0,31 C 51,12 108,11 167,28 C 194,36 211,36 229,35 C 288,55 363,54 440,35",
+            (90, 13, 2.5, 0.48, 3.5, 0.94, Controls.JourneyParticleTone.Primary),
+            (172, 28, 1.7, 0.42, 2.5, 0.9, Controls.JourneyParticleTone.Secondary),
+            (286, 49, 2, 0.44, 3, 0.9, Controls.JourneyParticleTone.Primary),
+            (365, 48, 1.5, 0.4, 2.5, 0.88, Controls.JourneyParticleTone.Secondary));
+        SetOutputPreview(width: 520, comboWidth: 208, stretch: false);
+    }
+
+    private void ApplyDiagonalePreview()
+    {
+        PrepareOverlayRoute(sourceWidth: 144, targetWidth: 184);
+        PassageRouteGrid.Height = 188;
+        PassageRouteGrid.VerticalAlignment = VerticalAlignment.Center;
+        PassageSourceHost.RenderTransform = new TranslateTransform(0, -14);
+        PassageTargetSurface.RenderTransform = new TranslateTransform(0, 16);
+        SetEndpointSizes(sourceSurface: 78, sourceIconWidth: 33, sourceIconHeight: 25, targetWidth: 168);
+        PassageJourneyTrace.HighlightRadius = 14;
+        PassageJourneyTrace.BaseStrokeA = 1.15;
+        PassageJourneyTrace.BaseStrokeB = 0.9;
+        PassageJourneyTrace.BaseOpacityB = 0.52;
+        PassageJourneyTrace.HighlightStroke = 1.85;
+        PassageJourneyTrace.GlowStroke = 5.5;
+        PassageJourneyTrace.EdgeFade = 0.045;
+        SetPassageTrace(
+            520, 78, new Thickness(86, 0, 86, 0),
+            "M 0,27 C 55,4 102,13 151,34 C 185,49 210,50 260,39 C 307,28 342,62 389,57 C 437,52 467,34 520,51",
+            "M 0,33 C 59,12 108,18 154,39 C 190,55 220,47 260,42 C 309,35 345,66 391,61 C 438,56 475,30 520,45",
+            (67, 14, 2.8, 0.52, 3.8, 0.96, Controls.JourneyParticleTone.Primary),
+            (131, 29, 1.6, 0.38, 2.5, 0.88, Controls.JourneyParticleTone.Secondary),
+            (191, 50, 2.2, 0.46, 3.2, 0.92, Controls.JourneyParticleTone.Primary),
+            (326, 45, 1.5, 0.4, 2.4, 0.88, Controls.JourneyParticleTone.Secondary),
+            (407, 57, 2.5, 0.48, 3.5, 0.94, Controls.JourneyParticleTone.Primary),
+            (472, 35, 1.3, 0.35, 2.2, 0.86, Controls.JourneyParticleTone.Secondary));
+        SetOutputPreview(width: double.NaN, comboWidth: 320, stretch: true);
+    }
+
+    private void PrepareOverlayRoute(double sourceWidth, double targetWidth)
+    {
+        SetRouteColumns(0, new GridLength(0), 1, new GridLength(0), 0, centerIsStar: true);
+        PlaceRouteEndpoint(PassageSourceHost, 0, 5, System.Windows.HorizontalAlignment.Left, sourceWidth);
+        PlaceRouteEndpoint(PassageTargetSurface, 0, 5, System.Windows.HorizontalAlignment.Right, targetWidth);
+        PlaceRouteCenter(column: 0, columnSpan: 5, fixedWidth: double.NaN);
+    }
+
+    private void SetRouteColumns(
+        double source,
+        GridLength leftTrace,
+        double center,
+        GridLength rightTrace,
+        double target,
+        bool centerIsStar = false)
+    {
+        PassageRouteSourceColumn.Width = new GridLength(source);
+        PassageRouteLeftTraceColumn.Width = leftTrace;
+        PassageRouteCenterColumn.Width = centerIsStar
+            ? new GridLength(center, GridUnitType.Star)
+            : new GridLength(center);
+        PassageRouteRightTraceColumn.Width = rightTrace;
+        PassageRouteTargetColumn.Width = new GridLength(target);
+    }
+
+    private static void PlaceRouteEndpoint(
+        FrameworkElement endpoint,
+        int column,
+        int columnSpan,
+        System.Windows.HorizontalAlignment alignment,
+        double width)
+    {
+        Grid.SetColumn(endpoint, column);
+        Grid.SetColumnSpan(endpoint, columnSpan);
+        endpoint.HorizontalAlignment = alignment;
+        endpoint.Width = width;
+    }
+
+    private void PlaceRouteCenter(int column, int columnSpan, double fixedWidth)
+    {
+        Grid.SetColumn(AutomationRouteControlHost, column);
+        Grid.SetColumnSpan(AutomationRouteControlHost, columnSpan);
+        AutomationRouteControlHost.HorizontalAlignment = double.IsNaN(fixedWidth)
+            ? System.Windows.HorizontalAlignment.Stretch
+            : System.Windows.HorizontalAlignment.Center;
+        AutomationRouteControlHost.Width = fixedWidth;
+        AutomationRouteControlHost.Margin = new Thickness(0);
+        Grid.SetColumn(PassageJourneyTraceView, 0);
+        Grid.SetColumnSpan(PassageJourneyTraceView, 5);
+    }
+
+    private void SetEndpointSizes(
+        double sourceSurface,
+        double sourceIconWidth,
+        double sourceIconHeight,
+        double targetWidth)
+    {
+        DiscordPresenceIconSurface.Width = sourceSurface;
+        DiscordPresenceIconSurface.Height = sourceSurface;
+        DiscordPresenceIconSurface.CornerRadius = new CornerRadius(sourceSurface / 2);
+        DiscordPresenceIcon.Width = sourceIconWidth;
+        DiscordPresenceIcon.Height = sourceIconHeight;
+        PassageDestinationCombo.Width = targetWidth;
+        TargetHelpText.MaxWidth = targetWidth;
+    }
+
+    private void SetOutputPreview(double width, double comboWidth, bool stretch)
+    {
+        PassageOutputPanel.Width = width;
+        PassageOutputPanel.HorizontalAlignment = stretch
+            ? System.Windows.HorizontalAlignment.Stretch
+            : System.Windows.HorizontalAlignment.Center;
+        CurrentOutputCombo.Width = comboWidth;
+        CurrentOutputCombo.MaxWidth = comboWidth;
+    }
+
+    private void SetPassageTrace(
+        double width,
+        double height,
+        Thickness viewMargin,
+        string traceA,
+        string traceB,
+        params (double X, double Y, double Size, double Opacity, double HighlightSize, double HighlightOpacity, Controls.JourneyParticleTone Tone)[] particles)
+    {
+        PassageJourneyTraceView.Height = height;
+        PassageJourneyTraceView.Margin = viewMargin;
+        PassageJourneyTraceLogicalCanvas.Width = width;
+        PassageJourneyTraceLogicalCanvas.Height = height;
+        PassageJourneyTrace.Width = width;
+        PassageJourneyTrace.Height = height;
+        PassageJourneyTrace.TraceA = Geometry.Parse(traceA);
+        PassageJourneyTrace.TraceB = Geometry.Parse(traceB);
+        PassageJourneyTrace.Particles.Clear();
+        foreach (var particle in particles)
+        {
+            PassageJourneyTrace.Particles.Add(new Controls.JourneyParticle
+            {
+                X = particle.X,
+                Y = particle.Y,
+                Size = particle.Size,
+                Opacity = particle.Opacity,
+                HighlightSize = particle.HighlightSize,
+                HighlightOpacity = particle.HighlightOpacity,
+                Tone = particle.Tone,
+            });
+        }
     }
 
     private void UpdateDiscordSettingsTogglePresentation()
@@ -2438,12 +2695,12 @@ public partial class MainWindow : Window
             return;
         }
 
-        ShowPassageJourneyHighlight(sender, 0, 112);
+        ShowPassageJourneyHighlight(sender, sourceSide: true);
     }
 
     private void OnPassageJourneyTargetEnter(
         object sender,
-        System.Windows.Input.MouseEventArgs eventArgs) => ShowPassageJourneyHighlight(sender, 88, 112);
+        System.Windows.Input.MouseEventArgs eventArgs) => ShowPassageJourneyHighlight(sender, sourceSide: false);
 
     private void OnPassageJourneyLeave(
         object sender,
@@ -2461,16 +2718,17 @@ public partial class MainWindow : Window
         }
         else if (wasAuthorizationRequired && PassageSourcePanel.IsMouseOver)
         {
-            ShowPassageJourneyHighlight(PassageSourcePanel, 0, 112);
+            ShowPassageJourneyHighlight(PassageSourcePanel, sourceSide: true);
         }
     }
 
-    private void ShowPassageJourneyHighlight(object owner, double left, double width)
+    private void ShowPassageJourneyHighlight(object owner, bool sourceSide)
     {
-        var right = Math.Min(PassageJourneyTrace.Width, left + width);
+        var width = PassageJourneyTrace.Width * 0.56;
+        var left = sourceSide ? 0 : PassageJourneyTrace.Width - width;
         PassageJourneyTrace.ShowHighlight(
             owner,
-            new Rect(left, 0, right - left, PassageJourneyTrace.Height),
+            new Rect(left, 0, width, PassageJourneyTrace.Height),
             MotionAssist.GetIsReduced(this));
     }
 
