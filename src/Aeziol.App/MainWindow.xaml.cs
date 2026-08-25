@@ -88,27 +88,16 @@ public partial class MainWindow : Window
         _discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();
         _discordSettings.SetRestoreDelaySeconds(runtime.Settings.ExitGracePeriodSeconds);
         _discordSettings.RestoreDelayChanged += OnDiscordRestoreDelayChanged;
-        if (DiscordFallbackToggle.Parent is System.Windows.Controls.Panel fallbackParent)
-        {
-            fallbackParent.Children.Remove(DiscordFallbackToggle);
-            fallbackParent.Children.Remove(DiscordFallbackPanel);
-        }
         if (ExclusionsJourneyHost.Parent is System.Windows.Controls.Panel exclusionsParent)
         {
             exclusionsParent.Children.Remove(ExclusionsJourneyHost);
         }
         SettingsDiscordScrollViewer.Content = null;
         _discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;
-        _discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackToggle);
-        _discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackPanel);
-        DiscordFallbackToggle.IsChecked = true;
-        DiscordFallbackToggle.Visibility = Visibility.Collapsed;
-        DiscordFallbackPanel.Margin = new Thickness(0);
         _discordSettings.ExcludedOutputsHost.Content = ExclusionsJourneyHost;
-        _discordSettings.ConceptRoot.Children.Remove(_discordSettings.SettingsModalLayer);
-        RulesView.Children.Add(_discordSettings.SettingsModalLayer);
-        System.Windows.Controls.Panel.SetZIndex(_discordSettings.SettingsModalLayer, 20);
         DiscordSettingsHost.Content = _discordSettings;
+        RulesView.SizeChanged += (_, _) => UpdateDiscordSettingsAvailableHeight();
+        DiscordSettingsHost.Loaded += (_, _) => UpdateDiscordSettingsAvailableHeight();
         CloseActionsMenu.LayoutTransform = _closeActionsMenuScale;
         NotificationItems.ItemsSource = _notifications.Items;
         MotionAssist.SetIsReduced(this, runtime.Settings.ReduceAnimations);
@@ -2988,6 +2977,23 @@ public partial class MainWindow : Window
     }
 
     private void OnWindowSizeChanged(object sender, SizeChangedEventArgs eventArgs) => UpdateResponsiveScale();
+
+    private void UpdateDiscordSettingsAvailableHeight()
+    {
+        if (!DiscordSettingsHost.IsLoaded || RulesView.ActualHeight <= 0)
+        {
+            return;
+        }
+
+        var contentTop = DiscordSettingsHost.TranslatePoint(
+            new System.Windows.Point(0, 0),
+            RulesView).Y;
+        var availableHeight = RulesView.ActualHeight - Math.Max(0, contentTop);
+        if (availableHeight > 0)
+        {
+            _discordSettings.Height = availableHeight;
+        }
+    }
 
     private void UpdateResponsiveScale()
     {

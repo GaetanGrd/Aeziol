@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Linq;
-using Aeziol.App.Controls;
 using Aeziol.App.DiscordSettingsV4;
 
 namespace Aeziol.Tests.App;
@@ -9,26 +8,72 @@ namespace Aeziol.Tests.App;
 public sealed class DiscordSettingsV4Concept2StructureTests
 {
     private static readonly XNamespace Xaml = "http://schemas.microsoft.com/winfx/2006/xaml";
-    private static readonly string[] LauncherNames =
-        ["OpenGlobalSettingsButton", "OpenOutputDevicesButton", "OpenFallbackSettingsButton"];
 
     [Fact]
-    public void ConceptContainsTheFourSettingsNotOwnedByTheOriginalConnectionCard()
+    public void DiscordSettingsKeepOnlyTheFiveSelectedResponsibilities()
     {
-        var document = LoadConcept();
-        var settings = document.Descendants()
-            .Where(element => element.Attribute("Tag")?.Value.StartsWith("DiscordSetting:", StringComparison.Ordinal) == true)
+        var concept = LoadConcept();
+        var window = XDocument.Load(FindSourceFile("src", "Aeziol.App", "MainWindow.xaml"));
+        var tags = concept.Descendants()
+            .Concat(window.Descendants())
+            .Select(element => element.Attribute("Tag")?.Value)
+            .Where(value => value?.StartsWith("DiscordSetting:", StringComparison.Ordinal) == true)
+            .Cast<string>()
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(4, settings.Length);
         Assert.Equal(
-            ["DiscordSetting:2", "DiscordSetting:3", "DiscordSetting:8", "DiscordSetting:9"],
-            settings.Select(element => element.Attribute("Tag")!.Value).Order(StringComparer.Ordinal));
+            ["DiscordSetting:2", "DiscordSetting:3", "DiscordSetting:7", "DiscordSetting:8", "DiscordSetting:9"],
+            tags);
+        Assert.Equal("DiscordSetting:2", FindNamedElement(concept, "RestoreDelaySetting").Attribute("Tag")?.Value);
+        Assert.Equal("DiscordSetting:3", FindNamedElement(concept, "ExcludedOutputsSetting").Attribute("Tag")?.Value);
+        Assert.Equal("DiscordSetting:9", FindNamedElement(concept, "WindowsNotificationSetting").Attribute("Tag")?.Value);
+        Assert.Equal("DiscordSetting:7", FindNamedElement(window, "RevokeDiscordButton").Attribute("Tag")?.Value);
+        Assert.Equal("DiscordSetting:8", FindNamedElement(window, "DiscordFallbackToggle").Attribute("Tag")?.Value);
+    }
 
-        Assert.Equal("DiscordSetting:2", FindNamedElement(document, "RestoreDelaySetting").Attribute("Tag")?.Value);
-        Assert.Equal("DiscordSetting:3", FindNamedElement(document, "ExcludedOutputsSetting").Attribute("Tag")?.Value);
-        Assert.Equal("DiscordSetting:8", FindNamedElement(document, "DiscordFallbackHost").Attribute("Tag")?.Value);
-        Assert.Equal("DiscordSetting:9", FindNamedElement(document, "WindowsNotificationSetting").Attribute("Tag")?.Value);
+    [Fact]
+    public void MainSettingsUseTwoPermanentColumnsWithoutLaunchersOrModals()
+    {
+        var document = LoadConcept();
+        var columns = FindNamedElement(document, "DiscordSettingsColumns");
+        var globalCard = FindNamedElement(document, "GlobalSettingsCard");
+        var outputCard = FindNamedElement(document, "OutputSettingsCard");
+
+        Assert.Equal("*", columns.Descendants().First(element =>
+            element.Name.LocalName == "ColumnDefinition").Attribute("Width")?.Value);
+        Assert.Equal("0", globalCard.Attribute("Grid.Column")?.Value);
+        Assert.Equal("2", outputCard.Attribute("Grid.Column")?.Value);
+        Assert.Equal("Stretch", FindNamedElement(document, "ExcludedOutputsHost")
+            .Attribute("VerticalContentAlignment")?.Value);
+        Assert.Null(FindNamedElement(document, "ExcludedOutputsHost").Attribute("MinHeight"));
+        Assert.DoesNotContain(document.Descendants(), element =>
+            element.Name.LocalName == "SettingsSectionCard");
+        Assert.DoesNotContain(document.Descendants(), element =>
+            element.Attribute(Xaml + "Name")?.Value?.Contains("Modal", StringComparison.Ordinal) == true);
+        Assert.DoesNotContain(document.Descendants(), element =>
+            element.Attribute(Xaml + "Name")?.Value?.StartsWith("Open", StringComparison.Ordinal) == true);
+    }
+
+    [Fact]
+    public void RestoreDelayOffersTheRequestedPresetsAndCustomValue()
+    {
+        var document = LoadConcept();
+        var comboBox = FindNamedElement(document, "RestoreDelayComboBox");
+
+        Assert.Equal("1", comboBox.Attribute("Grid.Column")?.Value);
+        Assert.Equal("32", comboBox.Attribute("MinHeight")?.Value);
+        Assert.Equal(
+            ["Immédiatement", "1 seconde", "2 secondes", "3 secondes", "Personnaliser"],
+            comboBox.Elements().Select(element => element.Attribute("Content")?.Value));
+        Assert.Equal(
+            ["0", "1", "2", "3", "Custom"],
+            comboBox.Elements().Select(element => element.Attribute("Tag")?.Value));
+        Assert.Equal("Collapsed", FindNamedElement(document, "CustomRestoreDelayPanel")
+            .Attribute("Visibility")?.Value);
+        Assert.Equal("2", FindNamedElement(document, "CustomRestoreDelayTextBox")
+            .Attribute("MaxLength")?.Value);
     }
 
     [Fact]
@@ -63,97 +108,9 @@ public sealed class DiscordSettingsV4Concept2StructureTests
             Assert.DoesNotContain(names, name => name.Contains(forbiddenName, StringComparison.OrdinalIgnoreCase));
         }
 
-        var forbiddenCopy = new[]
-        {
-            "Autoriser Discord",
-            "Activer le module",
-            "Déclencheur",
-            "Condition",
-            "Priorité",
-            "Choisir une sortie",
-            "Sortie actuelle",
-            "Restaurer maintenant",
-            "Forcer la restauration",
-            "Connexion Discord",
-        };
-        var visibleCopy = document.Descendants()
-            .SelectMany(element => new[] { element.Attribute("Text")?.Value, element.Attribute("Content")?.Value })
-            .Where(value => value is not null)
-            .Cast<string>()
-            .ToArray();
-        foreach (var copy in forbiddenCopy)
-        {
-            Assert.DoesNotContain(visibleCopy, value => value.Contains(copy, StringComparison.OrdinalIgnoreCase));
-        }
-
         Assert.DoesNotContain(document.Descendants(), element => element.Name.LocalName == "Image");
         Assert.DoesNotContain("DiscordSymbolGeometry", source, StringComparison.Ordinal);
         Assert.DoesNotContain("AeziolCicadaDrawing", source, StringComparison.Ordinal);
-        var modalScrollViewer = Assert.Single(
-            document.Descendants(),
-            element => element.Name.LocalName == "ScrollViewer");
-        Assert.Contains(modalScrollViewer.Ancestors(), element =>
-            element.Attribute(Xaml + "Name")?.Value == "SettingsModalLayer");
-        Assert.DoesNotContain(document.Descendants(), element =>
-            string.Equals(element.Attribute("Text")?.Value, "Réglages Discord", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public void ConceptUsesThreeCompactLaunchersAndModalSections()
-    {
-        var document = LoadConcept();
-        var component = XDocument.Load(FindSourceFile(
-            "src", "Aeziol.App", "Controls", "SettingsSectionCard.xaml"));
-        var launcherSurface = component.Descendants().Single(element =>
-            element.Attribute(Xaml + "Name")?.Value == "CardSurface");
-        var journeyTrace = component.Descendants().Single(element =>
-            element.Attribute(Xaml + "Name")?.Value == "CardJourneyTrace");
-        var iconSurface = FindNamedElement(component, "SectionIconSurface");
-
-        Assert.Equal("168", component.Root?.Attribute("MinHeight")?.Value);
-        Assert.Equal("16", launcherSurface.Attribute("CornerRadius")?.Value);
-        Assert.Equal("JourneyTrace", journeyTrace.Name.LocalName);
-        Assert.Equal("0.9", journeyTrace.Attribute("BaseStrokeA")?.Value);
-        Assert.Equal("0.75", journeyTrace.Attribute("BaseStrokeB")?.Value);
-        Assert.Equal("52", iconSurface.Attribute("Width")?.Value);
-        Assert.Equal("52", iconSurface.Attribute("Height")?.Value);
-        Assert.Equal("OnCardMouseEnter", FindNamedElement(component, "SectionButton").Attribute("MouseEnter")?.Value);
-        Assert.Equal("OnCardMouseLeave", FindNamedElement(component, "SectionButton").Attribute("MouseLeave")?.Value);
-        Assert.All(
-            LauncherNames,
-            name => Assert.Equal("SettingsSectionCard", FindNamedElement(document, name).Name.LocalName));
-        Assert.Equal("0", FindNamedElement(document, "OpenGlobalSettingsButton").Attribute("Grid.Column")?.Value);
-        Assert.Equal("2", FindNamedElement(document, "OpenOutputDevicesButton").Attribute("Grid.Column")?.Value);
-        Assert.Equal("4", FindNamedElement(document, "OpenFallbackSettingsButton").Attribute("Grid.Column")?.Value);
-        Assert.Equal("Collapsed", FindNamedElement(document, "SettingsModalLayer").Attribute("Visibility")?.Value);
-        Assert.Null(FindNamedElement(document, "SettingsModalLayer").Attribute("MinHeight"));
-        Assert.Null(FindNamedElement(document, "SettingsModalSurface").Attribute("Width"));
-        Assert.Equal("480", FindNamedElement(document, "SettingsModalSurface").Attribute("MinWidth")?.Value);
-        Assert.Equal("720", FindNamedElement(document, "SettingsModalSurface").Attribute("MaxWidth")?.Value);
-        Assert.Equal("520", FindNamedElement(document, "SettingsModalSurface").Attribute("MaxHeight")?.Value);
-        Assert.Equal("Center", FindNamedElement(document, "SettingsModalSurface").Attribute("HorizontalAlignment")?.Value);
-        Assert.Equal("Center", FindNamedElement(document, "SettingsModalSurface").Attribute("VerticalAlignment")?.Value);
-        Assert.NotNull(FindNamedElement(document, "SettingsModalHeaderIcon"));
-        Assert.Null(FindNamedElement(document, "SettingsModalScrollViewer").Attribute("MaxHeight"));
-        Assert.Equal("1", FindNamedElement(document, "RestoreDelayComboBox").Attribute("Grid.Column")?.Value);
-        Assert.Equal("32", FindNamedElement(document, "RestoreDelayComboBox").Attribute("MinHeight")?.Value);
-        Assert.Equal(
-            ["Immédiatement", "1 seconde", "2 secondes", "3 secondes", "Personnaliser"],
-            FindNamedElement(document, "RestoreDelayComboBox").Elements()
-                .Select(element => element.Attribute("Content")?.Value));
-        Assert.Equal(
-            ["0", "1", "2", "3", "Custom"],
-            FindNamedElement(document, "RestoreDelayComboBox").Elements()
-                .Select(element => element.Attribute("Tag")?.Value));
-        Assert.Equal("Collapsed", FindNamedElement(document, "CustomRestoreDelayPanel").Attribute("Visibility")?.Value);
-        Assert.Equal("2", FindNamedElement(document, "CustomRestoreDelayTextBox").Attribute("MaxLength")?.Value);
-        Assert.Null(FindNamedElement(document, "ExcludedOutputsHost").Attribute("MinHeight"));
-        Assert.Equal("Top", FindNamedElement(document, "ExcludedOutputsHost").Attribute("VerticalContentAlignment")?.Value);
-        foreach (var panelName in new[] { "GlobalSettingsPanel", "ExcludedOutputsSetting", "FallbackSettingsPanel" })
-        {
-            Assert.Contains(FindNamedElement(document, panelName).Ancestors(), element =>
-                element.Attribute(Xaml + "Name")?.Value == "SettingsModalLayer");
-        }
     }
 
     private static XDocument LoadConcept() => XDocument.Load(FindConceptPath());
@@ -183,52 +140,21 @@ public sealed class DiscordSettingsV4Concept2StructureTests
 public sealed class DiscordSettingsV4Concept2WpfTests
 {
     [Fact]
-    public void ConceptInstantiatesWithTheOriginalConnectionAndFallbackHosts()
+    public void ConceptInstantiatesWithPermanentGlobalAndOutputColumns()
     {
         WpfTestHost.Run(() =>
         {
             var concept = new DiscordSettingsV4Concept2();
             concept.ApplyTemplate();
 
+            Assert.IsType<Border>(concept.FindName("GlobalSettingsCard"));
             Assert.IsType<Border>(concept.FindName("RestoreDelaySetting"));
+            Assert.IsType<Border>(concept.FindName("OutputSettingsCard"));
             Assert.IsType<Border>(concept.FindName("ExcludedOutputsSetting"));
             Assert.IsType<Border>(concept.FindName("WindowsNotificationSetting"));
             Assert.IsType<ContentControl>(concept.FindName("DiscordConnectionHost"));
-            Assert.IsType<StackPanel>(concept.FindName("DiscordFallbackHost"));
             Assert.IsType<ContentControl>(concept.FindName("ExcludedOutputsHost"));
-
-            var outputsButton = Assert.IsType<SettingsSectionCard>(
-                concept.FindName("OpenOutputDevicesButton"));
-            outputsButton.RaiseEvent(new RoutedEventArgs(SettingsSectionCard.ClickEvent));
-
-            Assert.Equal(Visibility.Visible, Assert.IsType<Grid>(concept.FindName("SettingsModalLayer")).Visibility);
-            Assert.Equal(Visibility.Visible, Assert.IsType<Border>(concept.FindName("ExcludedOutputsSetting")).Visibility);
-            Assert.Equal(
-                "Périphériques de sortie",
-                Assert.IsType<TextBlock>(concept.FindName("SettingsModalTitleText")).Text);
-        });
-    }
-
-    [Fact]
-    public void ReusableSectionCardForwardsClicksFromItsInternalButton()
-    {
-        WpfTestHost.Run(() =>
-        {
-            var card = new SettingsSectionCard
-            {
-                Title = "Section",
-                Description = "Description",
-                IconData = System.Windows.Media.Geometry.Parse("M 0,0 L 10,10"),
-            };
-            var clickCount = 0;
-            card.Click += (_, _) => clickCount++;
-            card.ApplyTemplate();
-
-            var button = Assert.IsType<System.Windows.Controls.Button>(card.FindName("SectionButton"));
-            button.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
-
-            Assert.Equal(1, clickCount);
-            Assert.IsType<JourneyTrace>(card.FindName("CardJourneyTrace"));
+            Assert.Null(concept.FindName("SettingsModalLayer"));
         });
     }
 

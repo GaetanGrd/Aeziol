@@ -630,8 +630,7 @@
                                             <TextBlock x:Name="ExclusionsHelpText" Margin="0,4,0,0" Style="{StaticResource BodyMuted}" />
                                         </StackPanel>
                                         <Grid x:Name="ExclusionsJourneyHost"
-                                              Grid.Row="1"
-                                              MaxHeight="300">
+                                              Grid.Row="1">
                                             <Canvas x:Name="ExclusionsJourneyTraceCanvas"
                                                     Width="19" Margin="1,5,0,5"
                                                     HorizontalAlignment="Left"
@@ -660,27 +659,18 @@
                                             </Canvas>
                                             <ScrollViewer x:Name="ExclusionsScrollViewer"
                                                           Margin="24,0,0,0"
-                                                          MaxHeight="300"
                                                           VerticalScrollBarVisibility="Auto"
                                                           HorizontalScrollBarVisibility="Disabled">
                                                 <ItemsControl x:Name="ExclusionsList"
                                                               HorizontalContentAlignment="Stretch">
-                                                    <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate>
-                                                            <UniformGrid Columns="3" />
-                                                        </ItemsPanelTemplate>
-                                                    </ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemContainerStyle>
                                                         <Style TargetType="ContentPresenter">
                                                             <Setter Property="HorizontalAlignment" Value="Stretch" />
-                                                            <Setter Property="VerticalAlignment" Value="Stretch" />
                                                         </Style>
                                                     </ItemsControl.ItemContainerStyle>
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
-                                                            <Grid MinHeight="58"
-                                                                  Margin="2"
-                                                                  Background="Transparent"
+                                                            <Grid Background="Transparent"
                                                                   HorizontalAlignment="Stretch"
                                                                   MouseEnter="OnExclusionJourneyEnter"
                                                                   MouseLeave="OnExclusionJourneyLeave">
@@ -690,14 +680,8 @@
                                                                           IsChecked="{Binding IsExcluded, Mode=TwoWay}"
                                                                           Click="OnExclusionChanged">
                                                                     <StackPanel>
-                                                                        <TextBlock Text="{Binding DisplayName}"
-                                                                                   FontSize="11"
-                                                                                   LineHeight="15"
-                                                                                   TextWrapping="Wrap"
-                                                                                   ToolTip="{Binding DisplayName}" />
+                                                                        <TextBlock Text="{Binding DisplayName}" FontSize="12" />
                                                                         <TextBlock Text="{Binding Detail}" Margin="0,2,0,0" FontSize="9"
-                                                                                   TextTrimming="CharacterEllipsis"
-                                                                                   ToolTip="{Binding Detail}"
                                                                                    Foreground="{DynamicResource AeziolDim}" />
                                                                     </StackPanel>
                                                                 </CheckBox>
@@ -1318,7 +1302,7 @@
                                 <ScrollViewer x:Name="SettingsDiscordScrollViewer"
                                               VerticalScrollBarVisibility="Auto"
                                               HorizontalScrollBarVisibility="Disabled">
-                                    <Border x:Name="DiscordSettingsCard" Margin="0,0,8,8"
+                                    <Border x:Name="DiscordSettingsCard" Margin="0"
                                             Padding="16" CornerRadius="13"
                                             VerticalAlignment="Top"
                                             Background="{DynamicResource AeziolSurface}"
@@ -1343,6 +1327,7 @@
                                                             Style="{StaticResource PrimaryButton}"
                                                             Click="OnAuthorizeDiscord" />
                                                     <Button x:Name="RevokeDiscordButton"
+                                                            Tag="DiscordSetting:7"
                                                             Style="{StaticResource DangerButton}"
                                                             Visibility="Collapsed"
                                                             Click="OnRequestRevokeDiscord" />
@@ -1552,23 +1537,45 @@
                                             </Grid>
 
                                             <ToggleButton x:Name="DiscordFallbackToggle"
-                                                          Margin="0,14,0,0" Padding="0"
+                                                          Tag="DiscordSetting:8"
+                                                          Margin="0,8,0,0" Padding="0"
                                                           Background="Transparent" BorderThickness="0"
                                                           Cursor="Hand" FocusVisualStyle="{x:Null}">
                                                 <ToggleButton.Content>
-                                                    <StackPanel>
-                                                        <TextBlock x:Name="DiscordFallbackTitleText"
-                                                                   FontSize="11" FontWeight="SemiBold" />
-                                                        <TextBlock x:Name="DiscordFallbackHintText"
-                                                                   Margin="0,3,20,0" FontSize="9"
-                                                                   Foreground="{DynamicResource AeziolDim}"
-                                                                   TextWrapping="Wrap" />
-                                                    </StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="28" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Width="24" Height="24" CornerRadius="7"
+                                                                HorizontalAlignment="Left"
+                                                                Background="{DynamicResource AeziolGoldWash}">
+                                                            <Path Width="13" Height="13"
+                                                                  Stretch="Uniform"
+                                                                  Stroke="{DynamicResource AeziolGold}"
+                                                                  StrokeThickness="1.4"
+                                                                  StrokeStartLineCap="Round"
+                                                                  StrokeEndLineCap="Round"
+                                                                  StrokeLineJoin="Round"
+                                                                  Data="M 2,3 L 12,3 L 12,13 L 2,13 Z M 4,6 L 10,6 M 4,9 L 8,9" />
+                                                        </Border>
+                                                        <StackPanel Grid.Column="1" Margin="7,0,0,0"
+                                                                    VerticalAlignment="Center">
+                                                            <TextBlock x:Name="DiscordFallbackTitleText"
+                                                                       FontSize="10" FontWeight="SemiBold" />
+                                                            <TextBlock x:Name="DiscordFallbackHintText"
+                                                                       Margin="0,2,20,0" FontSize="9"
+                                                                       Foreground="{DynamicResource AeziolDim}"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                        </StackPanel>
+                                                    </Grid>
                                                 </ToggleButton.Content>
                                                 <ToggleButton.Template>
                                                     <ControlTemplate TargetType="ToggleButton">
-                                                        <Border x:Name="DisclosureSurface" Padding="12,10" CornerRadius="10"
-                                                                Background="Transparent">
+                                                        <Border x:Name="DisclosureSurface" Padding="9,7" CornerRadius="9"
+                                                                Background="{DynamicResource AeziolRaised}"
+                                                                BorderBrush="{DynamicResource AeziolBorderSoft}"
+                                                                BorderThickness="1">
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
@@ -1610,7 +1617,7 @@
                                                 </ToggleButton.Template>
                                             </ToggleButton>
 
-                                            <Border x:Name="DiscordFallbackPanel" Margin="0,8,0,0" Padding="14"
+                                            <Border x:Name="DiscordFallbackPanel" Margin="0,6,0,0" Padding="12"
                                                     CornerRadius="11" Background="{DynamicResource AeziolRaised}">
                                                 <Border.Style>
                                                     <Style TargetType="Border">

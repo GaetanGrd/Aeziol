@@ -75,7 +75,6 @@ public sealed class MainWindowLayoutStructureTests
         var exclusionsJourneyHost = FindNamedElement(windowDocument, "ExclusionsJourneyHost");
         var exclusionsJourneyTraceCanvas = FindNamedElement(windowDocument, "ExclusionsJourneyTraceCanvas");
         var exclusionsScrollViewer = FindNamedElement(windowDocument, "ExclusionsScrollViewer");
-        var exclusionsList = FindNamedElement(windowDocument, "ExclusionsList");
         var navigationBrand = FindNamedElement(windowDocument, "NavigationBrandCicada");
         var surfaceStateTriggers = controlSurface.Descendants()
             .Where(element => element.Name.LocalName == "DataTrigger")
@@ -133,16 +132,13 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Equal("SymmetricFromCenter", passageJourneyTrace.Attribute("ProgressMode")?.Value);
         Assert.Null(settingsJourneyTrace.Attribute("ProgressMode"));
         Assert.Null(exclusionsJourneyTrace.Attribute("ProgressMode"));
-        Assert.Equal("300", exclusionsJourneyHost.Attribute("MaxHeight")?.Value);
+        Assert.Null(exclusionsJourneyHost.Attribute("MaxHeight"));
         Assert.Equal("Canvas", exclusionsJourneyTraceCanvas.Name.LocalName);
         Assert.Equal("True", exclusionsJourneyTraceCanvas.Attribute("ClipToBounds")?.Value);
         Assert.Equal(
             "OnExclusionsJourneyTraceCanvasSizeChanged",
             exclusionsJourneyTraceCanvas.Attribute("SizeChanged")?.Value);
-        Assert.Equal("300", exclusionsScrollViewer.Attribute("MaxHeight")?.Value);
-        Assert.Contains(exclusionsList.Descendants(), element =>
-            element.Name.LocalName == "UniformGrid"
-            && element.Attribute("Columns")?.Value == "3");
+        Assert.Null(exclusionsScrollViewer.Attribute("MaxHeight"));
         Assert.Equal(
             "ExclusionsJourneyTraceCanvas",
             exclusionsJourneyTrace.Parent?.Attribute(Xaml + "Name")?.Value);
@@ -342,14 +338,11 @@ public sealed class MainWindowLayoutStructureTests
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "SettingsDiscordTab");
         Assert.Contains("_discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();", source, StringComparison.Ordinal);
         Assert.Contains("_discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;", source, StringComparison.Ordinal);
-        Assert.Contains("_discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackToggle);", source, StringComparison.Ordinal);
-        Assert.Contains("_discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackPanel);", source, StringComparison.Ordinal);
-        Assert.Contains("DiscordFallbackToggle.IsChecked = true;", source, StringComparison.Ordinal);
-        Assert.Contains("DiscordFallbackToggle.Visibility = Visibility.Collapsed;", source, StringComparison.Ordinal);
-        Assert.Contains("_discordSettings.ConceptRoot.Children.Remove(_discordSettings.SettingsModalLayer);", source, StringComparison.Ordinal);
-        Assert.Contains("RulesView.Children.Add(_discordSettings.SettingsModalLayer);", source, StringComparison.Ordinal);
-        Assert.Contains("System.Windows.Controls.Panel.SetZIndex(_discordSettings.SettingsModalLayer, 20);", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("DiscordFallbackHost.Children.Add", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("DiscordFallbackToggle.Visibility = Visibility.Collapsed;", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("SettingsModalLayer", source, StringComparison.Ordinal);
         Assert.Contains("DiscordSettingsHost.Content = _discordSettings;", source, StringComparison.Ordinal);
+        Assert.Contains("UpdateDiscordSettingsAvailableHeight", source, StringComparison.Ordinal);
 
         var connectionCard = FindNamedElement(document, "DiscordSettingsCard");
         var connectionRoute = FindNamedElement(document, "DiscordConnectionRouteGrid");
@@ -357,12 +350,18 @@ public sealed class MainWindowLayoutStructureTests
         var aeziolEndpointIcon = FindNamedElement(document, "AeziolConnectionEndpointIcon");
         var connectedTrail = FindNamedElement(document, "DiscordConnectedTrailCanvas");
         var connectedGlow = FindNamedElement(document, "DiscordConnectedTrailGlowLayer");
+        var fallbackToggle = FindNamedElement(document, "DiscordFallbackToggle");
+        var fallbackPanel = FindNamedElement(document, "DiscordFallbackPanel");
         Assert.Equal("16", connectionCard.Attribute("Padding")?.Value);
+        Assert.Equal("0", connectionCard.Attribute("Margin")?.Value);
         Assert.Equal("88", connectionRoute.Attribute("Height")?.Value);
         Assert.Equal("52", discordEndpointIcon.Attribute("Width")?.Value);
         Assert.Equal("52", discordEndpointIcon.Attribute("Height")?.Value);
         Assert.Equal("52", aeziolEndpointIcon.Attribute("Width")?.Value);
         Assert.Equal("52", aeziolEndpointIcon.Attribute("Height")?.Value);
+        Assert.Equal("DiscordSetting:8", fallbackToggle.Attribute("Tag")?.Value);
+        Assert.Equal("0,8,0,0", fallbackToggle.Attribute("Margin")?.Value);
+        Assert.Equal("0,6,0,0", fallbackPanel.Attribute("Margin")?.Value);
         Assert.Equal(["0.9", "0.75"], connectedTrail.Elements()
             .Where(element => element.Name.LocalName == "Path")
             .Select(element => element.Attribute("StrokeThickness")?.Value));
