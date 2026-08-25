@@ -143,6 +143,7 @@ public sealed class DiscordSettingsV4Concept2WpfTests
             Assert.IsType<Border>(concept.FindName("RestoreDelaySetting"));
             Assert.IsType<Border>(concept.FindName("ExcludedOutputsSetting"));
             Assert.IsType<Border>(concept.FindName("RevokeDiscordAuthorizationSetting"));
+            Assert.IsType<ContentControl>(concept.FindName("RevokeDiscordAuthorizationHost"));
             Assert.IsType<Border>(concept.FindName("ManualDiscordExecutableSetting"));
             Assert.IsType<Border>(concept.FindName("WindowsNotificationSetting"));
 

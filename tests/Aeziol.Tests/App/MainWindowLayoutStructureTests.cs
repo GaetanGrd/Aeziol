@@ -322,7 +322,10 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Equal("AutomationRouteControlHost", automationAction.Ancestors().First(element => element.Attribute(Xaml + "Name") is not null).Attribute(Xaml + "Name")?.Value);
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "RuleDestinationCombo");
         Assert.DoesNotContain(document.Descendants(), element => element.Attribute(Xaml + "Name")?.Value == "SettingsDiscordTab");
-        Assert.Contains("DiscordSettingsHost.Content = new DiscordSettingsV4.DiscordSettingsV4Gallery();", source, StringComparison.Ordinal);
+        Assert.Contains("var discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();", source, StringComparison.Ordinal);
+        Assert.Contains("revokeButtonParent.Children.Remove(RevokeDiscordButton);", source, StringComparison.Ordinal);
+        Assert.Contains("discordSettings.RevokeDiscordAuthorizationHost.Content = RevokeDiscordButton;", source, StringComparison.Ordinal);
+        Assert.Contains("DiscordSettingsHost.Content = discordSettings;", source, StringComparison.Ordinal);
     }
 
     private static XElement FindNamedElement(XDocument document, string name) =>

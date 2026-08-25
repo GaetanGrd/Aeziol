@@ -27,8 +27,5 @@
     <None Include="../../src/Aeziol.App/MainWindow.xaml"
           Link="Fixtures/MainWindow.xaml"
           CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../../src/Aeziol.App/DiscordSettingsV4/DiscordSettingsV4Concept3.xaml"
-          Link="Fixtures/DiscordSettingsV4Concept3.xaml"
-          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

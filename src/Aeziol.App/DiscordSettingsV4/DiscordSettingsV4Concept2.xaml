@@ -356,13 +356,9 @@
                                                Text="Autorisation Discord" />
                                     <TextBlock Style="{StaticResource ConceptSettingHelp}"
                                                Text="Retirez l'accès accordé à Aeziol sur cet ordinateur." />
-                                    <Button x:Name="RevokeDiscordAuthorizationButton"
-                                            Margin="0,13,0,0"
-                                            HorizontalAlignment="Left"
-                                            MinHeight="38"
-                                            Padding="14,7"
-                                            Style="{StaticResource DangerButton}"
-                                            Content="Révoquer l'autorisation Discord" />
+                                    <ContentControl x:Name="RevokeDiscordAuthorizationHost"
+                                                    Margin="0,13,0,0"
+                                                    HorizontalAlignment="Left" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>

@@ -84,8 +84,14 @@ public partial class MainWindow : Window
         _runtimeInitialization = runtimeInitialization;
         _updateService = new AppUpdateService(UpdateHttpClient, paths.UpdatesDirectory);
         InitializeComponent();
+        var discordSettings = new DiscordSettingsV4.DiscordSettingsV4Concept2();
+        if (RevokeDiscordButton.Parent is System.Windows.Controls.Panel revokeButtonParent)
+        {
+            revokeButtonParent.Children.Remove(RevokeDiscordButton);
+        }
+        discordSettings.RevokeDiscordAuthorizationHost.Content = RevokeDiscordButton;
         SettingsDiscordScrollViewer.Content = null;
-        DiscordSettingsHost.Content = new DiscordSettingsV4.DiscordSettingsV4Gallery();
+        DiscordSettingsHost.Content = discordSettings;
         CloseActionsMenu.LayoutTransform = _closeActionsMenuScale;
         NotificationItems.ItemsSource = _notifications.Items;
         MotionAssist.SetIsReduced(this, runtime.Settings.ReduceAnimations);
