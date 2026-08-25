@@ -1,0 +1,297 @@
+<Window x:Class="Aeziol.App.DiscordSettingsV4.DiscordSettingsV4Concept4"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:automation="clr-namespace:System.Windows.Automation;assembly=PresentationCore"
+        Title="Préférences Discord"
+        Width="1040" Height="760"
+        MinWidth="900" MinHeight="680"
+        WindowStartupLocation="CenterOwner"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+    <Window.Resources>
+        <Style x:Key="PreferenceNavigationItem" TargetType="RadioButton">
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Foreground" Value="{DynamicResource AeziolMuted}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Surface" CornerRadius="9" Background="Transparent">
+                            <Grid>
+                                <Border x:Name="Marker" Width="3" Height="18"
+                                        HorizontalAlignment="Left" VerticalAlignment="Center"
+                                        CornerRadius="0,3,3,0"
+                                        Background="{DynamicResource AeziolGold}"
+                                        Visibility="Collapsed" />
+                                <ContentPresenter Margin="{TemplateBinding Padding}"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  TextElement.Foreground="{TemplateBinding Foreground}" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Surface" Property="Background"
+                                        Value="{DynamicResource AeziolHover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Surface" Property="Background"
+                                        Value="{DynamicResource AeziolGoldWash}" />
+                                <Setter TargetName="Marker" Property="Visibility" Value="Visible" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolGoldBright}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Surface" Property="Background"
+                                        Value="{DynamicResource AeziolSecondary}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AeziolOnSecondary}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Surface" Property="BorderBrush"
+                                        Value="{DynamicResource AeziolGoldLine}" />
+                                <Setter TargetName="Surface" Property="BorderThickness" Value="1" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Cursor" Value="Arrow" />
+                                <Setter Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PreferenceSection" TargetType="Border">
+            <Setter Property="Padding" Value="16,4" />
+            <Setter Property="CornerRadius" Value="11" />
+            <Setter Property="Background" Value="{DynamicResource AeziolSurface}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AeziolBorderSoft}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style x:Key="PreferenceRow" TargetType="Border">
+            <Setter Property="Padding" Value="0,10" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AeziolBorderSoft}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+
+        <Style x:Key="PreferenceName" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource AeziolText}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+
+        <Style x:Key="PreferenceDescription" TargetType="TextBlock"
+               BasedOn="{StaticResource BodyMuted}">
+            <Setter Property="Margin" Value="0,3,18,0" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="LineHeight" Value="15" />
+        </Style>
+    </Window.Resources>
+
+    <Border Padding="24" Background="{DynamicResource AeziolCanvas}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel>
+                <TextBlock Text="Préférences" Style="{StaticResource PageTitle}" FontSize="24" />
+                <TextBlock Margin="0,3,0,0"
+                           Text="Réglages locaux de l’application"
+                           Style="{StaticResource PageSubtitle}" />
+            </StackPanel>
+
+            <Border Grid.Row="1" Margin="0,16,0,18"
+                    BorderBrush="{DynamicResource AeziolBorderSoft}"
+                    BorderThickness="0,0,0,1" />
+
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="166" />
+                    <ColumnDefinition Width="1" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Margin="0,0,18,0">
+                    <TextBlock Margin="12,0,0,9" Text="CATÉGORIES"
+                               Style="{StaticResource SectionLabel}" />
+                    <RadioButton Content="Audio"
+                                 GroupName="PreferenceCategory"
+                                 IsEnabled="False"
+                                 Style="{StaticResource PreferenceNavigationItem}"
+                                 automation:AutomationProperties.Name="Audio" />
+                    <RadioButton Content="Discord"
+                                 GroupName="PreferenceCategory"
+                                 IsChecked="True"
+                                 Style="{StaticResource PreferenceNavigationItem}"
+                                 automation:AutomationProperties.Name="Discord" />
+                    <RadioButton Content="Sécurité"
+                                 GroupName="PreferenceCategory"
+                                 IsEnabled="False"
+                                 Style="{StaticResource PreferenceNavigationItem}"
+                                 automation:AutomationProperties.Name="Sécurité" />
+                </StackPanel>
+
+                <Border Grid.Column="1" Background="{DynamicResource AeziolBorderSoft}" />
+
+                <Grid Grid.Column="2" Margin="24,0,0,0" Grid.IsSharedSizeScope="True">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel>
+                        <TextBlock Text="Discord" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Margin="0,3,0,0"
+                                   Text="Comportement audio, application et accès"
+                                   Style="{StaticResource BodyMuted}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Margin="0,14,0,0">
+                        <TextBlock Margin="2,0,0,6" Text="COMPORTEMENT AUDIO"
+                                   Style="{StaticResource SectionLabel}" />
+                        <Border Style="{StaticResource PreferenceSection}">
+                            <StackPanel>
+                                <Border Tag="2" Style="{StaticResource PreferenceRow}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="Controls" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Délai avant restauration"
+                                                       Style="{StaticResource PreferenceName}" />
+                                            <TextBlock Text="Attendre brièvement avant de rendre la sortie disponible."
+                                                       Style="{StaticResource PreferenceDescription}" />
+                                        </StackPanel>
+                                        <ComboBox Grid.Column="1" Width="196"
+                                                  SelectedIndex="1"
+                                                  Style="{StaticResource CompactComboBox}"
+                                                  automation:AutomationProperties.Name="Délai avant restauration">
+                                            <ComboBoxItem Content="Immédiatement" />
+                                            <ComboBoxItem Content="5 secondes" />
+                                            <ComboBoxItem Content="10 secondes" />
+                                            <ComboBoxItem Content="30 secondes" />
+                                            <ComboBoxItem Content="1 minute" />
+                                        </ComboBox>
+                                    </Grid>
+                                </Border>
+
+                                <Border Tag="3" Padding="0,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="Controls" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Sorties à ne jamais modifier"
+                                                       Style="{StaticResource PreferenceName}" />
+                                            <TextBlock Text="Ces périphériques restent toujours hors des changements automatiques."
+                                                       Style="{StaticResource PreferenceDescription}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Width="196">
+                                            <CheckBox Content="Casque USB"
+                                                      IsChecked="True"
+                                                      Style="{StaticResource DeviceCheck}"
+                                                      automation:AutomationProperties.Name="Ne jamais modifier le casque USB" />
+                                            <CheckBox Content="Moniteur HDMI"
+                                                      Style="{StaticResource DeviceCheck}"
+                                                      automation:AutomationProperties.Name="Ne jamais modifier le moniteur HDMI" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Margin="2,12,0,6" Text="APPLICATION DISCORD"
+                                   Style="{StaticResource SectionLabel}" />
+                        <Border Tag="8" Padding="16,12"
+                                Style="{StaticResource PreferenceSection}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Controls" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Emplacement de Discord.exe"
+                                               Style="{StaticResource PreferenceName}" />
+                                    <TextBlock Text="Sans chemin saisi, la détection automatique reste utilisée."
+                                               Style="{StaticResource PreferenceDescription}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Width="320">
+                                    <TextBox MinHeight="36"
+                                             automation:AutomationProperties.Name="Chemin vers Discord.exe"
+                                             automation:AutomationProperties.HelpText="Laisser vide pour utiliser la détection automatique" />
+                                    <StackPanel Margin="0,7,0,0" Orientation="Horizontal"
+                                                HorizontalAlignment="Right">
+                                        <Button Content="Détecter automatiquement"
+                                                MinHeight="34" Padding="12,5"
+                                                Style="{StaticResource QuietButton}" />
+                                        <Button Margin="7,0,0,0" Content="Parcourir..."
+                                                MinHeight="34" Padding="12,5"
+                                                Style="{StaticResource ActionButton}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Margin="2,12,0,6" Text="NOTIFICATIONS WINDOWS"
+                                   Style="{StaticResource SectionLabel}" />
+                        <Border Tag="9" Padding="16,10"
+                                Style="{StaticResource PreferenceSection}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Controls" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Prévenir lors d’un changement de sortie"
+                                               Style="{StaticResource PreferenceName}" />
+                                    <TextBlock Text="Afficher une notification Windows après chaque changement."
+                                               Style="{StaticResource PreferenceDescription}" />
+                                </StackPanel>
+                                <CheckBox Grid.Column="1"
+                                          IsChecked="True"
+                                          Style="{StaticResource ToggleSwitch}"
+                                          automation:AutomationProperties.Name="Notification Windows lors d’un changement de sortie" />
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Margin="2,12,0,6" Text="SÉCURITÉ"
+                                   Style="{StaticResource SectionLabel}" />
+                        <Border Tag="7" Padding="16,10"
+                                Style="{StaticResource PreferenceSection}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Controls" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Autorisation Discord"
+                                               Style="{StaticResource PreferenceName}" />
+                                    <TextBlock Text="Retirer l’accès accordé à cette application."
+                                               Style="{StaticResource PreferenceDescription}" />
+                                </StackPanel>
+                                <Button Grid.Column="1"
+                                        Content="Révoquer l’autorisation Discord"
+                                        MinHeight="36" Padding="14,6"
+                                        Style="{StaticResource DangerButton}" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
