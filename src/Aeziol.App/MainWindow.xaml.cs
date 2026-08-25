@@ -2687,7 +2687,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        SettingsMusicAnimatedCover.Stop();
+        ReleaseMediaElement(SettingsMusicAnimatedCover);
         SettingsEditorLayer.Visibility = Visibility.Collapsed;
         SettingsEditorSurface.BeginAnimation(OpacityProperty, null);
         SettingsEditorSurface.RenderTransform = Transform.Identity;
@@ -2860,11 +2860,16 @@ public partial class MainWindow : Window
             && !MotionAssist.GetIsReduced(this)
             && !_aboutMusicCoverFailed
             && File.Exists(videoPath);
+        if (animate)
+        {
+            AttachMediaElement(AboutMusicAnimatedCover, AboutMusicStaticCover);
+        }
+
         AboutMusicAnimatedCover.Visibility = animate ? Visibility.Visible : Visibility.Collapsed;
         AboutMusicStaticCover.Visibility = animate ? Visibility.Collapsed : Visibility.Visible;
         if (!animate)
         {
-            AboutMusicAnimatedCover.Stop();
+            ReleaseMediaElement(AboutMusicAnimatedCover);
             return;
         }
 
@@ -2886,12 +2891,18 @@ public partial class MainWindow : Window
             && !MotionAssist.GetIsReduced(this)
             && !_settingsMusicCoverFailed
             && File.Exists(videoPath);
-        var wasAnimating = SettingsMusicAnimatedCover.Visibility == Visibility.Visible;
+        var wasAnimating = SettingsMusicAnimatedCover.Visibility == Visibility.Visible
+            && SettingsMusicAnimatedCover.Source is not null;
+        if (animate)
+        {
+            AttachMediaElement(SettingsMusicAnimatedCover, SettingsMusicStaticCover);
+        }
+
         SettingsMusicAnimatedCover.Visibility = animate ? Visibility.Visible : Visibility.Collapsed;
         SettingsMusicStaticCover.Visibility = animate ? Visibility.Collapsed : Visibility.Visible;
         if (!animate)
         {
-            SettingsMusicAnimatedCover.Stop();
+            ReleaseMediaElement(SettingsMusicAnimatedCover);
             return;
         }
 
@@ -2928,6 +2939,7 @@ public partial class MainWindow : Window
     private void OnSettingsMusicCoverFailed(object sender, ExceptionRoutedEventArgs eventArgs)
     {
         _settingsMusicCoverFailed = true;
+        ReleaseMediaElement(SettingsMusicAnimatedCover);
         SettingsMusicAnimatedCover.Visibility = Visibility.Collapsed;
         SettingsMusicStaticCover.Visibility = Visibility.Visible;
     }
@@ -2944,15 +2956,45 @@ public partial class MainWindow : Window
     private void OnAboutMusicCoverFailed(object sender, ExceptionRoutedEventArgs eventArgs)
     {
         _aboutMusicCoverFailed = true;
+        ReleaseMediaElement(AboutMusicAnimatedCover);
         AboutMusicAnimatedCover.Visibility = Visibility.Collapsed;
         AboutMusicStaticCover.Visibility = Visibility.Visible;
     }
 
     private void HideAbout()
     {
-        AboutMusicAnimatedCover.Stop();
+        ReleaseMediaElement(AboutMusicAnimatedCover);
         AboutLayer.Visibility = Visibility.Collapsed;
         UpdateSettingsMusicCover();
+    }
+
+    internal static bool ReleaseMediaElement(MediaElement mediaElement)
+    {
+        ArgumentNullException.ThrowIfNull(mediaElement);
+        var releasedMedia = mediaElement.Source is not null;
+        mediaElement.Close();
+        mediaElement.Source = null;
+        mediaElement.UnloadedBehavior = MediaState.Close;
+        if (mediaElement.Parent is System.Windows.Controls.Panel parent)
+        {
+            parent.Children.Remove(mediaElement);
+        }
+
+        return releasedMedia;
+    }
+
+    internal static void AttachMediaElement(MediaElement mediaElement, FrameworkElement fallbackElement)
+    {
+        ArgumentNullException.ThrowIfNull(mediaElement);
+        ArgumentNullException.ThrowIfNull(fallbackElement);
+        if (mediaElement.Parent is not null
+            || fallbackElement.Parent is not System.Windows.Controls.Panel parent)
+        {
+            return;
+        }
+
+        var fallbackIndex = parent.Children.IndexOf(fallbackElement);
+        parent.Children.Insert(Math.Max(0, fallbackIndex), mediaElement);
     }
 
     private async void OnOpenProject(object sender, RoutedEventArgs eventArgs)
@@ -3181,8 +3223,8 @@ public partial class MainWindow : Window
         _updateCheckCancellation?.Dispose();
         _updateDownloadCancellation?.Cancel();
         _updateDownloadCancellation?.Dispose();
-        SettingsMusicAnimatedCover.Stop();
-        AboutMusicAnimatedCover.Stop();
+        ReleaseMediaElement(SettingsMusicAnimatedCover);
+        ReleaseMediaElement(AboutMusicAnimatedCover);
         _settingsGate.Dispose();
         _runtime.VoiceStateChanged -= OnVoiceStateChanged;
         _runtime.RoutingStateChanged -= OnRoutingStateChanged;
