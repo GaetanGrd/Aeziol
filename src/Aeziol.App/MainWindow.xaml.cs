@@ -98,7 +98,13 @@ public partial class MainWindow : Window
         discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;
         discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackToggle);
         discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackPanel);
+        DiscordFallbackToggle.IsChecked = true;
+        DiscordFallbackToggle.Visibility = Visibility.Collapsed;
+        DiscordFallbackPanel.Margin = new Thickness(0);
         discordSettings.ExcludedOutputsHost.Content = ExclusionsJourneyHost;
+        discordSettings.ConceptRoot.Children.Remove(discordSettings.SettingsModalLayer);
+        RulesView.Children.Add(discordSettings.SettingsModalLayer);
+        System.Windows.Controls.Panel.SetZIndex(discordSettings.SettingsModalLayer, 20);
         DiscordSettingsHost.Content = discordSettings;
         CloseActionsMenu.LayoutTransform = _closeActionsMenuScale;
         NotificationItems.ItemsSource = _notifications.Items;

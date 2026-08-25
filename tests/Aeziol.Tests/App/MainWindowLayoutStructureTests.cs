@@ -326,6 +326,11 @@ public sealed class MainWindowLayoutStructureTests
         Assert.Contains("discordSettings.DiscordConnectionHost.Content = DiscordSettingsCard;", source, StringComparison.Ordinal);
         Assert.Contains("discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackToggle);", source, StringComparison.Ordinal);
         Assert.Contains("discordSettings.DiscordFallbackHost.Children.Add(DiscordFallbackPanel);", source, StringComparison.Ordinal);
+        Assert.Contains("DiscordFallbackToggle.IsChecked = true;", source, StringComparison.Ordinal);
+        Assert.Contains("DiscordFallbackToggle.Visibility = Visibility.Collapsed;", source, StringComparison.Ordinal);
+        Assert.Contains("discordSettings.ConceptRoot.Children.Remove(discordSettings.SettingsModalLayer);", source, StringComparison.Ordinal);
+        Assert.Contains("RulesView.Children.Add(discordSettings.SettingsModalLayer);", source, StringComparison.Ordinal);
+        Assert.Contains("System.Windows.Controls.Panel.SetZIndex(discordSettings.SettingsModalLayer, 20);", source, StringComparison.Ordinal);
         Assert.Contains("DiscordSettingsHost.Content = discordSettings;", source, StringComparison.Ordinal);
 
         var connectionCard = FindNamedElement(document, "DiscordSettingsCard");

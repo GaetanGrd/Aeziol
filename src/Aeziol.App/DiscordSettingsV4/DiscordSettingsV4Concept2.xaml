@@ -174,19 +174,17 @@
 
             <Grid x:Name="SettingsModalLayer"
                   Grid.RowSpan="2"
-                  MinHeight="360"
                   Visibility="Collapsed"
                   Panel.ZIndex="10"
                   Background="#D9090A0C"
                   MouseLeftButtonUp="OnSettingsModalBackdropClick">
                 <Border x:Name="SettingsModalSurface"
-                        Width="590"
-                        MaxHeight="410"
-                        Margin="12"
-                        Padding="18,14"
+                        MaxWidth="980"
+                        Margin="20"
+                        Padding="22,18"
                         CornerRadius="16"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
                         Background="{DynamicResource AeziolSurface}"
                         BorderBrush="{DynamicResource AeziolGoldLine}"
                         BorderThickness="1"
@@ -212,7 +210,6 @@
                         <ScrollViewer x:Name="SettingsModalScrollViewer"
                                       Grid.Row="1"
                                       Margin="0,6,4,0"
-                                      MaxHeight="330"
                                       VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Disabled">
                             <Grid>
@@ -280,8 +277,7 @@
                                         BorderBrush="{DynamicResource AeziolBorderSoft}"
                                         BorderThickness="1">
                                     <ContentControl x:Name="ExcludedOutputsHost"
-                                                    MinHeight="150"
-                                                    MaxHeight="280"
+                                                    MinHeight="300"
                                                     HorizontalContentAlignment="Stretch"
                                                     VerticalContentAlignment="Stretch" />
                                 </Border>

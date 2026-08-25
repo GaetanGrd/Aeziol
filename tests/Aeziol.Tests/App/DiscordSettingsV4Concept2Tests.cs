@@ -98,11 +98,13 @@ public sealed class DiscordSettingsV4Concept2StructureTests
         Assert.Equal("2", FindNamedElement(document, "OpenOutputDevicesButton").Attribute("Grid.Column")?.Value);
         Assert.Equal("4", FindNamedElement(document, "OpenFallbackSettingsButton").Attribute("Grid.Column")?.Value);
         Assert.Equal("Collapsed", FindNamedElement(document, "SettingsModalLayer").Attribute("Visibility")?.Value);
-        Assert.Equal("360", FindNamedElement(document, "SettingsModalLayer").Attribute("MinHeight")?.Value);
-        Assert.Equal("330", FindNamedElement(document, "SettingsModalScrollViewer").Attribute("MaxHeight")?.Value);
+        Assert.Null(FindNamedElement(document, "SettingsModalLayer").Attribute("MinHeight"));
+        Assert.Equal("Stretch", FindNamedElement(document, "SettingsModalSurface").Attribute("HorizontalAlignment")?.Value);
+        Assert.Equal("Stretch", FindNamedElement(document, "SettingsModalSurface").Attribute("VerticalAlignment")?.Value);
+        Assert.Null(FindNamedElement(document, "SettingsModalScrollViewer").Attribute("MaxHeight"));
         Assert.Equal("1", FindNamedElement(document, "RestoreDelayComboBox").Attribute("Grid.Column")?.Value);
         Assert.Equal("32", FindNamedElement(document, "RestoreDelayComboBox").Attribute("MinHeight")?.Value);
-        Assert.Equal("280", FindNamedElement(document, "ExcludedOutputsHost").Attribute("MaxHeight")?.Value);
+        Assert.Equal("300", FindNamedElement(document, "ExcludedOutputsHost").Attribute("MinHeight")?.Value);
         foreach (var panelName in new[] { "GlobalSettingsPanel", "ExcludedOutputsSetting", "FallbackSettingsPanel" })
         {
             Assert.Contains(FindNamedElement(document, panelName).Ancestors(), element =>
